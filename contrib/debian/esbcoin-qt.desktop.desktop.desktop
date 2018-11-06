@@ -1,0 +1,11 @@
+[Desktop Entry]
+Encoding=UTF-8
+Name=esbcoin
+Comment=ESportBettingCoin P2P Cryptocurrency
+Exec=esbcoin-qt %u
+Terminal=false
+Type=Application
+Icon=esbcoin128
+MimeType=x-scheme-handler/esbcoin;
+Categories=Office;Finance;
+Name[ru]=esbcoin-qt.desktop.desktop

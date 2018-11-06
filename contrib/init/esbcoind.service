@@ -1,0 +1,26 @@
+[Unit]
+Description=esbcoin's distributed currency daemon
+After=network.target
+
+[Service]
+User=esbcoin
+Group=esbcoin
+
+Type=forking
+PIDFile=/var/lib/esbcoind/esbcoind.pid
+
+ExecStart=/usr/bin/esbcoind -daemon -pid=/var/lib/esbcoind/esbcoind.pid \
+          -conf=/etc/esbcoin/esbcoin.conf -datadir=/var/lib/esbcoind
+
+ExecStop=-/usr/bin/esbcoin-cli -conf=/etc/esbcoin/esbcoin.conf \
+         -datadir=/var/lib/esbcoind stop
+
+Restart=always
+PrivateTmp=true
+TimeoutStopSec=60s
+TimeoutStartSec=2s
+StartLimitInterval=120s
+StartLimitBurst=5
+
+[Install]
+WantedBy=multi-user.target

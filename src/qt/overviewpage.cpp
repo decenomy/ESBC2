@@ -347,12 +347,14 @@ void OverviewPage::updateMasternodeInfo()
     ui->graphMN3->setValue(mn3);
     ui->graphMN4->setValue(mn4);
 
+    // TODO: need a read actual 24h blockcount from chain
+    int BlockCount24h = 1440;
     // update ROI
     double BlockReward = GetBlockValue(chainActive.Height());
-    double roi1 = (0.2*BlockReward*720)/mn1/COIN;
-    double roi2 = (0.3*BlockReward*720)/mn2/COIN;
-    double roi3 = (0.3*BlockReward*720)/mn3/COIN;
-    double roi4 = (0.02*BlockReward*720)/mn4/COIN;
+    double roi1 = (0.2*BlockReward*BlockCount24h)/mn1/COIN;
+    double roi2 = (0.3*BlockReward*BlockCount24h)/mn2/COIN;
+    double roi3 = (0.3*BlockReward*BlockCount24h)/mn3/COIN;
+    double roi4 = (0.02*BlockReward*BlockCount24h)/mn4/COIN;
     if (chainActive.Height() >= 0) {
         /*
         ui->roi_1->setText(mn1==0 ? "-" : QString::number(((((0.4*BlockReward*1440)/mn1)*365)/3000)/1000000,'f',0).append("%"));

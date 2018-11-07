@@ -67,7 +67,7 @@
         <file alias="upArrow_small">res/images/upArrow_small.png</file>
         <file alias="leftArrow_small">res/images/leftArrow_small.png</file>
         <file alias="rightArrow_small">res/images/rightArrow_small.png</file>
-        <file alias="qtreeview_selected">res/images/qtreeview_selected.png</file>        
+        <file alias="qtreeview_selected">res/images/qtreeview_selected.png</file>
         <file alias="splash">res/images/splash.png</file>
         <file alias="splash_testnet">res/images/splash_testnet.png</file>
     </qresource>
@@ -101,7 +101,7 @@
         <file alias="spinner-026">res/movies/spinner-026.png</file>
         <file alias="spinner-027">res/movies/spinner-027.png</file>
         <file alias="spinner-028">res/movies/spinner-028.png</file>
-        <file alias="spinner-029">res/movies/spinner-029.png</file>        
+        <file alias="spinner-029">res/movies/spinner-029.png</file>
     </qresource>
     <qresource prefix="/fonts">
         <file alias="esbcoin_font">res/fonts/esbcoin_font.ttf</file>

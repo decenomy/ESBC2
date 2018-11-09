@@ -214,7 +214,7 @@ void CMasternodePayments::ProcessMessageMasternodePayments(CNode* pfrom, std::st
         LogPrint("mnpayments", "mnw - winning vote - Addr %s Height %d bestHeight %d - %s\n", payee_addr.ToString().c_str(), winner.nBlockHeight, nHeight, winner.vinMasternode.prevout.ToStringShort());
 
         if (masternodePayments.AddWinningMasternode(winner)) {
-            LogPrintf("add winner %s\n", winner.ToString());
+            //LogPrintf("add winner %s\n", winner.ToString());
             winner.Relay();
             masternodeSync.AddedMasternodeWinner(winner.GetHash());
         }
@@ -551,7 +551,6 @@ bool CMasternodePayments::ProcessBlock(int nBlockHeight)
 
     int n = mnodeman.GetMasternodeRank(activeMasternode.vin, nWinnerBlockHeight - 100, ActiveProtocol());
 
-/* for testing
     if (n == -1) {
         LogPrint("mnpayments", "CMasternodePayments::ProcessBlock - Unknown Masternode\n");
         return false;
@@ -561,8 +560,8 @@ bool CMasternodePayments::ProcessBlock(int nBlockHeight)
         LogPrint("mnpayments", "CMasternodePayments::ProcessBlock - Masternode not in the top %d (%d)\n", MNPAYMENTS_SIGNATURES_TOTAL, n);
         return false;
     }
-*/
-    LogPrintf("CMasternodePayments::ProcessBlock() Start nHeight %d - vin %s. \n", nWinnerBlockHeight, activeMasternode.vin.prevout.hash.ToString());
+
+    LogPrint("mnpayments", "CMasternodePayments::ProcessBlock() Start nHeight %d - vin %s. \n", nWinnerBlockHeight, activeMasternode.vin.prevout.hash.ToString());
     // pay to the oldest MN that still had no payment but its input is old enough and it was active long enough
 
     std::string errorMessage;
@@ -570,7 +569,7 @@ bool CMasternodePayments::ProcessBlock(int nBlockHeight)
     CKey keyMasternode;
 
     if (!obfuScationSigner.SetKey(strMasterNodePrivKey, errorMessage, keyMasternode, pubKeyMasternode)) {
-        LogPrintf("CMasternodePayments::ProcessBlock() - Error upon calling SetKey: %s\n", errorMessage.c_str());
+        LogPrint("mnpayments", "CMasternodePayments::ProcessBlock() - Error upon calling SetKey: %s\n", errorMessage.c_str());
         return false;
     }
 
@@ -583,7 +582,7 @@ bool CMasternodePayments::ProcessBlock(int nBlockHeight)
         auto pmn = mnodeman.GetNextMasternodeInQueueForPayment(nWinnerBlockHeight, mnlevel, true, nCount);
 
         if(!pmn) {
-            LogPrintf("CMasternodePayments::ProcessBlock() Failed to find masternode level %d to pay \n", mnlevel);
+            LogPrint("mnpayments", "CMasternodePayments::ProcessBlock() Failed to find masternode level %d to pay \n", mnlevel);
             continue;
         }
 
@@ -597,14 +596,14 @@ bool CMasternodePayments::ProcessBlock(int nBlockHeight)
         ExtractDestination(payee, address1);
         CBitcoinAddress address2{address1};
 
-        LogPrintf("CMasternodePayments::ProcessBlock() Winner payee %s nHeight %d level %d. \n", address2.ToString().c_str(), newWinner.nBlockHeight, mnlevel);
+        LogPrint("mnpayments", "CMasternodePayments::ProcessBlock() Winner payee %s nHeight %d level %d. \n", address2.ToString().c_str(), newWinner.nBlockHeight, mnlevel);
 
-        LogPrintf("CMasternodePayments::ProcessBlock() - Signing Winner level %d\n", mnlevel);
+        LogPrint("mnpayments", "CMasternodePayments::ProcessBlock() - Signing Winner level %d\n", mnlevel);
 
         if(!newWinner.Sign(keyMasternode, pubKeyMasternode))
             continue;
 
-        LogPrintf("CMasternodePayments::ProcessBlock() - AddWinningMasternode level %d\n", mnlevel);
+        LogPrint("mnpayments", "CMasternodePayments::ProcessBlock() - AddWinningMasternode level %d\n", mnlevel);
 
         if(!AddWinningMasternode(newWinner))
             continue;

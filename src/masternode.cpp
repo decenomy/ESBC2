@@ -772,13 +772,15 @@ bool CMasternodePing::CheckAndUpdate(int& nDos, bool fRequireEnabled)
         return false;
     }
 
-    LogPrint("masternode","CMasternodePing::CheckAndUpdate - New Ping - %s - %lli\n", blockHash.ToString(), sigTime);
+    LogPrint("masternode", "CMasternodePing::CheckAndUpdate - New Ping - %s - %lli\n", blockHash.ToString(), sigTime);
 
     // see if we have this Masternode
     CMasternode* pmn = mnodeman.Find(vin);
-    if (pmn != NULL){
-    LogPrintf("Masternode.cpp my pmn address = %s\n", pmn->addr.ToString());
-    }else {LogPrintf("Masternode.cpp my pmn == NULL so vin = %s\n", vin.prevout.hash.ToString());}
+    if (pmn != NULL) {
+      LogPrint("masternode", "Masternode.cpp my pmn address = %s\n", pmn->addr.ToString());
+    } else {
+      LogPrint("masternode", "Masternode.cpp my pmn == NULL so vin = %s\n", vin.prevout.hash.ToString());
+    }
 
     if (pmn != NULL && pmn->protocolVersion >= masternodePayments.GetMinMasternodePaymentsProto()) {
         if (fRequireEnabled && !pmn->IsEnabled()) return false;

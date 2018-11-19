@@ -88,7 +88,8 @@ OptionsDialog::OptionsDialog(QWidget* parent, bool enableWallet) : QDialog(paren
     }
 
     /* Theme selector static themes */
-    ui->theme->addItem(QString("Default"), QVariant("default"));
+    ui->theme->addItem(QString("Light Blue (Default)"), QVariant("default"));
+    ui->theme->addItem(QString("Dark Chocolate"), QVariant("dark"));
 
     /* Theme selector external themes */
     boost::filesystem::path pathAddr = GetDataDir() / "themes";
@@ -139,16 +140,16 @@ OptionsDialog::OptionsDialog(QWidget* parent, bool enableWallet) : QDialog(paren
 
     /* setup/change UI elements when proxy IP is invalid/valid */
     connect(this, SIGNAL(proxyIpChecks(QValidatedLineEdit*, int)), this, SLOT(doProxyIpChecks(QValidatedLineEdit*, int)));
-   
-    ui->unitLabel->setVisible(false);
-    ui->unit->setVisible(false);
-    ui->digitsLabel->setVisible(false);
-    ui->digits->setVisible(false);
-    ui->thirdPartyTxUrlsLabel->setVisible(false);
-    ui->thirdPartyTxUrls->setVisible(false);
-    ui->themeLabel->setVisible(false);
-    ui->theme->setVisible(false);
-    
+
+    ui->unitLabel->setVisible(true);
+    ui->unit->setVisible(true);
+    ui->digitsLabel->setVisible(true);
+    ui->digits->setVisible(true);
+    ui->thirdPartyTxUrlsLabel->setVisible(true);
+    ui->thirdPartyTxUrls->setVisible(true);
+    ui->themeLabel->setVisible(true);
+    ui->theme->setVisible(true);
+
 }
 
 OptionsDialog::~OptionsDialog()
@@ -222,7 +223,7 @@ void OptionsDialog::setMapper()
     /* Display */
     mapper->addMapping(ui->digits, OptionsModel::Digits);
     mapper->addMapping(ui->theme, OptionsModel::Theme);
-    mapper->addMapping(ui->theme, OptionsModel::Theme);
+//    mapper->addMapping(ui->theme, OptionsModel::Theme);
     mapper->addMapping(ui->lang, OptionsModel::Language);
     mapper->addMapping(ui->unit, OptionsModel::DisplayUnit);
     mapper->addMapping(ui->thirdPartyTxUrls, OptionsModel::ThirdPartyTxUrls);

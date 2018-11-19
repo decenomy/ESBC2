@@ -240,7 +240,59 @@ RES_ICONS = \
   qt/res/icons/tx_inout.png \
   qt/res/icons/tx_input.png \
   qt/res/icons/tx_output.png \
-  qt/res/icons/tx_mined.png
+  qt/res/icons/tx_mined.png \
+  qt/res/dark/icons/add.png \
+  qt/res/dark/icons/address-book.png \
+  qt/res/dark/icons/esbcoin.ico \
+  qt/res/dark/icons/esbcoin.png \
+  qt/res/dark/icons/esbcoin_testnet.ico \
+  qt/res/dark/icons/esbcoin_testnet.png \
+  qt/res/dark/icons/browse.png \
+  qt/res/dark/icons/clock1.png \
+  qt/res/dark/icons/clock2.png \
+  qt/res/dark/icons/clock3.png \
+  qt/res/dark/icons/clock4.png \
+  qt/res/dark/icons/clock5.png \
+  qt/res/dark/icons/configure.png \
+  qt/res/dark/icons/connect0_16.png \
+  qt/res/dark/icons/connect1_16.png \
+  qt/res/dark/icons/connect2_16.png \
+  qt/res/dark/icons/connect3_16.png \
+  qt/res/dark/icons/connect4_16.png \
+  qt/res/dark/icons/debugwindow.png \
+  qt/res/dark/icons/edit.png \
+  qt/res/dark/icons/editcopy.png \
+  qt/res/dark/icons/editpaste.png \
+  qt/res/dark/icons/explorer.png \
+  qt/res/dark/icons/export.png \
+  qt/res/dark/icons/eye.png \
+  qt/res/dark/icons/eye_minus.png \
+  qt/res/dark/icons/eye_plus.png \
+  qt/res/dark/icons/filesave.png \
+  qt/res/dark/icons/history.png \
+  qt/res/dark/icons/key.png \
+  qt/res/dark/icons/lock_closed.png \
+  qt/res/dark/icons/lock_open.png \
+  qt/res/dark/icons/masternodes.png \
+  qt/res/dark/icons/overview.png \
+  qt/res/dark/icons/qrcode.png \
+  qt/res/dark/icons/quit.png \
+  qt/res/dark/icons/receive.png \
+  qt/res/dark/icons/tools.png \
+  qt/res/dark/icons/blockexplorer.png \
+  qt/res/dark/icons/remove.png \
+  qt/res/dark/icons/send.png \
+  qt/res/dark/icons/staking_active.png \
+  qt/res/dark/icons/staking_inactive.png \
+  qt/res/dark/icons/synced.png \
+  qt/res/dark/icons/trade.png \
+  qt/res/dark/icons/transaction0.png \
+  qt/res/dark/icons/transaction2.png \
+  qt/res/dark/icons/transaction_conflicted.png \
+  qt/res/dark/icons/tx_inout.png \
+  qt/res/dark/icons/tx_input.png \
+  qt/res/dark/icons/tx_output.png \
+  qt/res/dark/icons/tx_mined.png
 
 RES_FONTS = \
     qt/res/fonts/esbcoin_font.ttf
@@ -320,13 +372,26 @@ RES_IMAGES = \
   qt/res/images/upArrow_small.png \
   qt/res/images/leftArrow_small.png \
   qt/res/images/rightArrow_small.png \
-  qt/res/images/qtreeview_selected.png
+  qt/res/images/qtreeview_selected.png \
+  qt/res/dark/images/about.png \
+  qt/res/dark/images/splash.png \
+  qt/res/dark/images/splash_testnet.png \
+  qt/res/dark/images/esbcoin_logo_horizontal.png \
+  qt/res/dark/images/frame_blue.png \
+  qt/res/dark/images/downArrow.png \
+  qt/res/dark/images/downArrow_small.png \
+  qt/res/dark/images/upArrow_small.png \
+  qt/res/dark/images/leftArrow_small.png \
+  qt/res/dark/images/rightArrow_small.png \
+  qt/res/dark/images/qtreeview_selected.png
 
 
 RES_CSS = \
-  qt/res/css/default.css
+  qt/res/css/default.css \
+  qt/res/dark/css/dark.css
 
-RES_MOVIES = $(wildcard $(srcdir)/qt/res/movies/spinner-*.png)
+RES_MOVIES = $(wildcard $(srcdir)/qt/res/movies/spinner-*.png) \
+             $(wildcard $(srcdir)/qt/res/dark/movies/spinner-*.png)
 
 BITCOIN_RC = qt/res/esbcoin-qt-res.rc
 

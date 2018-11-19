@@ -45,7 +45,7 @@ WalletView::WalletView(QWidget* parent) : QStackedWidget(parent),
 {
     // Create tabs
     overviewPage = new OverviewPage();
-    
+
     explorerWindow = new BlockExplorer();
 
     transactionsPage = new QWidget(this);
@@ -56,7 +56,7 @@ WalletView::WalletView(QWidget* parent) : QStackedWidget(parent),
     QPushButton* exportButton = new QPushButton(tr("&Export"), this);
     exportButton->setToolTip(tr("Export the data in the current tab to a file"));
 #ifndef Q_OS_MAC // Icons on push buttons are very uncommon on Mac
-    exportButton->setIcon(QIcon(":/icons/export"));
+    exportButton->setIcon(QIcon(GUIUtil::getThemeImage(":/icons/export")));
 #endif
     hbox_buttons->addStretch();
 
@@ -80,14 +80,14 @@ WalletView::WalletView(QWidget* parent) : QStackedWidget(parent),
     sendCoinsPage = new SendCoinsDialog();
 
     toolsPage = new ToolsPage();
-   
+
     addWidget(overviewPage);
     addWidget(transactionsPage);
     addWidget(receiveCoinsPage);
     addWidget(sendCoinsPage);
     addWidget(explorerWindow);
     addWidget(toolsPage);
-    
+
     QSettings settings;
     if (settings.value("fShowMasternodesTab").toBool()) {
         masternodeListPage = new MasternodeList();
@@ -134,7 +134,7 @@ void WalletView::setBitcoinGUI(BitcoinGUI* gui)
 
         connect(toolsPage,SIGNAL(handleRestart(QStringList)), gui, SLOT(handleRestart(QStringList)));
         connect(explorerWindow,SIGNAL(handleRestart(QStringList)), gui, SLOT(handleRestart(QStringList)));
-        
+
     }
 }
 
@@ -145,7 +145,7 @@ void WalletView::setClientModel(ClientModel* clientModel)
     overviewPage->setClientModel(clientModel);
     sendCoinsPage->setClientModel(clientModel);
     toolsPage->setClientModel(clientModel);
-   
+
     QSettings settings;
     if (settings.value("fShowMasternodesTab").toBool()) {
         masternodeListPage->setClientModel(clientModel);
@@ -228,7 +228,7 @@ void WalletView::gotoMasternodePage()
     }
 }
 
-void WalletView::gotoToolsPage() 
+void WalletView::gotoToolsPage()
 {
     setCurrentWidget(toolsPage);
 }

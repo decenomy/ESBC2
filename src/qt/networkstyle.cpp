@@ -5,6 +5,7 @@
 #include "networkstyle.h"
 
 #include "guiconstants.h"
+#include "guiutil.h"
 
 #include <QApplication>
 
@@ -27,16 +28,16 @@ NetworkStyle::NetworkStyle(const QString& appName, const QString& appIcon, const
                                                                                                                                    splashImage(splashImage)
 {
 }
-
+//GUIUtil::getThemeImage(
 const NetworkStyle* NetworkStyle::instantiate(const QString& networkId)
 {
     for (unsigned x = 0; x < network_styles_count; ++x) {
         if (networkId == network_styles[x].networkId) {
             return new NetworkStyle(
                 network_styles[x].appName,
-                network_styles[x].appIcon,
+                GUIUtil::getThemeImage(network_styles[x].appIcon),
                 network_styles[x].titleAddText,
-                network_styles[x].splashImage);
+                GUIUtil::getThemeImage(network_styles[x].splashImage));
         }
     }
     return 0;

@@ -814,7 +814,23 @@ bool isExternal(QString theme)
     if (theme.isEmpty())
         return false;
 
-    return (theme.operator!=("default"));
+    if (theme.operator==("default") || theme.operator==("dark"))
+        return false;
+
+//    return (theme.operator!=("default"));
+    return true;
+}
+
+QString getThemeImage(QString image)
+{
+    QSettings settings;
+    QString theme = settings.value("theme", "").toString();
+
+    if (theme.operator==("dark")) {
+        return image.insert(image.lastIndexOf(QString("/")), QString("_dark"));
+    } else {
+        return image;
+    }
 }
 
 // Open CSS when configured

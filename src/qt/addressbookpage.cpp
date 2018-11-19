@@ -31,6 +31,11 @@ AddressBookPage::AddressBookPage(Mode mode, Tabs tab, QWidget* parent) : QDialog
 {
     ui->setupUi(this);
 
+    ui->newAddress->setIcon(QIcon(GUIUtil::getThemeImage(":/icons/add")));
+    ui->copyAddress->setIcon(QIcon(GUIUtil::getThemeImage(":/icons/editcopy")));
+    ui->deleteAddress->setIcon(QIcon(GUIUtil::getThemeImage(":/icons/remove")));
+    ui->exportButton->setIcon(QIcon(GUIUtil::getThemeImage(":/icons/export")));
+
 #ifdef Q_OS_MAC // Icons on push buttons are very uncommon on Mac
     ui->newAddress->setIcon(QIcon());
     ui->copyAddress->setIcon(QIcon());

@@ -46,7 +46,7 @@ MultisigDialog::MultisigDialog(QWidget* parent) : QDialog(parent),
     ui->signButton->setIcon(QIcon(GUIUtil::getThemeImage(":/icons/edit")));
     ui->commitButton->setIcon(QIcon(GUIUtil::getThemeImage(":/icons/send")));
     ui->addPrivKeyButton->setIcon(QIcon(GUIUtil::getThemeImage(":/icons/add")));
-    
+
     multisigTx = CMutableTransaction();
 
     //flag to show keyScrollArea on first priv key added
@@ -62,7 +62,7 @@ MultisigDialog::MultisigDialog(QWidget* parent) : QDialog(parent),
     on_addAddressButton_clicked();
     on_addDestinationButton_clicked();
 
-    this->setStyleSheet(GUIUtil::loadStyleSheet());
+//    this->setStyleSheet(GUIUtil::loadStyleSheet());
 }
 
 MultisigDialog::~MultisigDialog()
@@ -826,7 +826,7 @@ void MultisigDialog::on_addAddressButton_clicked()
 
     QLabel* addressLabel = new QLabel(addressFrame);
     addressLabel->setObjectName(QStringLiteral("addressLabel"));
-    addressLabel->setText(QApplication::translate("MultisigDialog", strprintf("Address / Key %i:", ui->addressList->count()+1).c_str() , 0));
+    addressLabel->setText(QApplication::translate("MultisigDialog", strprintf("Address / Key %i: ", ui->addressList->count()+1).c_str() , 0));
     addressLayout->addWidget(addressLabel);
 
     QValidatedLineEdit* address = new QValidatedLineEdit(addressFrame);

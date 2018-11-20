@@ -267,7 +267,7 @@
     }
 
     QTableView::item { /* Table Item */
-        background-color: #070300;
+        background-color: #180C05;
         alternate-background-color: #000000;
         font-size:12px;
         color: #D1B475;
@@ -279,7 +279,7 @@
     }
 
     QTableWidget { /* Table Background */
-        background-color: #070300;
+        background-color: #180C05;
         border: 1px solid;
         border-color: #CCCCCC;
     }
@@ -290,11 +290,15 @@
     }
 
     QTreeWidget { /* Tree Background */
-        background-color:#070300;
+        background-color:#180C05;
         alternate-background-color:#000000;
-        color:#CCCCCC;
+        color: #D1B475;
     }
 
+    QTreeWidget::item:selected {
+        background-color: #332206;
+        color: #D1B475;
+    }
 
 
     QScrollBar { /* Scroll Bar */
@@ -1163,73 +1167,68 @@
     }
 
     QDialog#CoinControlDialog .QFrame#frame .QRadioButton#radioTreeMode { /* Coin Control Tree Mode Selector */
-    color:#7E7E7E;
-    background-color:transparent;
+        color:#7E7E7E;
+        background-color:transparent;
     }
 
     QDialog#CoinControlDialog .QFrame#frame .QRadioButton#radioListMode { /* Coin Control List Mode Selector */
-    color:#7E7E7E;
-    background-color:transparent;
+        color:#7E7E7E;
+        background-color:transparent;
     }
 
     QDialog#CoinControlDialog QHeaderView::section:first { /* Bug Fix: the number "1" displays in this table for some reason... */
-    color:transparent;
+        color:transparent;
     }
 
     QDialog#CoinControlDialog .CoinControlTreeWidget#treeWidget { /* Coin Control Widget Container */
-        outline:0;
-        background-color:#000000;
+        outline: 0;
+        background-color:#180C05;
+        alternate-background-color:#000000;
+        color: #D1B475;
         border: 1px solid;
         border-color: #2D2D2D;
     }
 
-    QDialog#CoinControlDialog .CoinControlTreeWidget#treeWidget::item {
+    QDialog#CoinControlDialog .CoinControlTreeWidget#treeWidget::item:hover {
     }
 
     QDialog#CoinControlDialog .CoinControlTreeWidget#treeWidget::item:selected { /* Coin Control Item (selected) */
-    background-color:#ffffff;
-    color:#000000;
+        background-color: #634221;
+        color: #ffffff;
     }
 
     QDialog#CoinControlDialog .CoinControlTreeWidget#treeWidget::item:checked { /* Coin Control Item (checked) */
-    background-color:#f7f7f7;
-    color:#000000;
+        background-color: #616161;
+        color: #D1B475;
+    }
+
+    QDialog#CoinControlDialog .CoinControlTreeWidget#treeWidget::branch {
+        background-color:#180C05;
     }
 
     QDialog#CoinControlDialog .CoinControlTreeWidget#treeWidget::branch:selected { /* Coin Control Branch Icon */
-    background-image: url(':/images_dark/qtreeview_selected');
-    background-repeat:no-repeat;
-    background-position:center;
-    background-color:#f7f7f7;
-    color:#CCCCCC;
+        background-color: #634221;
     }
 
     QDialog#CoinControlDialog .CoinControlTreeWidget#treeWidget::branch:checked { /* Coin Control Branch Icon */
-    background-image: url(':/images_dark/qtreeview_selected');
-    background-repeat:no-repeat;
-    background-position:center;
-    background-color:#f7f7f7;
-    color:#CCCCCC;
+        background-color: #634221;
     }
 
-/*    QDialog#CoinControlDialog .CoinControlTreeWidget#treeWidget::branch:has-children:!has-siblings:closed,
-    QDialog#CoinControlDialog .CoinControlTreeWidget#treeWidget::branch:closed:has-children:has-siblings {
+    QDialog#CoinControlDialog .CoinControlTreeWidget#treeWidget::branch:open {
         border-image: none;
-        image: url(':/images_dark/branch-closed.png');
+        image: url(':/images_dark/branch-open');
     }
 
-    QDialog#CoinControlDialog .CoinControlTreeWidget#treeWidget::branch:open:has-children:!has-siblings,
-    QDialog#CoinControlDialog .CoinControlTreeWidget#treeWidget::branch:open:has-children:has-siblings  {
+    QDialog#CoinControlDialog .CoinControlTreeWidget#treeWidget::branch:closed:has-children {
         border-image: none;
-        image: url(':/images_dark/branch-open.png');
+        image: url(':/images_dark/branch-closed');
     }
-*/
+
+
     QDialog#CoinControlDialog .CoinControlTreeWidget#treeWidget::seperator {
-
     }
 
     QDialog#CoinControlDialog .CoinControlTreeWidget#treeWidget::indicator { /* Coin Control Widget Checkbox */
-
     }
 
 
@@ -2037,100 +2036,109 @@
                         /*************** MultisigDialog *****************/
     /****************************************************************************************/
 
+    QDialog#MultisigDialog {
+        background-color: #000000;
+        color: #D1B475;
+    }
 
     QDialog#MultisigDialog QWidget#addMultisigTab  {
-    background-color:#000000;
-
+        background-color: #000000;
     }
 
     QDialog#MultisigDialog QFrame#addressFrame {
-    background-color:#000000;
-
+        background-color: #000000;
     }
 
     QDialog#MultisigDialog QTextEdit {
-    background-color:#000000;
-
+        background-color: #000000;
     }
 
+    QDialog#MultisigDialog QScrollArea {
+        border-color: #D1B475;
+        background-color: #000000;
+    }
 
     QDialog#MultisigDialog QPushButton {
-    background-color:#000000;
+        background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: .01 #977336, stop: .1 #977336, stop: .95 #C08A25, stop: 1 #C08A25);
+        color: #000000;
+        font-size: 12px;
+    }
 
+    QDialog#MultisigDialog QPushButton:hover {
+        background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: .01 #7C5919, stop: .1 #7C5919, stop: .95 #9E6B0B, stop: 1 #9E6B0B);
+    }
+
+    QDialog#MultisigDialog QPushButton:focus {
+        border: none;
+        outline: none;
+    }
+
+    QDialog#MultisigDialog QPushButton:pressed {
+        border: 1px solid;
+        border-color: #CCCCCC;
     }
 
 
-    QDialog#MultisigDialog  * {
-    background-color:#000000;
+    QDialog#MultisigDialog QFrame {
+        background-color: #000000;
     }
 
-    QDialog#MultisigDialog  QFrame {
-    background-color:#000000;
+    QDialog#MultisigDialog .QFrame#addressFrame {
+        background-color: #000000;
     }
-
-
-    QDialog#MultisigDialog  .QFrame#addressFrame {
-    background-color:#000000;
-    }
-
 
     QDialog#MultisigDialog QPushButton#addressBookButton { /*  Address Book Button */
-    background-color:transparent;
+        background-color:transparent;
     }
 
     QDialog#MultisigDialog QPushButton#addressBookButton:hover {
-    background-color:#180C05;
-    color:#CCCCCC;
+        background-color: #180C05;
     }
 
     QDialog#MultisigDialog QPushButton#addressBookButton:pressed {
-    border:1px solid;
-    border-color: #616161;
+        border: 1px solid;
+        border-color: #D1B475;
     }
 
-
     QDialog#MultisigDialog QPushButton#addressPasteButton { /*  Address edit Book Button */
-    background-color:transparent;
+        background-color:transparent;
     }
 
     QDialog#MultisigDialog QPushButton#addressPasteButton:hover {
-    background-color:#180C05;
-    color:#CCCCCC;
+        background-color: #180C05;
     }
 
     QDialog#MultisigDialog QPushButton#addressPasteButton:pressed {
-    border:1px solid;
-    border-color: #616161;
+        border:1px solid;
+        border-color: #D1B475;
     }
 
-
-
     QDialog#MultisigDialog QPushButton#addressDeleteButton { /*  Address delete Button */
-    background-color:transparent;
+        background-color:transparent;
     }
 
     QDialog#MultisigDialog QPushButton#addressDeleteButton:hover {
-    background-color:#180C05;
-    color:#CCCCCC;
+        background-color:#180C05;
     }
 
     QDialog#MultisigDialog QPushButton#addressDeleteButton:pressed {
-    border:1px solid;
-    border-color: #616161;
-        }
-
-
-
-
-    QDialog#MultisigDialog QLabel#message {
-    border:1px solid;
-    border-color: #2D2D2D;
+        border:1px solid;
+        border-color: #D1B475;
     }
 
+    QDialog#MultisigDialog QLabel {
+        background-color: #000000;
+    }
 
+    QDialog#MultisigDialog QTextEdit {
+        background-color: #180C05;
+        color: #ffffff;
+    }
 
-
-
+    QDialog#MultisigDialog QLabel#message {
+        border:1px solid;
+        border-color: #D1B475;
+    }
 
 
     /****************************************************************************************/

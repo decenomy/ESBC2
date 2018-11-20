@@ -22,12 +22,6 @@
   <layout class="QVBoxLayout" name="verticalLayout_8">
    <item>
     <widget class="QTabWidget" name="multisigTabWidget">
-     <property name="styleSheet">
-      <string notr="true">QScrollArea{border: 1px solid #5b4c7c;}
-QFrame{background-color:#f2f0f0;}
-QLabel{background-color:#ffffff;}
-QFrame &gt; QLabel{background-color:#f2f0f0;}</string>
-     </property>
      <property name="currentIndex">
       <number>0</number>
      </property>
@@ -598,17 +592,6 @@ p, li { white-space: pre-wrap; }
       </layout>
      </widget>
      <widget class="QWidget" name="signMultisigTransaction">
-      <property name="styleSheet">
-       <string notr="true">txScrollArea:{
-	border: 1px solid #5b4c7c;
-}
-keyScrollArea:{
-	border: 1px solid #5b4c7c;
-}
-txScrollArea:{
-	border: 1px solid #5b4c7c;
-}</string>
-      </property>
       <attribute name="title">
        <string>&amp;Sign MultiSignature Tx</string>
       </attribute>
@@ -811,19 +794,6 @@ txScrollArea:{
           </layout>
          </item>
         </layout>
-       </item>
-       <item>
-        <spacer name="verticalSpacer_2">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>40</height>
-          </size>
-         </property>
-        </spacer>
        </item>
       </layout>
      </widget>

@@ -314,6 +314,7 @@ void OverviewPage::updateAlerts(const QString& warnings)
   //  this->ui->labelAlerts->setText(warnings);
 }
 
+double roi1, roi2, roi3, roi4;
 
 void OverviewPage::updateMasternodeInfo()
 {
@@ -354,13 +355,13 @@ void OverviewPage::updateMasternodeInfo()
     ui->graphMN4->setValue(mn4);
 
     // TODO: need a read actual 24h blockcount from chain
-    int BlockCount24h = 1440;
+    int BlockCount24h = block24hCount > 0 ? block24hCount : 1440;
     // update ROI
     double BlockReward = GetBlockValue(chainActive.Height());
-    double roi1 = (0.2*BlockReward*BlockCount24h)/mn1/COIN;
-    double roi2 = (0.3*BlockReward*BlockCount24h)/mn2/COIN;
-    double roi3 = (0.3*BlockReward*BlockCount24h)/mn3/COIN;
-    double roi4 = (0.02*BlockReward*BlockCount24h)/mn4/COIN;
+    roi1 = (0.2*BlockReward*BlockCount24h)/mn1/COIN;
+    roi2 = (0.3*BlockReward*BlockCount24h)/mn2/COIN;
+    roi3 = (0.3*BlockReward*BlockCount24h)/mn3/COIN;
+    roi4 = (0.02*BlockReward*BlockCount24h)/mn4/COIN;
     if (chainActive.Height() >= 0) {
         /*
         ui->roi_1->setText(mn1==0 ? "-" : QString::number(((((0.4*BlockReward*1440)/mn1)*365)/3000)/1000000,'f',0).append("%"));
@@ -378,6 +379,9 @@ void OverviewPage::updateMasternodeInfo()
         ui->roi_32->setText(mn3==0 ? " " : QString::number( 50000/roi3,'f',1).append(" days"));
         ui->roi_42->setText(mn4==0 ? " " : QString::number(250000/roi4,'f',1).append(" days"));
     }
+    CAmount tNodesSumm = mn1*5000 + mn2*25000 + mn3*50000 + mn4*250000;
+    double tLocked = (100 * tNodesSumm) / (chainActive.Tip()->nMoneySupply / COIN);
+    ui->label_LockedCoin_value->setText(QString::number(tNodesSumm).append(" (" + QString::number(tLocked,'f',1) + "%)"));
 
     // update timer
     if (timerinfo_mn->interval() == 1000)
@@ -412,6 +416,10 @@ void OverviewPage::updatBlockChainInfo()
         ui->label_CurrentBlockReward_value->setText(QString::number(BlockRewardesbcoin, 'f', 1));
 
         ui->label_Supply_value->setText(QString::number(chainActive.Tip()->nMoneySupply / COIN).append(" ESBC"));
+
+        ui->label_24hBlock_value->setText(QString::number(block24hCount));
+        ui->label_24hPoS_value->setText(QString::number(posMin/COIN,'f',1).append(" | ") + QString::number(posMax/COIN,'f',1));
+        ui->label_24hPoSMedian_value->setText(QString::number(posMedian/COIN,'f',1));
     }
 }
 

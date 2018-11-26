@@ -42,12 +42,15 @@ MasternodeList::MasternodeList(QWidget* parent) : QWidget(parent),
     ui->startButton->setEnabled(false);
 
     int columnAliasWidth = 100;
-    int columnAddressWidth = 190;
+    int columnAddressWidth = 180;
     int columnLevelWidth = 60;
-    int columnProtocolWidth = 60;
+    int columnProtocolWidth = 80;
     int columnStatusWidth = 80;
     int columnActiveWidth = 100;
     int columnLastSeenWidth = 100;
+    int columnPayeeWidth = 270;
+    int column24hCoinsWidth = 80;
+    int columnLuckWidth = 60;
 
     ui->tableWidgetMyMasternodes->setColumnWidth(0, columnAliasWidth);
     ui->tableWidgetMyMasternodes->setColumnWidth(1, columnAddressWidth);
@@ -56,7 +59,9 @@ MasternodeList::MasternodeList(QWidget* parent) : QWidget(parent),
     ui->tableWidgetMyMasternodes->setColumnWidth(4, columnStatusWidth);
     ui->tableWidgetMyMasternodes->setColumnWidth(5, columnActiveWidth);
     ui->tableWidgetMyMasternodes->setColumnWidth(6, columnLastSeenWidth);
-
+    ui->tableWidgetMyMasternodes->setColumnWidth(7, columnPayeeWidth);
+    ui->tableWidgetMyMasternodes->setColumnWidth(8, column24hCoinsWidth);
+    ui->tableWidgetMyMasternodes->setColumnWidth(9, columnLuckWidth);
 
     ui->tableWidgetMasternodes->setColumnWidth(0, columnAddressWidth);
     ui->tableWidgetMasternodes->setColumnWidth(1, columnLevelWidth);
@@ -64,7 +69,9 @@ MasternodeList::MasternodeList(QWidget* parent) : QWidget(parent),
     ui->tableWidgetMasternodes->setColumnWidth(3, columnStatusWidth);
     ui->tableWidgetMasternodes->setColumnWidth(4, columnActiveWidth);
     ui->tableWidgetMasternodes->setColumnWidth(5, columnLastSeenWidth);
-
+    ui->tableWidgetMasternodes->setColumnWidth(6, columnPayeeWidth);
+    ui->tableWidgetMasternodes->setColumnWidth(7, column24hCoinsWidth);
+    ui->tableWidgetMasternodes->setColumnWidth(8, columnLuckWidth);
 
     ui->tableWidgetMyMasternodes->setContextMenuPolicy(Qt::CustomContextMenu);
 
@@ -126,7 +133,7 @@ bool RpcStartMasternode(std::string &Alias,std::string &Overall, std::string &Er
     if(Result == "failed"){
         Error = resultObj[1][0][2].get_str();
         return false;
-    }    
+    }
     return true;
 }
 
@@ -144,7 +151,7 @@ void MasternodeList::StartAlias(std::string strAlias)
                 strStatusHtml += "<br>" +strOverall + "<br>";
             }
             else{
-                strStatusHtml += "<br>Failed to start masternode.<br>Error: " + strError;  
+                strStatusHtml += "<br>Failed to start masternode.<br>Error: " + strError;
             }
             break;
         }
@@ -226,26 +233,34 @@ void MasternodeList::updateMyMasternodeInfo(QString strAlias, QString strAddr, C
 
     std::string mnLevelText = "";
 
+    double tLuck;
+    std::string pubkey = CBitcoinAddress(pmn->pubKeyCollateralAddress.GetID()).ToString();
     if (pmn) {
         switch (pmn->Level())
         {
-            case 1: mnLevelText = "Bronze"; break;
-            case 2: mnLevelText = "Silver"; break;
-            case 3: mnLevelText = "Gold"; break;
-            case 4: mnLevelText = "Platinum"; break;
+            case 1: mnLevelText = "Bronze"; tLuck = ((masternodeRewards[pubkey]/COIN) / roi1)*100; break;
+            case 2: mnLevelText = "Silver"; tLuck = ((masternodeRewards[pubkey]/COIN) / roi2)*100; break;
+            case 3: mnLevelText = "Gold"; tLuck = ((masternodeRewards[pubkey]/COIN) / roi3)*100; break;
+            case 4: mnLevelText = "Platinum"; tLuck = ((masternodeRewards[pubkey]/COIN) / roi4)*100; break;
         }
     }
+
     QTableWidgetItem* levelItem = new QTableWidgetItem(QString::fromStdString(mnLevelText));
 //    QTableWidgetItem* levelItem = new QTableWidgetItem(QString::number(pmn ? pmn->Level() : 0u));
-    
+
     QTableWidgetItem* aliasItem = new QTableWidgetItem(strAlias);
     QTableWidgetItem* addrItem = new QTableWidgetItem(pmn ? QString::fromStdString(pmn->addr.ToString()) : strAddr);
     QTableWidgetItem* protocolItem = new QTableWidgetItem(QString::number(pmn ? pmn->protocolVersion : -1));
+    //protocolItem->setTextAlignment(Qt::AlignHCenter);
     QTableWidgetItem* statusItem = new QTableWidgetItem(QString::fromStdString(pmn ? pmn->Status() : "MISSING"));
-    GUIUtil::DHMSTableWidgetItem* activeSecondsItem = new GUIUtil::DHMSTableWidgetItem(pmn ? (pmn->lastPing.sigTime - pmn->sigTime) : 0);
+    int64_t activeSeconds = pmn->lastPing.sigTime - pmn->sigTime;
+    GUIUtil::DHMSTableWidgetItem* activeSecondsItem = new GUIUtil::DHMSTableWidgetItem(pmn ? activeSeconds : 0);
     QTableWidgetItem* lastSeenItem = new QTableWidgetItem(QString::fromStdString(DateTimeStrFormat("%Y-%m-%d %H:%M", pmn ? pmn->lastPing.sigTime : 0)));
-    QTableWidgetItem* pubkeyItem = new QTableWidgetItem(QString::fromStdString(pmn ? CBitcoinAddress(pmn->pubKeyCollateralAddress.GetID()).ToString() : ""));
-    
+    QTableWidgetItem* pubkeyItem = new QTableWidgetItem(QString::fromStdString(pmn ? pubkey : ""));
+    QTableWidgetItem* mnReward = new QTableWidgetItem(QString::number(masternodeRewards[pubkey]/COIN,'f',1));
+    //mnReward->setTextAlignment(Qt::AlignRight);
+    QTableWidgetItem* mnLuck = new QTableWidgetItem(activeSeconds > 30*60*60 ? QString::number(tLuck,'f',1).append("%") : QString::fromStdString("-"));
+    //mnLuck->setTextAlignment(Qt::AlignHCenter);
 
     ui->tableWidgetMyMasternodes->setItem(nNewRow, 0, aliasItem);
     ui->tableWidgetMyMasternodes->setItem(nNewRow, 1, addrItem);
@@ -255,7 +270,9 @@ void MasternodeList::updateMyMasternodeInfo(QString strAlias, QString strAddr, C
     ui->tableWidgetMyMasternodes->setItem(nNewRow, 5, activeSecondsItem);
     ui->tableWidgetMyMasternodes->setItem(nNewRow, 6, lastSeenItem);
     ui->tableWidgetMyMasternodes->setItem(nNewRow, 7, pubkeyItem);
-    
+    ui->tableWidgetMyMasternodes->setItem(nNewRow, 8, mnReward);
+    ui->tableWidgetMyMasternodes->setItem(nNewRow, 9, mnLuck);
+
 }
 
 void MasternodeList::updateMyNodeList(bool fForce)
@@ -314,7 +331,7 @@ void MasternodeList::updateNodeList()
     ui->tableWidgetMasternodes->setRowCount(0);
     std::vector<CMasternode> vMasternodes = mnodeman.GetFullMasternodeMap();
     int offsetFromUtc = GetOffsetFromUtc();
-    
+
     std::string mnLevelText = "";
 
     for(auto& mn : vMasternodes)
@@ -323,22 +340,30 @@ void MasternodeList::updateNodeList()
         // Address, Protocol, Status, Active Seconds, Last Seen, Pub Key
         QTableWidgetItem *addressItem = new QTableWidgetItem(QString::fromStdString(mn.addr.ToString()));
 
+        double tLuck;
+        std::string pubkey = CBitcoinAddress(mn.pubKeyCollateralAddress.GetID()).ToString();
         switch (mn.Level())
         {
-            case 1: mnLevelText = "Bronze"; break;
-            case 2: mnLevelText = "Silver"; break;
-            case 3: mnLevelText = "Gold"; break;
-            case 4: mnLevelText = "Platinum"; break;
+            case 1: mnLevelText = "Bronze"; tLuck = ((masternodeRewards[pubkey]/COIN) / roi1)*100; break;
+            case 2: mnLevelText = "Silver"; tLuck = ((masternodeRewards[pubkey]/COIN) / roi2)*100; break;
+            case 3: mnLevelText = "Gold"; tLuck = ((masternodeRewards[pubkey]/COIN) / roi3)*100; break;
+            case 4: mnLevelText = "Platinum"; tLuck = ((masternodeRewards[pubkey]/COIN) / roi4)*100; break;
         }
         QTableWidgetItem *levelItem = new QTableWidgetItem(QString::fromStdString(mnLevelText));
 //        QTableWidgetItem *levelItem = new QTableWidgetItem(QString::number(mn.Level()));
 
         QTableWidgetItem *protocolItem = new QTableWidgetItem(QString::number(mn.protocolVersion));
+        //protocolItem->setTextAlignment(Qt::AlignHCenter);
         QTableWidgetItem *statusItem = new QTableWidgetItem(QString::fromStdString(mn.Status()));
-        QTableWidgetItem *activeSecondsItem = new QTableWidgetItem(QString::fromStdString(DurationToDHMS(mn.lastPing.sigTime - mn.sigTime)));
+        int64_t activeSeconds = mn.lastPing.sigTime - mn.sigTime;
+        QTableWidgetItem *activeSecondsItem = new QTableWidgetItem(QString::fromStdString(DurationToDHMS(activeSeconds)));
         QTableWidgetItem *lastSeenItem = new QTableWidgetItem(QString::fromStdString(DateTimeStrFormat("%Y-%m-%d %H:%M", mn.lastPing.sigTime + offsetFromUtc)));
-        QTableWidgetItem *pubkeyItem = new QTableWidgetItem(QString::fromStdString(CBitcoinAddress(mn.pubKeyCollateralAddress.GetID()).ToString()));
-        
+        QTableWidgetItem *pubkeyItem = new QTableWidgetItem(QString::fromStdString(pubkey));
+        QTableWidgetItem *mnReward = new QTableWidgetItem(QString::number(masternodeRewards[pubkey]/COIN,'f',1));
+        //mnReward->setTextAlignment(Qt::AlignRight);
+        QTableWidgetItem *mnLuck = new QTableWidgetItem(activeSeconds > 30*60*60 ? QString::number(tLuck,'f',1).append("%") : QString::fromStdString("-"));
+        //mnLuck->setTextAlignment(Qt::AlignHCenter);
+
         if (strCurrentFilter != "")
         {
             strToFilter =   addressItem->text() + " " +
@@ -358,7 +383,9 @@ void MasternodeList::updateNodeList()
         ui->tableWidgetMasternodes->setItem(0, 4, activeSecondsItem);
         ui->tableWidgetMasternodes->setItem(0, 5, lastSeenItem);
         ui->tableWidgetMasternodes->setItem(0, 6, pubkeyItem);
-        
+        ui->tableWidgetMasternodes->setItem(0, 7, mnReward);
+        ui->tableWidgetMasternodes->setItem(0, 8, mnLuck);
+
     }
 
     ui->countLabel->setText(QString::number(ui->tableWidgetMasternodes->rowCount()));

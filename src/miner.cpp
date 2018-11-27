@@ -493,7 +493,7 @@ void BitcoinMiner(CWallet* pwallet, bool fProofOfStake)
                 continue;
             }
                                                          /*                                             */
-            while (chainActive.Tip()->nTime < 1471482000 || vNodes.empty() || !masternodeSync.IsSynced() || pwallet->IsLocked() || !fMintableCoins || nReserveBalance >= pwallet->GetBalance()) {
+            while (chainActive.Tip()->nTime < 1471482000 || vNodes.size() <= 3 || !masternodeSync.IsSynced() || pwallet->IsLocked() || !fMintableCoins || nReserveBalance >= pwallet->GetBalance()) {
                 nLastCoinStakeSearchInterval = 0;
                 MilliSleep(5000);
                 if (!fGenerateBitcoins && !fProofOfStake)

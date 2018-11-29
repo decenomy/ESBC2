@@ -8,7 +8,7 @@ Visit our ANN thread at [BitcoinTalk](https://bitcointalk.org/index.php?topic=48
 ### Coin Specs
 
 <table>
-<tr><td>Ticker</td><td>ESPB</td></tr>
+<tr><td>Ticker</td><td>ESBC</td></tr>
 <tr><td>Consensus algorithm</td><td>POS</td></tr>
 <tr><td>Premine</td><td>1,000,000</td></tr>
 <tr><td>Blocksize</td><td>1 MB</td></tr>

@@ -176,11 +176,23 @@ void ClientModel::update24hStatsTimer()
     }
 
     // recalc stats data if new block found
-    if (currentBlock > blockLast) {
+    if (currentBlock > blockLast && statSourceData.size() > 0) {
       // sorting vector and get stats values
       sort(statSourceData.begin(), statSourceData.end(), sortStat);
-      posMin = statSourceData.front().second.txInValue;
-      posMax = statSourceData.back().second.txInValue;
+
+      if (statSourceData.size() > 100) {
+        CAmount posAverage = 0;
+        for (auto it = statSourceData.begin(); it != statSourceData.begin() + 100; ++it)
+              posAverage += it->second.txInValue;
+        posMin = posAverage / 100;
+        for (auto it = statSourceData.rbegin(); it != statSourceData.rbegin() + 100; ++it)
+              posAverage += it->second.txInValue;
+        posMax = posAverage / 100;
+      } else {
+        posMin = statSourceData.front().second.txInValue;
+        posMax = statSourceData.back().second.txInValue;
+      }
+
       if (statSourceData.size() % 2) {
         posMedian = (statSourceData[int(statSourceData.size()/2)].second.txInValue + statSourceData[int(statSourceData.size()/2)-1].second.txInValue) / 2;
       } else {

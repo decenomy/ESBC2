@@ -955,17 +955,11 @@
     }
 
 
-
     /*************** Frame_bottom_2 section*****************/
-
-
     QWidget .QFrame#frame_bottom_2 { /*bottom frame 2 - transactions */
-
         background-color: transparent;
         border-style: none;
-
     }
-
 
     QWidget .QFrame#frame_bottom_2 .QLabel#label_4 {
         background-color:transparent;
@@ -973,16 +967,11 @@
         font-size:12px;
     }
 
-
-
     QWidget .QFrame#frame_bottom_2 .QLabel#labelTransactionsStatus{
         background-color:transparent;
         color: rgb(255, 15, 15);
         font-size:12px;
     }
-
-
-
 
     QWidget .QFrame#frame_bottom_2 .QListView { /* Transaction List */
         font-weight:normal;
@@ -995,12 +984,11 @@
         alternate-background-color: rgb(0, 0, 0);
         border:1px solid;
         border-color: #2D2D2D;
-       }
+    }
 
     .QListView::item { /* Transaction List */
         padding:10px;
     }
-
 
 
     /*************** ########bottom status bar########*****************/

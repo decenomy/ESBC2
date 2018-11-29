@@ -52,6 +52,9 @@ public:
 
     inline void paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const
     {
+        QSettings settings;
+        QString theme = settings.value("theme", "").toString();
+
         painter->save();
 
         QIcon icon = qvariant_cast<QIcon>(index.data(Qt::DecorationRole));
@@ -71,6 +74,7 @@ public:
         bool confirmed = index.data(TransactionTableModel::ConfirmedRole).toBool();
         QVariant value = index.data(Qt::ForegroundRole);
         QColor foreground = COLOR_BLACK;
+        (theme.operator==("dark")) ? foreground = QColor(209, 180, 117) : foreground = COLOR_BLACK;
         if (value.canConvert<QBrush>()) {
             QBrush brush = qvariant_cast<QBrush>(value);
             foreground = brush.color();
@@ -81,11 +85,11 @@ public:
         painter->drawText(addressRect, Qt::AlignLeft | Qt::AlignVCenter, address, &boundingRect);
 
         if (amount < 0) {
-            foreground = COLOR_NEGATIVE;
+            (theme.operator==("dark")) ? foreground = QColor(220, 50, 50) : foreground = COLOR_NEGATIVE;
         } else if (!confirmed) {
-            foreground = COLOR_UNCONFIRMED;
+            (theme.operator==("dark")) ? foreground = QColor(98, 56, 32) : foreground = COLOR_UNCONFIRMED;
         } else {
-            foreground = COLOR_BLACK;
+            (theme.operator==("dark")) ? foreground = QColor(209, 180, 117) : foreground = COLOR_BLACK;
         }
         painter->setPen(foreground);
         QString amountText = BitcoinUnits::formatWithUnit(unit, amount, true, BitcoinUnits::separatorAlways);
@@ -94,7 +98,7 @@ public:
         }
         painter->drawText(amountRect, Qt::AlignRight | Qt::AlignVCenter, amountText);
 
-        painter->setPen(COLOR_BLACK);
+        (theme.operator==("dark")) ? painter->setPen( QColor(209, 180, 117) ) : painter->setPen(COLOR_BLACK);
         painter->drawText(amountRect, Qt::AlignLeft | Qt::AlignVCenter, GUIUtil::dateTimeStr(date));
 
         painter->restore();
@@ -380,7 +384,7 @@ void OverviewPage::updateMasternodeInfo()
         ui->roi_42->setText(mn4==0 ? " " : QString::number(250000/roi4,'f',1).append(" days"));
     }
     CAmount tNodesSumm = mn1*5000 + mn2*25000 + mn3*50000 + mn4*250000;
-    double tLocked = (100 * tNodesSumm) / (chainActive.Tip()->nMoneySupply / COIN);
+    double tLocked = 100 * static_cast<double>(tNodesSumm) / static_cast<double>(chainActive.Tip()->nMoneySupply / COIN);
     ui->label_LockedCoin_value->setText(QString::number(tNodesSumm).append(" (" + QString::number(tLocked,'f',1) + "%)"));
 
     // update timer
@@ -418,8 +422,8 @@ void OverviewPage::updatBlockChainInfo()
         ui->label_Supply_value->setText(QString::number(chainActive.Tip()->nMoneySupply / COIN).append(" ESBC"));
 
         ui->label_24hBlock_value->setText(QString::number(block24hCount));
-        ui->label_24hPoS_value->setText(QString::number(posMin/COIN,'f',1).append(" | ") + QString::number(posMax/COIN,'f',1));
-        ui->label_24hPoSMedian_value->setText(QString::number(posMedian/COIN,'f',1));
+        ui->label_24hPoS_value->setText(QString::number(static_cast<double>(posMin)/COIN,'f',1).append(" | ") + QString::number(static_cast<double>(posMax)/COIN,'f',1));
+        ui->label_24hPoSMedian_value->setText(QString::number(static_cast<double>(posMedian)/COIN,'f',1));
     }
 }
 

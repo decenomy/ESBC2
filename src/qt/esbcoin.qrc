@@ -128,8 +128,6 @@
         <file alias="leftArrow_small">res/images/leftArrow_small.png</file>
         <file alias="rightArrow_small">res/images/rightArrow_small.png</file>
         <file alias="qtreeview_selected">res/images/qtreeview_selected.png</file>
-        <file alias="branch-closed">res/images/branch-closed.png</file>
-        <file alias="branch-open">res/images/branch-open.png</file>
         <file alias="splash">res/images/splash.png</file>
         <file alias="splash_testnet">res/images/splash_testnet.png</file>
     </qresource>

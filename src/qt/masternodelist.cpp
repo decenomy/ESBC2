@@ -233,20 +233,21 @@ void MasternodeList::updateMyMasternodeInfo(QString strAlias, QString strAddr, C
 
     std::string mnLevelText = "";
 
-    double tLuck;
+    double tLuck = 0;
     std::string pubkey = CBitcoinAddress(pmn->pubKeyCollateralAddress.GetID()).ToString();
+
     if (pmn) {
         switch (pmn->Level())
         {
-            case 1: mnLevelText = "Bronze"; tLuck = ((masternodeRewards[pubkey]/COIN) / roi1)*100; break;
-            case 2: mnLevelText = "Silver"; tLuck = ((masternodeRewards[pubkey]/COIN) / roi2)*100; break;
-            case 3: mnLevelText = "Gold"; tLuck = ((masternodeRewards[pubkey]/COIN) / roi3)*100; break;
-            case 4: mnLevelText = "Platinum"; tLuck = ((masternodeRewards[pubkey]/COIN) / roi4)*100; break;
+            case 1: mnLevelText = "Bronze"; if (roi1 > 1) tLuck = ((masternodeRewards[pubkey]/COIN) / roi1)*100; break;
+            case 2: mnLevelText = "Silver"; if (roi2 > 1) tLuck = ((masternodeRewards[pubkey]/COIN) / roi2)*100; break;
+            case 3: mnLevelText = "Gold"; if (roi3 > 1) tLuck = ((masternodeRewards[pubkey]/COIN) / roi3)*100; break;
+            case 4: mnLevelText = "Platinum"; if (roi4 > 1) tLuck = ((masternodeRewards[pubkey]/COIN) / roi4)*100; break;
         }
     }
 
+    //    QTableWidgetItem* levelItem = new QTableWidgetItem(QString::number(pmn ? pmn->Level() : 0u));
     QTableWidgetItem* levelItem = new QTableWidgetItem(QString::fromStdString(mnLevelText));
-//    QTableWidgetItem* levelItem = new QTableWidgetItem(QString::number(pmn ? pmn->Level() : 0u));
 
     QTableWidgetItem* aliasItem = new QTableWidgetItem(strAlias);
     QTableWidgetItem* addrItem = new QTableWidgetItem(pmn ? QString::fromStdString(pmn->addr.ToString()) : strAddr);
@@ -340,15 +341,17 @@ void MasternodeList::updateNodeList()
         // Address, Protocol, Status, Active Seconds, Last Seen, Pub Key
         QTableWidgetItem *addressItem = new QTableWidgetItem(QString::fromStdString(mn.addr.ToString()));
 
-        double tLuck;
+        double tLuck = 0;
         std::string pubkey = CBitcoinAddress(mn.pubKeyCollateralAddress.GetID()).ToString();
+
         switch (mn.Level())
         {
-            case 1: mnLevelText = "Bronze"; tLuck = ((masternodeRewards[pubkey]/COIN) / roi1)*100; break;
-            case 2: mnLevelText = "Silver"; tLuck = ((masternodeRewards[pubkey]/COIN) / roi2)*100; break;
-            case 3: mnLevelText = "Gold"; tLuck = ((masternodeRewards[pubkey]/COIN) / roi3)*100; break;
-            case 4: mnLevelText = "Platinum"; tLuck = ((masternodeRewards[pubkey]/COIN) / roi4)*100; break;
+            case 1: mnLevelText = "Bronze"; if (roi1 > 1) tLuck = ((masternodeRewards[pubkey]/COIN) / roi1)*100; break;
+            case 2: mnLevelText = "Silver"; if (roi2 > 1) tLuck = ((masternodeRewards[pubkey]/COIN) / roi2)*100; break;
+            case 3: mnLevelText = "Gold"; if (roi3 > 1) tLuck = ((masternodeRewards[pubkey]/COIN) / roi3)*100; break;
+            case 4: mnLevelText = "Platinum"; if (roi4 > 1) tLuck = ((masternodeRewards[pubkey]/COIN) / roi4)*100; break;
         }
+
         QTableWidgetItem *levelItem = new QTableWidgetItem(QString::fromStdString(mnLevelText));
 //        QTableWidgetItem *levelItem = new QTableWidgetItem(QString::number(mn.Level()));
 

@@ -234,15 +234,20 @@ void MasternodeList::updateMyMasternodeInfo(QString strAlias, QString strAddr, C
     std::string mnLevelText = "";
 
     double tLuck = 0;
-    std::string pubkey = CBitcoinAddress(pmn->pubKeyCollateralAddress.GetID()).ToString();
+    CAmount masternodeCoins = 0;
+    std::string pubkey = "";
 
     if (pmn) {
+        pubkey = CBitcoinAddress(pmn->pubKeyCollateralAddress.GetID()).ToString();
+        if (masternodeRewards.count(pubkey) == 1)
+          masternodeCoins = masternodeRewards.at(pubkey);
+
         switch (pmn->Level())
         {
-            case 1: mnLevelText = "Bronze"; if (roi1 > 1) tLuck = ((masternodeRewards[pubkey]/COIN) / roi1)*100; break;
-            case 2: mnLevelText = "Silver"; if (roi2 > 1) tLuck = ((masternodeRewards[pubkey]/COIN) / roi2)*100; break;
-            case 3: mnLevelText = "Gold"; if (roi3 > 1) tLuck = ((masternodeRewards[pubkey]/COIN) / roi3)*100; break;
-            case 4: mnLevelText = "Platinum"; if (roi4 > 1) tLuck = ((masternodeRewards[pubkey]/COIN) / roi4)*100; break;
+            case 1: mnLevelText = "Bronze"; if (roi1 > 1) tLuck = ((masternodeCoins/COIN) / roi1)*100; break;
+            case 2: mnLevelText = "Silver"; if (roi2 > 1) tLuck = ((masternodeCoins/COIN) / roi2)*100; break;
+            case 3: mnLevelText = "Gold"; if (roi3 > 1) tLuck = ((masternodeCoins/COIN) / roi3)*100; break;
+            case 4: mnLevelText = "Platinum"; if (roi4 > 1) tLuck = ((masternodeCoins/COIN) / roi4)*100; break;
         }
     }
 
@@ -254,11 +259,11 @@ void MasternodeList::updateMyMasternodeInfo(QString strAlias, QString strAddr, C
     QTableWidgetItem* protocolItem = new QTableWidgetItem(QString::number(pmn ? pmn->protocolVersion : -1));
     //protocolItem->setTextAlignment(Qt::AlignHCenter);
     QTableWidgetItem* statusItem = new QTableWidgetItem(QString::fromStdString(pmn ? pmn->Status() : "MISSING"));
-    int64_t activeSeconds = pmn->lastPing.sigTime - pmn->sigTime;
+    int64_t activeSeconds = pmn ? pmn->lastPing.sigTime - pmn->sigTime : 0;
     GUIUtil::DHMSTableWidgetItem* activeSecondsItem = new GUIUtil::DHMSTableWidgetItem(pmn ? activeSeconds : 0);
     QTableWidgetItem* lastSeenItem = new QTableWidgetItem(QString::fromStdString(DateTimeStrFormat("%Y-%m-%d %H:%M", pmn ? pmn->lastPing.sigTime : 0)));
     QTableWidgetItem* pubkeyItem = new QTableWidgetItem(QString::fromStdString(pmn ? pubkey : ""));
-    QTableWidgetItem* mnReward = new QTableWidgetItem(QString::number(masternodeRewards[pubkey]/COIN,'f',1));
+    QTableWidgetItem* mnReward = new QTableWidgetItem(QString::number(masternodeCoins/COIN,'f',1));
     //mnReward->setTextAlignment(Qt::AlignRight);
     QTableWidgetItem* mnLuck = new QTableWidgetItem(activeSeconds > 30*60*60 ? QString::number(tLuck,'f',1).append("%") : QString::fromStdString("-"));
     //mnLuck->setTextAlignment(Qt::AlignHCenter);
@@ -334,6 +339,7 @@ void MasternodeList::updateNodeList()
     int offsetFromUtc = GetOffsetFromUtc();
 
     std::string mnLevelText = "";
+    CAmount masternodeCoins = 0;
 
     for(auto& mn : vMasternodes)
     {
@@ -343,13 +349,17 @@ void MasternodeList::updateNodeList()
 
         double tLuck = 0;
         std::string pubkey = CBitcoinAddress(mn.pubKeyCollateralAddress.GetID()).ToString();
+        if (masternodeRewards.count(pubkey) == 1)
+            masternodeCoins = masternodeRewards.at(pubkey);
+        else
+            masternodeCoins = 0;
 
         switch (mn.Level())
         {
-            case 1: mnLevelText = "Bronze"; if (roi1 > 1) tLuck = ((masternodeRewards[pubkey]/COIN) / roi1)*100; break;
-            case 2: mnLevelText = "Silver"; if (roi2 > 1) tLuck = ((masternodeRewards[pubkey]/COIN) / roi2)*100; break;
-            case 3: mnLevelText = "Gold"; if (roi3 > 1) tLuck = ((masternodeRewards[pubkey]/COIN) / roi3)*100; break;
-            case 4: mnLevelText = "Platinum"; if (roi4 > 1) tLuck = ((masternodeRewards[pubkey]/COIN) / roi4)*100; break;
+            case 1: mnLevelText = "Bronze"; if (roi1 > 1) tLuck = ((masternodeCoins/COIN) / roi1)*100; break;
+            case 2: mnLevelText = "Silver"; if (roi2 > 1) tLuck = ((masternodeCoins/COIN) / roi2)*100; break;
+            case 3: mnLevelText = "Gold"; if (roi3 > 1) tLuck = ((masternodeCoins/COIN) / roi3)*100; break;
+            case 4: mnLevelText = "Platinum"; if (roi4 > 1) tLuck = ((masternodeCoins/COIN) / roi4)*100; break;
         }
 
         QTableWidgetItem *levelItem = new QTableWidgetItem(QString::fromStdString(mnLevelText));
@@ -362,7 +372,7 @@ void MasternodeList::updateNodeList()
         QTableWidgetItem *activeSecondsItem = new QTableWidgetItem(QString::fromStdString(DurationToDHMS(activeSeconds)));
         QTableWidgetItem *lastSeenItem = new QTableWidgetItem(QString::fromStdString(DateTimeStrFormat("%Y-%m-%d %H:%M", mn.lastPing.sigTime + offsetFromUtc)));
         QTableWidgetItem *pubkeyItem = new QTableWidgetItem(QString::fromStdString(pubkey));
-        QTableWidgetItem *mnReward = new QTableWidgetItem(QString::number(masternodeRewards[pubkey]/COIN,'f',1));
+        QTableWidgetItem *mnReward = new QTableWidgetItem(QString::number(masternodeCoins/COIN,'f',1));
         //mnReward->setTextAlignment(Qt::AlignRight);
         QTableWidgetItem *mnLuck = new QTableWidgetItem(activeSeconds > 30*60*60 ? QString::number(tLuck,'f',1).append("%") : QString::fromStdString("-"));
         //mnLuck->setTextAlignment(Qt::AlignHCenter);

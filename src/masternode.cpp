@@ -235,8 +235,10 @@ void CMasternode::Check(bool forceCheck)
     activeState = MASTERNODE_ENABLED; // OK
 }
 
+//int64_t CMasternode::SecondsSincePayment(bool test)
 int64_t CMasternode::SecondsSincePayment()
 {
+//    int64_t sec = (GetAdjustedTime() - GetLastPaid(test));
     int64_t sec = (GetAdjustedTime() - GetLastPaid());
     int64_t month = 60 * 60 * 24 * 30;
 
@@ -252,6 +254,7 @@ int64_t CMasternode::SecondsSincePayment()
     return month + hash.GetCompact(false);
 }
 
+//int64_t CMasternode::GetLastPaid(bool test)
 int64_t CMasternode::GetLastPaid()
 {
     CBlockIndex* pindexPrev = chainActive.Tip();
@@ -272,7 +275,12 @@ int64_t CMasternode::GetLastPaid()
 
     const CBlockIndex* BlockReading = pindexPrev;
 
-    int nMnCount = int(mnodeman.CountEnabled(Level()) / 1.25);
+    int nMnCount = 0;
+    if (IsSporkActive(SPORK_8_NEW_PROTOCOL_ENFORCEMENT))
+        nMnCount = int(mnodeman.CountEnabled(Level()) * 1.25); // new
+    else
+        nMnCount = int(mnodeman.CountEnabled(Level()) / 1.25);
+
     int n = 0;
     for (unsigned int i = 1; BlockReading && BlockReading->nHeight > 0; i++) {
         if (n >= nMnCount) {
@@ -285,8 +293,14 @@ int64_t CMasternode::GetLastPaid()
                 Search for this payee, with at least 2 votes. This will aid in consensus allowing the network
                 to converge on the same payees quickly, then keep the same schedule.
             */
-            if (masternodePayments.mapMasternodeBlocks[BlockReading->nHeight].HasPayeeWithVotes(mnpayee, 2)) {
-                return BlockReading->nTime - nOffset;
+            if (IsSporkActive(SPORK_8_NEW_PROTOCOL_ENFORCEMENT)) { //new
+                if (masternodePayments.mapMasternodeBlocks[BlockReading->nHeight].HasPayeeWithVotes(mnpayee, 6)) {
+                    return BlockReading->nTime - nOffset;
+                }
+            } else {
+                if (masternodePayments.mapMasternodeBlocks[BlockReading->nHeight].HasPayeeWithVotes(mnpayee, 2)) {
+                    return BlockReading->nTime - nOffset;
+                }
             }
         }
 

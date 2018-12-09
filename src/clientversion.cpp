@@ -88,7 +88,7 @@ static std::string FormatVersion(int nVersion)
 
 std::string FormatFullVersion()
 {
-    return "2.0.3.3";
+    return "2.0.4.1";
 //    return CLIENT_BUILD;
 }
 

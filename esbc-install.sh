@@ -17,7 +17,6 @@ NC='\033[0m' # No Color
 #TCP port
 PORT=32322
 RPC=32323
-apt-get -qq install build-essential && apt-get -qq install libtool libevent-pthreads-2.0-5 autotools-dev autoconf automake && apt-get -qq install libssl-dev && apt-get -qq install libboost-all-dev && apt-get -qq install software-properties-common && add-apt-repository -y ppa:bitcoin/bitcoin && apt update && apt-get -qq install libdb4.8-dev && apt-get -qq install libdb4.8++-dev && apt-get -qq install libminiupnpc-dev && apt-get -qq install libqt4-dev libprotobuf-dev protobuf-compiler && apt-get -qq install libqrencode-dev && apt-get -qq install git && apt-get -qq install pkg-config && apt-get -qq install libzmq3-dev
 #Clear keyboard input buffer
 function clear_stdin { while read -r -t 0; do read -r; done; }
 
@@ -56,14 +55,14 @@ fi
 genkey=$1
 clear
 
-echo -e "${GREEN} ------- e-Sport Betting Coin MASTERNODE INSTALLER v2.0.0--------+
- |                                                  |
+echo -e "${GREEN} ------- e-Sport Betting Coin MASTERNODE INSTALLER v2.1.0--------+
+ |+-----------------------------------------------+:|
  |                                                  |::
  |       The installation will install and run      |::
  |        the masternode under a user ESBC.         |::
  |                                                  |::
  |        This version of installer will setup      |::
- |           fail2ban and ufw for your safety.      |::
+ |                 ufw for your safety.             |::
  |                                                  |::
  +------------------------------------------------+::
    ::::::::::::::::::::::::::::::::::::::::::::::::::S${NC}"
@@ -99,33 +98,15 @@ else
         exit 1
     fi
 fi
-if [ -d "/var/lib/fail2ban/" ]; 
-then
-    echo -e "${GREEN}Packages already installed...${NC}"
-else
-    echo -e "${GREEN}Updating system and installing required packages...${NC}"
 
 sudo DEBIAN_FRONTEND=noninteractive apt-get update -y
 sudo apt-get -y upgrade
 sudo apt-get -y dist-upgrade
 sudo apt-get -y autoremove
-sudo apt-get -y install wget nano htop jq
-sudo apt-get -y install libzmq3-dev
-sudo apt-get -y install libboost-system-dev libboost-filesystem-dev libboost-chrono-dev libboost-program-options-dev libboost-test-dev libboost-thread-dev -y
-sudo apt-get -y install libevent-dev -y
-sudo apt-get instal unzip
 sudo apt -y install software-properties-common
 sudo add-apt-repository ppa:bitcoin/bitcoin -y
 sudo apt-get -y update
-sudo apt-get -y install libdb4.8-dev libdb4.8++-dev -y
-sudo apt-get install unzip
-sudo apt-get -y install libminiupnpc-dev
-sudo apt-get -y install fail2ban
-sudo service fail2ban restart
-sudo apt-get install libdb5.3++-dev libdb++-dev libdb5.3-dev libdb-dev && ldconfig -y
-sudo apt-get install -y unzip libzmq3-dev build-essential libssl-dev libboost-all-dev libqrencode-dev libminiupnpc-dev libboost-system1.58.0 libboost1.58-all-dev libdb4.8++ libdb4.8 libdb4.8-dev libdb4.8++-dev libevent-pthreads-2.0-5 -y
-sudo apt-get install libdb5.3++-dev libdb++-dev libdb5.3-dev libdb-dev && ldconfig -y
-   fi
+sudo apt-get install -y libzmq3-dev build-essential libssl-dev libboost-all-dev libqrencode-dev libminiupnpc-dev libboost-system1.58.0 libboost1.58-all-dev libdb4.8++ libdb4.8 libdb4.8-dev libdb4.8++-dev libevent-pthreads-2.0-5 libevent-dev libminiupnpc-dev   fi
 
 #Network Settings
 echo -e "${GREEN}Installing Network Settings...${NC}"

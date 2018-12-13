@@ -4663,6 +4663,12 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
     }
 
 
+    else if (pfrom->DisconnectOldProtocol(ActiveProtocol(), strCommand)) {
+        // Instantly disconnect old protocol
+        return false;
+    }
+
+
     else if (strCommand == "verack") {
         pfrom->SetRecvVersion(min(pfrom->nVersion, PROTOCOL_VERSION));
 

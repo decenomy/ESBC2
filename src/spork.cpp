@@ -120,7 +120,7 @@ int64_t GetSporkValue(int nSporkID)
     return r;
 }
 
-void ExecuteSpork(int nSporkID, int nValue)
+void ExecuteSpork(int nSporkID, int64_t nValue)
 {
     //correct fork via spork technology
     if (nSporkID == SPORK_5_RECONSIDER_BLOCKS && nValue > 0) {

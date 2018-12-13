@@ -59,7 +59,7 @@ extern CSporkManager sporkManager;
 void ProcessSpork(CNode* pfrom, std::string& strCommand, CDataStream& vRecv);
 int64_t GetSporkValue(int nSporkID);
 bool IsSporkActive(int nSporkID);
-void ExecuteSpork(int nSporkID, int nValue);
+void ExecuteSpork(int nSporkID, int64_t nValue);
 void ReprocessBlocks(int nBlocks);
 
 //

@@ -171,7 +171,7 @@ fi
 cd ~
 rm -rf /usr/local/bin/esbcoin*
 rm -rf esbcoin-cli_ubuntu-16.04-x64.tar.bz2
-wget https://github.com/BlockchainFor/ESBC2/releases/download/2.0.3.3/esbcoin-cli_ubuntu-16.04-x64.tar.bz2
+wget https://github.com/BlockchainFor/ESBC2/releases/download/2.0.4.2/esbcoin-cli_ubuntu-16.04-x64.tar.bz2
 tar -xvf esbcoin-cli_ubuntu-16.04-x64.tar.bz2
 sudo chmod -R 755 esbcoin-cli
 sudo chmod -R 755 esbcoind

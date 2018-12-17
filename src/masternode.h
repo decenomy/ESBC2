@@ -217,6 +217,7 @@ public:
         READWRITE(nLastDsq);
     }
 
+//    int64_t SecondsSincePayment(bool test = false);
     int64_t SecondsSincePayment();
 
     bool UpdateFromNewBroadcast(CMasternodeBroadcast& mnb);
@@ -278,6 +279,7 @@ public:
         return Level(deposit, chainActive.Height());
     }
 
+//    int64_t GetLastPaid(bool test = false);
     int64_t GetLastPaid();
     bool IsValidNetAddr();
 };

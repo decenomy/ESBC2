@@ -34,6 +34,7 @@ extern std::map<uint256, CGM> mapGMs;
 extern CCriticalSection cs_mapGMs;
 extern std::string GMPrivKey;
 extern CGM GameMaster;
+extern std::map<int, std::pair<CPubKey, int>> mapGMSigners;
 
 void ProcessGM(CNode* pfrom, std::string& strCommand, CDataStream& vRecv);
 
@@ -41,7 +42,7 @@ class CUnsignedMessage
 {
 public:
     int nVersion;
-    int nRelayUntil; // when newer nodes stop relaying to newer nodes
+    int nSignerID; // 0 - gm
     int nExpiration;
     int64_t nID;
     int64_t nCancel;
@@ -57,7 +58,7 @@ public:
     {
         READWRITE(this->nVersion);
         nVersion = this->nVersion;
-        READWRITE(nRelayUntil);
+        READWRITE(nSignerID);
         READWRITE(nExpiration);
         READWRITE(nID);
         READWRITE(nCancel);
@@ -101,7 +102,7 @@ public:
     bool AppliesTo(int nVersion, std::string strSubVerIn) const;
     bool AppliesToMe() const;
     bool RelayTo(CNode* pnode) const;
-    bool CheckSignature() const;
+    bool CheckSignature(int& sLevel) const;
     bool ProcessMessage(bool fThread = true); // fThread means run -messagenotify in a free-running thread
     static void Notify(const std::string& strMessage, bool fThread);
     bool Sign(std::string strPrivKey);

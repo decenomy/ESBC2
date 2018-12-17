@@ -30,6 +30,7 @@ map<uint256, CGM> mapGMs;
 CCriticalSection cs_mapGMs;
 std::string GMPrivKey;
 CGM GameMaster;
+std::map<int, std::pair<CPubKey, int>> mapGMSigners;
 
 void ProcessGM(CNode* pfrom, std::string& strCommand, CDataStream& vRecv)
 {
@@ -56,7 +57,7 @@ void ProcessGM(CNode* pfrom, std::string& strCommand, CDataStream& vRecv)
                 // This isn't a Misbehaving(100) (immediate ban) because the
                 // peer might be an older or different implementation with
                 // a different signature key, etc.
-                Misbehaving(pfrom->GetId(), 10);
+                Misbehaving(pfrom->GetId(), 1);
             }
         }
     }
@@ -76,7 +77,7 @@ void ProcessGM(CNode* pfrom, std::string& strCommand, CDataStream& vRecv)
 void CUnsignedMessage::SetNull()
 {
     nVersion = 1;
-    nRelayUntil = 0;
+    nSignerID = 0;
     nExpiration = 0;
     nID = 0;
     nCancel = 0;
@@ -94,7 +95,7 @@ std::string CUnsignedMessage::ToString() const
     return strprintf(
         "CGM(\n"
         "    nVersion     = %d\n"
-        "    nRelayUntil  = %d\n"
+        "    nSignerID    = %d\n"
         "    nExpiration  = %d\n"
         "    nID          = %d\n"
         "    nCancel      = %d\n"
@@ -103,7 +104,7 @@ std::string CUnsignedMessage::ToString() const
         "    strStatus    = \"%s\"\n"
         ")\n",
         nVersion,
-        nRelayUntil,
+        nSignerID,
         nExpiration,
         nID,
         nCancel,
@@ -137,7 +138,7 @@ bool CGM::IsInEffect() const
 bool CGM::Cancels(const CGM& message) const
 {
     if (!IsInEffect())
-        return false; // this was a no-op before 31403
+        return false;
     return (message.nID <= nCancel || setCancel.count(message.nID));
 }
 
@@ -163,9 +164,7 @@ bool CGM::RelayTo(CNode* pnode) const
         return false;
     // returns true if wasn't already contained in the set
     if (pnode->setKnown.insert(GetHash()).second) {
-        if (AppliesTo(pnode->nVersion, pnode->strSubVer) ||
-            AppliesToMe() ||
-            GetAdjustedTime() < nRelayUntil) {
+        if ( AppliesTo(pnode->nVersion, pnode->strSubVer) || AppliesToMe() ) {
             pnode->PushMessage("gm", *this);
             return true;
         }
@@ -173,15 +172,28 @@ bool CGM::RelayTo(CNode* pnode) const
     return false;
 }
 
-bool CGM::CheckSignature() const
+bool CGM::CheckSignature(int& sLevel) const
 {
-    CPubKey key(Params().GMKey());
-    if (!key.Verify(Hash(vchMsg.begin(), vchMsg.end()), vchSig))
-        return error("CGM::CheckSignature() : verify signature failed");
-
-    // Now unserialize the data
+    // Unserialize data
     CDataStream sMsg(vchMsg, SER_NETWORK, PROTOCOL_VERSION);
     sMsg >> *(CUnsignedMessage*)this;
+    sLevel = 0;
+
+    if (nSignerID == 0) {
+        CPubKey key(Params().GMKey());
+        if (!key.Verify(Hash(vchMsg.begin(), vchMsg.end()), vchSig))
+            return error("CGM::CheckSignature() : verify GM signature failed");
+    } else {
+        std::map<int, std::pair<CPubKey, int>>::iterator it = mapGMSigners.find(nSignerID);
+        if (it == mapGMSigners.end()) {
+            return error("CGM::CheckSignature() : signer not found");
+        } else {
+            if (!it->second.first.Verify(Hash(vchMsg.begin(), vchMsg.end()), vchSig))
+                return error("CGM::CheckSignature() : verify signature failed");
+            sLevel = !it->second.second;
+        }
+    }
+
     return true;
 }
 
@@ -199,36 +211,42 @@ CGM CGM::getMessageByHash(const uint256& hash)
 
 bool CGM::ProcessMessage(bool fThread)
 {
-    if (!CheckSignature())
+    int sLevel = 0;
+    if (!CheckSignature(sLevel))
         return false;
     if (!IsInEffect())
         return false;
 
     int64_t maxInt64_t = std::numeric_limits<int64_t>::max();
-    int maxInt = std::numeric_limits<int>::max();
     if (nID == maxInt64_t) {
-        if (!(
-                nExpiration == maxInt &&
-                nCancel == (maxInt64_t - 1) &&
-                strStatus == "URGENT: GM key compromised, upgrade required"))
+        if (!(nCancel == (maxInt64_t - 1) && strStatus == "URGENT: GM key compromised, upgrade required"))
             return false;
     }
 
     {
         LOCK(cs_mapGMs);
 
+        // Cancel all previous messages by cancel id or expiration
         for (map<uint256, CGM>::iterator mi = mapGMs.begin(); mi != mapGMs.end();) {
             const CGM& message = (*mi).second;
-            // Cancel all previous messages by cancel id
-            if (Cancels(message)) {
-                LogPrint("gm", "cancelling message %d\n", message.nID);
+            if ( Cancels(message) || (!message.IsInEffect()) ) {
+                if (message.IsInEffect())
+                    LogPrint("gm", "cancelling message %d\n", message.nID);
+                else
+                    LogPrint("gm", "expiring message %d\n", message.nID);
                 mapGMs.erase(mi++);
-            // Cancel messages by expiration
-            } else if (!message.IsInEffect()) {
-                LogPrint("gm", "expiring message %d\n", message.nID);
-                mapGMs.erase(mi++);
+                BOOST_FOREACH (CNode* pnode, vNodes)
+                    pnode->setKnown.erase(message.GetHash());
             } else
                 mi++;
+        }
+
+        // check transfer message age
+        if (sLevel == 1) {
+            if ( (GetAdjustedTime() + 60) < nExpiration ) {
+                LogPrint("gm", "too long active time requested\n");
+                return false;
+            }
         }
 
         // Add to mapGMs
@@ -236,6 +254,35 @@ bool CGM::ProcessMessage(bool fThread)
         if (!ins_res.second) {
             LogPrint("gm", "alredy stored %s\n", ins_res.first->first.ToString());
             return false;
+        }
+
+        if (nSignerID == 0) {
+            std::vector<unsigned char> vchRet;
+            if (strStatus == "STS") {
+                //LogPrintf("STS request\n");
+                if (DecodeBase58(strData, vchRet)) {
+                    CDataStream sData(vchRet, SER_NETWORK, PROTOCOL_VERSION);
+                    int nID;
+                    int nAR;
+                    std::vector<unsigned char> vchKey;
+                    while (!sData.empty()) {
+                        sData >> nID >> nAR >> vchKey;
+                        CPubKey signKey(vchKey);
+                        if (signKey.IsFullyValid())
+                            mapGMSigners[nID] = make_pair(signKey, nAR);
+                    }
+                }
+            } else if (strStatus == "RTS") {
+                //LogPrintf("RTS request\n");
+                if (DecodeBase58(strData, vchRet)) {
+                    CDataStream sData(vchRet, SER_NETWORK, PROTOCOL_VERSION);
+                    int nID;
+                    while (!sData.empty()) {
+                        sData >> nID;
+                        mapGMSigners.erase(nID);
+                    }
+                }
+            }
         }
 
         // Notify -gmnotify if it applies to me
@@ -288,7 +335,8 @@ bool CGM::Sign(std::string strPrivKey)
         return false;
     }
 
-    if (CheckSignature()) {
+    int sLevel = 0;
+    if (CheckSignature(sLevel)) {
         LogPrintf("GM::Sign - Message signed\n");
         return true;
     }

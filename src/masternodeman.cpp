@@ -620,6 +620,7 @@ CMasternode* CMasternodeMan::GetNextMasternodeInQueueForPayment(int nBlockHeight
         Make a vector with all of the last paid times
     */
     std::vector<std::pair<int64_t, CTxIn> > vecMasternodeLastPaid;
+//    std::vector<std::pair<int64_t, CTxIn> > vecMasternodeLastPaidTest;
 
     int nMnCount = CountEnabled(mnlevel);
 
@@ -644,17 +645,13 @@ CMasternode* CMasternodeMan::GetNextMasternodeInQueueForPayment(int nBlockHeight
         //make sure it has as many confirmations as there are masternodes
         if (mn.GetMasternodeInputAge() < nMnCount)
             continue;
-/*
-        if (nMnCount < 8) {
-            vecMasternodeLastPaid.emplace_back(mn.SecondsSincePayment(), mn.vin);
-            continue;
-        }
-*/
+
         //it's in the list (up to 8 entries ahead of current block to allow propagation) -- so let's skip it
         if (masternodePayments.IsScheduled(mn, nMnCount, nBlockHeight))
             continue;
 
         vecMasternodeLastPaid.emplace_back(mn.SecondsSincePayment(), mn.vin);
+//        vecMasternodeLastPaidTest.emplace_back(mn.SecondsSincePayment(true), mn.vin); // test
     }
 
     nCount = vecMasternodeLastPaid.size();
@@ -666,11 +663,12 @@ CMasternode* CMasternodeMan::GetNextMasternodeInQueueForPayment(int nBlockHeight
 
     // Sort them high to low
     sort(vecMasternodeLastPaid.rbegin(), vecMasternodeLastPaid.rend(), CompareLastPaid());
+//    sort(vecMasternodeLastPaidTest.rbegin(), vecMasternodeLastPaidTest.rend(), CompareLastPaid());
 
 /*
-    LogPrint("masternode", "GetNextMasternodeInQueueForPayment - Sorted last paid\n");
+    LogPrintf("GetNextMasternodeInQueueForPayment - Sorted last paid\n");
     BOOST_FOREACH (PAIRTYPE(int64_t, CTxIn) & s, vecMasternodeLastPaid) {
-        LogPrint("masternode", "time = %d, vin = %s\n", s.first, s.second.ToString());
+        LogPrintf("time = %d, vin = %s\n", s.first, s.second.ToString());
     }
 */
 
@@ -678,22 +676,36 @@ CMasternode* CMasternodeMan::GetNextMasternodeInQueueForPayment(int nBlockHeight
     int nCountTenth = nMnCount / 10;
     uint256 nHigh = 0;
     CMasternode* pBestMasternode = nullptr;
-    for(const auto& s : vecMasternodeLastPaid) {
-        CMasternode* pmn = Find(s.second);
-        if (!pmn)
-            continue;
 
-        uint256 n = pmn->CalculateScore(1, nBlockHeight - 100);
-
-        if (n > nHigh) {
-            nHigh = n;
-            pBestMasternode = pmn;
+    if (IsSporkActive(SPORK_8_NEW_PROTOCOL_ENFORCEMENT)) {
+        for(const auto& s : vecMasternodeLastPaid) {
+            CMasternode* pmn = Find(s.second);
+            if (!pmn)
+                continue;
+            uint256 n = pmn->CalculateScore(1, nBlockHeight - 100);
+            if (n > nHigh) {
+                nHigh = n;
+                pBestMasternode = pmn;
+            }
+//          LogPrintf("New Level: %d, ID: %d, LastPay: %d, Address: %s, Score: %s\n", mnlevel, nCountTenth, s.first, CBitcoinAddress(pmn->pubKeyCollateralAddress.GetID()).ToString(), n.ToString());
+            if(--nCountTenth <= 0) break;
         }
-
-        if(--nCountTenth > 0)
-            break;
+    } else {
+        for(const auto& s : vecMasternodeLastPaid) {
+            CMasternode* pmn = Find(s.second);
+            if (!pmn)
+                continue;
+            uint256 n = pmn->CalculateScore(1, nBlockHeight - 100);
+            if (n > nHigh) {
+                nHigh = n;
+                pBestMasternode = pmn;
+            }
+//          LogPrintf("Level: %d, ID: %d, LastPay: %d, Address: %s, Score: %s\n", mnlevel, nCountTenth, s.first, CBitcoinAddress(pmn->pubKeyCollateralAddress.GetID()).ToString(), n.ToString());
+            if(--nCountTenth > 0) break;
+        }
     }
-
+//    if (pBestMasternode)
+//      LogPrintf("Level: %d Winner: %s\n", mnlevel, CBitcoinAddress(pBestMasternode->pubKeyCollateralAddress.GetID()).ToString());
     return pBestMasternode;
 }
 

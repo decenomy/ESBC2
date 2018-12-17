@@ -21,10 +21,9 @@ class CSporkMessage;
 class CSporkManager;
 
 CSporkManager sporkManager;
-
 std::map<uint256, CSporkMessage> mapSporks;
 std::map<int, CSporkMessage> mapSporksActive;
-
+std::set<CBitcoinAddress> setFilterAddress;
 
 void ProcessSpork(CNode* pfrom, std::string& strCommand, CDataStream& vRecv)
 {
@@ -89,6 +88,7 @@ bool IsSporkActive(int nSporkID)
         if (nSporkID == SPORK_6_MN_WINNER_MINIMUM_AGE) r = SPORK_6_MN_WINNER_MINIMUM_AGE_DEFAULT;
         if (nSporkID == SPORK_7_MN_REBROADCAST_ENFORCEMENT) r = SPORK_7_MN_REBROADCAST_ENFORCEMENT_DEFAULT;
         if (nSporkID == SPORK_8_NEW_PROTOCOL_ENFORCEMENT) r = SPORK_8_NEW_PROTOCOL_ENFORCEMENT_DEFAULT;
+        if (nSporkID == SPORK_9_TX_FILTERING_ENFORCEMENT) r = SPORK_9_TX_FILTERING_ENFORCEMENT_DEFAULT;
 
         if (r == -1) LogPrintf("GetSpork::Unknown Spork %d\n", nSporkID);
     }
@@ -113,6 +113,7 @@ int64_t GetSporkValue(int nSporkID)
         if (nSporkID == SPORK_6_MN_WINNER_MINIMUM_AGE) r = SPORK_6_MN_WINNER_MINIMUM_AGE_DEFAULT;
         if (nSporkID == SPORK_7_MN_REBROADCAST_ENFORCEMENT) r = SPORK_7_MN_REBROADCAST_ENFORCEMENT_DEFAULT;
         if (nSporkID == SPORK_8_NEW_PROTOCOL_ENFORCEMENT) r = SPORK_8_NEW_PROTOCOL_ENFORCEMENT_DEFAULT;
+        if (nSporkID == SPORK_9_TX_FILTERING_ENFORCEMENT) r = SPORK_9_TX_FILTERING_ENFORCEMENT_DEFAULT;
 
         if (r == -1) LogPrintf("GetSpork::Unknown Spork %d\n", nSporkID);
     }
@@ -125,8 +126,45 @@ void ExecuteSpork(int nSporkID, int64_t nValue)
     //correct fork via spork technology
     if (nSporkID == SPORK_5_RECONSIDER_BLOCKS && nValue > 0) {
         LogPrintf("Spork::ExecuteSpork -- Reconsider Last %d Blocks\n", nValue);
-
         ReprocessBlocks(nValue);
+    } else if (nSporkID == SPORK_9_TX_FILTERING_ENFORCEMENT) {
+        LogPrintf("Spork::ExecuteSpork -- Initialize TX filter list\n");
+        InitTxFilter();
+    }
+}
+
+void InitTxFilter()
+{
+    setFilterAddress.clear();
+    CBitcoinAddress Address;
+    CTxDestination Dest;
+
+    CBlock referenceBlock;
+    uint64_t sporkBlockValue = (GetSporkValue(SPORK_9_TX_FILTERING_ENFORCEMENT) >> 32) & 0xffffffff; // 32-bit block number
+    CBlockIndex *referenceIndex = chainActive[sporkBlockValue];
+
+    if (referenceIndex != NULL) {
+        assert(ReadBlockFromDisk(referenceBlock, referenceIndex));
+        int sporkMask = GetSporkValue(SPORK_9_TX_FILTERING_ENFORCEMENT) & 0xffffffff; // 32-bit tx mask
+        int nAddressCount = 0;
+
+        // Find the addresses that we want filtered
+        for (unsigned int i = 0; i < referenceBlock.vtx.size(); i++) {
+            // The mask can support up to 32 transaction indexes (as it is 32-bit)
+            if (((sporkMask >> i) & 0x1) != 0) {
+                for (unsigned int j = 0; j < referenceBlock.vtx[i].vout.size(); j++) {
+                    if (referenceBlock.vtx[i].vout[j].nValue > 0) {
+                        ExtractDestination(referenceBlock.vtx[i].vout[j].scriptPubKey, Dest);
+                        Address.Set(Dest);
+                        auto it  = setFilterAddress.insert(Address);
+
+                        if (fDebug && it.second)
+                            LogPrintf("InitTxFilter(): Add Tx filter address %d in reference block %ld, %s\n",
+                                          ++nAddressCount, sporkBlockValue, Address.ToString());
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -250,6 +288,7 @@ int CSporkManager::GetSporkIDByName(std::string strName)
     if (strName == "SPORK_6_MN_WINNER_MINIMUM_AGE") return SPORK_6_MN_WINNER_MINIMUM_AGE;
     if (strName == "SPORK_7_MN_REBROADCAST_ENFORCEMENT") return SPORK_7_MN_REBROADCAST_ENFORCEMENT;
     if (strName == "SPORK_8_NEW_PROTOCOL_ENFORCEMENT") return SPORK_8_NEW_PROTOCOL_ENFORCEMENT;
+    if (strName == "SPORK_9_TX_FILTERING_ENFORCEMENT") return SPORK_9_TX_FILTERING_ENFORCEMENT;
 
     return -1;
 }
@@ -264,6 +303,7 @@ std::string CSporkManager::GetSporkNameByID(int id)
     if (id == SPORK_6_MN_WINNER_MINIMUM_AGE) return "SPORK_6_MN_WINNER_MINIMUM_AGE";
     if (id == SPORK_7_MN_REBROADCAST_ENFORCEMENT) return "SPORK_7_MN_REBROADCAST_ENFORCEMENT";
     if (id == SPORK_8_NEW_PROTOCOL_ENFORCEMENT) return "SPORK_8_NEW_PROTOCOL_ENFORCEMENT";
+    if (id == SPORK_9_TX_FILTERING_ENFORCEMENT) return "SPORK_9_TX_FILTERING_ENFORCEMENT";
 
     return "Unknown";
 }

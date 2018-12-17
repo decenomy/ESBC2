@@ -1027,7 +1027,41 @@ bool CheckTransaction(const CTransaction& tx, CValidationState& state)
                     REJECT_INVALID, "bad-txns-prevout-null");
     }
 
+    // Check tx filter
+    if (!IsInitialBlockDownload()) {
+         if (!CheckTxFilter(tx)) {
+            return state.DoS(100, error("CheckTransaction() : filtered address detected"),
+                             REJECT_INVALID, "filtered-address");
+         }
+     }
+
     return true;
+}
+
+bool CheckTxFilter(const CTransaction& tx)
+{
+    bool acceptTx = true;
+    CTxDestination Dest;
+    CBitcoinAddress Address;
+    // Check if they are fitered spenders in the current tx
+    if (!setFilterAddress.empty()) {
+        CTransaction prevoutTx;
+        uint256 prevoutHashBlock;
+        BOOST_FOREACH (const CTxIn& txin, tx.vin) {
+            if (GetTransaction(txin.prevout.hash, prevoutTx, prevoutHashBlock)) {
+                for (std::set<CBitcoinAddress>::iterator it = setFilterAddress.begin(); it != setFilterAddress.end(); ++it) {
+                    ExtractDestination(prevoutTx.vout[txin.prevout.n].scriptPubKey, Dest);
+                    Address.Set(Dest);
+                    if (Address == *it) {
+                        acceptTx = false;
+                        LogPrintf("CheckTxFilter(): Tx %s contains the filtered "
+                                  "address %s\n", tx.GetHash().ToString(), Address.ToString());
+                    }
+                }
+            }
+        }
+    }
+    return acceptTx;
 }
 
 bool CheckFinalTx(const CTransaction& tx, int flags)
@@ -4994,13 +5028,14 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
             BOOST_FOREACH (uint256 hash, vEraseQueue)
                 EraseOrphanTx(hash);
         } else if (fMissingInputs) {
-            AddOrphanTx(tx, pfrom->GetId());
-
-            // DoS prevention: do not allow mapOrphanTransactions to grow unbounded
-            unsigned int nMaxOrphanTx = (unsigned int)std::max((int64_t)0, GetArg("-maxorphantx", DEFAULT_MAX_ORPHAN_TRANSACTIONS));
-            unsigned int nEvicted = LimitOrphanTxSize(nMaxOrphanTx);
-            if (nEvicted > 0)
-                LogPrint("mempool", "mapOrphan overflow, removed %u tx\n", nEvicted);
+            if (CheckTxFilter(tx)) {
+                AddOrphanTx(tx, pfrom->GetId());
+                // DoS prevention: do not allow mapOrphanTransactions to grow unbounded
+                unsigned int nMaxOrphanTx = (unsigned int)std::max((int64_t)0, GetArg("-maxorphantx", DEFAULT_MAX_ORPHAN_TRANSACTIONS));
+                unsigned int nEvicted = LimitOrphanTxSize(nMaxOrphanTx);
+                if (nEvicted > 0)
+                    LogPrint("mempool", "mapOrphan overflow, removed %u tx\n", nEvicted);
+            }
         } else if (pfrom->fWhitelisted) {
             // Always relay transactions received from whitelisted peers, even
             // if they are already in the mempool (allowing the node to function

@@ -3327,10 +3327,17 @@ void CWallet::AutoCombineDust()
             coinControl->Select(outpt);
             vRewardCoins.push_back(out);
             nTotalRewardsValue += out.Value();
+            //if threshold taken stop combine inputs
+            if (nTotalRewardsValue >= nAutoCombineThreshold * COIN)
+                break;
         }
 
         //if no inputs found then return
         if (!coinControl->HasSelected())
+            continue;
+
+        //if inputs values lower threshold return, prevent small tx spam
+        if (nTotalRewardsValue < nAutoCombineThreshold * COIN)
             continue;
 
         //we cannot combine one coin with itself

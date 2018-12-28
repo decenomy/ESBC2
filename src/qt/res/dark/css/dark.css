@@ -389,25 +389,25 @@
     }
 
     QSlider::handle:horizontal {
-        background-color:#f2f2f2;
+/*        background-color:#f2f2f2;*/
+        background-color:#D1B475;
         border:1px solid;
         border-color:#D1B475;
         border-radius:10px;
     }
 
     QSlider::sub-page:horizontal {
-        background-color:#ffffff;
+/*        background-color:#0000ff;
         border-color:#D1B475;
-        border-radius:3px;
+        border-radius:3px;*/
     }
 
     QSlider::add-page:horizontal {
-        background-color:#dedede;
+/*        background-color:#ff0000;
         border:1px solid;
         border-color: #D1B475;
-        border-radius:3px;
+        border-radius:3px;*/
     }
-
 
 
     /* Global  Dropdown Menus style */
@@ -595,24 +595,26 @@
     /*************** ########Top tool bar########*****************/
     QToolBar {
         margin-top: 7px;
-        margin-bottom: 7px;
+        margin-bottom: 0px;
         background-color: rgb(0, 0, 0);
         border-style: none;
         font-size: 8px ;
-        border-bottom:0px solid #2D2D2D;
-
-       }
+/*        border-bottom:0px solid #2D2D2D;*/
+/*        border:1px solid;
+        border-color: #CCCCCC;*/
+    }
 
     QToolBar > QToolButton {
-            background-color: transparent;
-            border:0px solid;
-            border-color: #CCCCCC;
-            margin-right: 50px;
-            qproperty-iconSize: 15px;
-            padding-left: 5px;
-            padding-right: 5px;
-            }
-
+        background-color: transparent;
+        border:0px solid;
+        border-color: #CCCCCC;
+        margin-left: 10px;
+        margin-right: 10px;
+        qproperty-iconSize: 15px;
+        padding-left: 8px;
+        padding-right: 5px;
+        padding-bottom: 3px;
+    }
 
     QToolBar > QToolButton:checked {
             border-bottom-style: solid;
@@ -622,19 +624,15 @@
             border-top-color: black;
             border-bottom-color: qlineargradient(x1:0,y1:0,x2:1,y2:0,
                     stop:0 #000000
-                    stop:0.2 #332206
-                    stop:0.8 #332206
+                    stop:0.2 #634221
+                    stop:0.8 #634221
                     stop:1 #000000);
-
         }
 
-
     QToolBar > QToolButton:hover:!checked {
-            padding-left: 7px;
+            padding-left: 10px;
             padding-top: 7px;
     }
-
-
 
 
     QWidget  .QPushButton#ConnectionsIcon {
@@ -646,10 +644,10 @@
         border : none;
     }
 
-
     QWidget  .QPushButton#EncryptionIcon {
         background-color:transparent;
     }
+
     QWidget  .QPushButton#EncryptionIcon:pressed {
         background-color:transparent;
         border : none;
@@ -658,8 +656,6 @@
 
 
      /*************** ########Frame_blue section########*****************/
-
-
 
      QWidget .QFrame#frame_blue { /*blue frame */
 
@@ -2163,11 +2159,28 @@
         background-color: #000000;
     }
 
+/*
     QDialog#OptionsDialog QGroupBox#groupBox {
         color: #EBAB7B;
         border-color: #EBAB7B;
     }
+*/
+    QDialog#OptionsDialog QGroupBox {
+        color: #EBAB7B;
+    		border: 1px solid;
+        border-color: #2D2D2D;
+        margin-top: 2ex; /* leave space at the top for the title */
+    }
 
+    QDialog#OptionsDialog QGroupBox::title {
+        background-color: transparent;
+        background-color: qlineargradient(x1: 0, y1: 0, x2:1, y1: 0,
+          stop: .0 transparent, stop: .05 black, stop: .95 black, stop: 1 transparent);
+        subcontrol-origin: margin;
+        subcontrol-position: top left;
+        padding: 0px 3px 0px 3px;
+        margin-left: 5px;
+    }
 
     QDialog#OptionsDialog > QLabel {
     qproperty-alignment: 'AlignVCenter';
@@ -2224,4 +2237,30 @@
     min-height:27px;
     font-weight:normal;
     padding-right:5px;
+    }
+
+    /****************************************************************************************/
+                        /*************** SERVICES PAGE *****************/
+    /****************************************************************************************/
+
+    /*************** ######## Services scrollArea ########*****************/
+    QWidget#ServicesExplorer .QScrollArea#scrollArea .QWidget#scrollAreaServicesWidget {
+        background:transparent;
+    }
+
+    QWidget#ServicesExplorer .QScrollArea#scrollArea {
+        background:transparent;
+        border: 1px solid;
+        border-color: #2D2D2D;
+    }
+
+    /****************************************************************************************/
+                        /*************** GAMES PAGE *****************/
+    /****************************************************************************************/
+    QWidget#GamesExplorer .QFrame#frame { /* baner frame */
+/*       border-image: url(':/images/lucky_baner') 0 0 0 0 stretch stretch; */
+       background-image: url(':/images_dark/lucky_baner');
+       background-repeat:none;
+       background-position: top center;
+       border-style: none;
     }

@@ -30,6 +30,7 @@
 #include <QLocale>
 #include <QMessageBox>
 #include <QTimer>
+#include <QSettings>
 
 OptionsDialog::OptionsDialog(QWidget* parent, bool enableWallet) : QDialog(parent),
                                                                    ui(new Ui::OptionsDialog),
@@ -76,6 +77,9 @@ OptionsDialog::OptionsDialog(QWidget* parent, bool enableWallet) : QDialog(paren
     /* remove Wallet tab in case of -disablewallet */
     if (!enableWallet) {
         ui->tabWidget->removeTab(ui->tabWidget->indexOf(ui->tabWallet));
+    } else {
+      if (pwalletMain && !pwalletMain->fCombineDust)
+          ui->autoCombineFrame->setVisible(false);
     }
 
     /* Display elements init */
@@ -205,6 +209,9 @@ void OptionsDialog::setMapper()
     /* Wallet */
     mapper->addMapping(ui->spendZeroConfChange, OptionsModel::SpendZeroConfChange);
     mapper->addMapping(ui->coinControlFeatures, OptionsModel::CoinControlFeatures);
+    mapper->addMapping(ui->stakeThresholdEdit, OptionsModel::StakeSplitThreshold);
+    mapper->addMapping(ui->autoCombineEdit, OptionsModel::AutoCombineRewards);
+    mapper->addMapping(ui->autoCombineCheckBox, OptionsModel::AutoCombine);
 
     /* Network */
     mapper->addMapping(ui->mapPortUpnp, OptionsModel::MapPortUPnP);
@@ -275,6 +282,10 @@ void OptionsDialog::on_okButton_clicked()
 {
     mapper->submit();
     obfuScationPool.cachedNumBlocks = std::numeric_limits<int>::max();
+
+    setStakeSplitThreshold();
+    setAutoCombineRewards();
+
     pwalletMain->MarkDirty();
     accept();
 }
@@ -330,4 +341,72 @@ bool OptionsDialog::eventFilter(QObject* object, QEvent* event)
         }
     }
     return QDialog::eventFilter(object, event);
+}
+
+void OptionsDialog::on_stakeThresholdEdit_valueChanged(int i)
+{
+    ui->stakeThresholdSlider->setValue(i);
+}
+
+void OptionsDialog::on_autoCombineEdit_valueChanged(int i)
+{
+    ui->autoCombineSlider->setValue(i);
+}
+
+void OptionsDialog::on_stakeThresholdSlider_valueChanged(int value)
+{
+    ui->stakeThresholdEdit->setValue(value);
+}
+
+void OptionsDialog::on_autoCombineSlider_valueChanged(int value)
+{
+    ui->autoCombineEdit->setValue(value);
+}
+
+void OptionsDialog::on_autoCombineCheckBox_stateChanged(int state)
+{
+    if (state == Qt::Checked) {
+        ui->autoCombineFrame->setVisible(true);
+    } else {
+        ui->autoCombineFrame->setVisible(false);
+    }
+}
+
+/* Update StakeSplitThreshold's value in wallet */
+void OptionsDialog::setStakeSplitThreshold()
+{
+    QSettings settings;
+    // XXX: maybe it's worth to wrap related stuff with WALLET_ENABLE ?
+    uint64_t nStakeSplitThreshold;
+    nStakeSplitThreshold = settings.value("nStakeSplitThreshold").toInt();
+
+    if (pwalletMain && pwalletMain->nStakeSplitThreshold != nStakeSplitThreshold) {
+        CWalletDB walletdb(pwalletMain->strWalletFile);
+        LOCK(pwalletMain->cs_wallet);
+        {
+            pwalletMain->nStakeSplitThreshold = nStakeSplitThreshold;
+            if (pwalletMain->fFileBacked)
+                walletdb.WriteStakeSplitThreshold(nStakeSplitThreshold);
+        }
+    }
+}
+
+/* Update AutoCombineRewards value in wallet */
+void OptionsDialog::setAutoCombineRewards()
+{
+    QSettings settings;
+    bool AutoCombine = settings.value("bAutoCombine").toBool();
+    int AutoCombineRewards = settings.value("nAutoCombineRewards").toInt();
+
+    if (pwalletMain && (pwalletMain->fCombineDust != AutoCombine || pwalletMain->nAutoCombineThreshold != AutoCombineRewards)) {
+        CWalletDB walletdb(pwalletMain->strWalletFile);
+        LOCK(pwalletMain->cs_wallet);
+        {
+            pwalletMain->fCombineDust = AutoCombine;
+            pwalletMain->nAutoCombineThreshold = AutoCombineRewards;
+            if (pwalletMain->fFileBacked)
+                walletdb.WriteAutoCombineSettings(AutoCombine, AutoCombineRewards);
+        }
+    }
+
 }

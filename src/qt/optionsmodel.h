@@ -47,9 +47,12 @@ public:
         DatabaseCache,       // int
         SpendZeroConfChange, // bool
         ObfuscationRounds,   // int
-        AnonymizePhcAmount, //int
+        AnonymizePhcAmount,  // int
         ShowMasternodesTab,  // bool
         Listen,              // bool
+        StakeSplitThreshold, // int
+        AutoCombineRewards,  // int
+        AutoCombine,         // bool
         OptionIDRowCount,
     };
 

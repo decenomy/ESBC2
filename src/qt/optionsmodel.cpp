@@ -111,6 +111,12 @@ void OptionsModel::Init()
     if (!SoftSetBoolArg("-spendzeroconfchange", settings.value("bSpendZeroConfChange").toBool()))
         addOverriddenOption("-spendzeroconfchange");
 #endif
+    if (!settings.contains("nStakeSplitThreshold"))
+        settings.setValue("nStakeSplitThreshold", 200);
+    if (!settings.contains("nAutoCombineRewards"))
+        settings.setValue("nAutoCombineRewards", 500);
+    if (!settings.contains("bAutoCombine"))
+        settings.setValue("bAutoCombine", false);
 
     // Network
     if (!settings.contains("fUseUPnP"))
@@ -209,7 +215,21 @@ QVariant OptionsModel::data(const QModelIndex& index, int role) const
             return settings.value("bSpendZeroConfChange");
         case ShowMasternodesTab:
             return settings.value("fShowMasternodesTab");
+
+        case StakeSplitThreshold:
+            if (pwalletMain)
+                return QVariant((int)pwalletMain->nStakeSplitThreshold);
+            return settings.value("nStakeSplitThreshold");
+        case AutoCombineRewards:
+            if (pwalletMain)
+                return QVariant((int)pwalletMain->nAutoCombineThreshold);
+            return settings.value("nAutoCombineRewards");
+        case AutoCombine:
+            if (pwalletMain)
+                return QVariant((bool)pwalletMain->fCombineDust);
+            return settings.value("bAutoCombine");
 #endif
+
         case DisplayUnit:
             return nDisplayUnit;
         case ThirdPartyTxUrls:
@@ -305,6 +325,19 @@ bool OptionsModel::setData(const QModelIndex& index, const QVariant& value, int 
             }
             break;
 #endif
+
+        case StakeSplitThreshold:
+             settings.setValue("nStakeSplitThreshold", value.toInt());
+             break;
+        case AutoCombineRewards:
+            settings.setValue("nAutoCombineRewards", value.toInt());
+            break;
+        case AutoCombine:
+            if (settings.value("bAutoCombine") != value) {
+                settings.setValue("bAutoCombine", value);
+            }
+            break;
+
         case DisplayUnit:
             setDisplayUnit(value);
             break;

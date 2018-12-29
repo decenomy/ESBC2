@@ -133,7 +133,8 @@ public:
     TransactionTableModel* getTransactionTableModel();
     RecentRequestsTableModel* getRecentRequestsTableModel();
 
-    CAmount getBalance(const CCoinControl* coinControl = NULL) const;
+    CAmount getAddressBalance(const QString address) const;
+    CAmount getBalance(const CCoinControl* coinControl = NULL);
     CAmount getUnconfirmedBalance() const;
     CAmount getImmatureBalance() const;
     CAmount getAnonymizedBalance() const;
@@ -226,6 +227,8 @@ private:
     AddressTableModel* addressTableModel;
     TransactionTableModel* transactionTableModel;
     RecentRequestsTableModel* recentRequestsTableModel;
+
+    std::map<QString, CAmount> mapAddressBalances;
 
     // Cache some values to be able to detect changes
     CAmount cachedBalance;

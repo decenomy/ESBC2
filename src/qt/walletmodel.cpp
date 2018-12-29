@@ -57,20 +57,53 @@ WalletModel::~WalletModel()
     unsubscribeFromCoreSignals();
 }
 
-CAmount WalletModel::getBalance(const CCoinControl* coinControl) const
+CAmount WalletModel::getAddressBalance(const QString address) const
 {
-    if (coinControl) {
-        CAmount nBalance = 0;
-        std::vector<COutput> vCoins;
+/*
+    qWarning() << "--- Address List ---";
+    for(const auto& item : mapAddressBalances)
+        qWarning() << item.first << " : " << item.second;
+*/
+    auto it = mapAddressBalances.find(address);
+    if (it != mapAddressBalances.end())
+        return it->second;
+
+    return 0;
+}
+
+CAmount WalletModel::getBalance(const CCoinControl* coinControl)
+{
+    CAmount nBalance = 0;
+    std::vector<COutput> vCoins;
+
+    map<QString, CAmount> mapAB;
+    CTxDestination address;
+    CAmount nValue;
+
+    if (coinControl)
         wallet->AvailableCoins(vCoins, true, coinControl);
-        BOOST_FOREACH (const COutput& out, vCoins)
+    else
+        wallet->AvailableCoins(vCoins, false, coinControl);
+
+    BOOST_FOREACH (const COutput& out, vCoins) {
+        nValue = out.tx->vout[out.i].nValue;
+        if (ExtractDestination(out.tx->vout[out.i].scriptPubKey, address)) {
+            std::string vAddress = CBitcoinAddress(address).ToString();
+            mapAB[QString::fromStdString(vAddress)] += nValue;
+        }
+
+        if (coinControl) {
             if (out.fSpendable)
-                nBalance += out.tx->vout[out.i].nValue;
-
-        return nBalance;
+                nBalance += nValue;
+        } else {
+            nBalance += nValue;
+        }
     }
+    this->mapAddressBalances = mapAB;
+//    qWarning() << "WalletModel::getBalance = " << nBalance;
 
-    return wallet->GetBalance();
+    return nBalance;
+//    return wallet->GetBalance();
 }
 
 
@@ -145,8 +178,8 @@ void WalletModel::pollBalanceChanged()
 
 void WalletModel::checkBalanceChanged()
 {
-    TRY_LOCK(cs_main, lockMain);
-    if (!lockMain) return;
+//    TRY_LOCK(cs_main, lockMain);
+//    if (!lockMain) return;
 
     CAmount newBalance = getBalance();
     CAmount newUnconfirmedBalance = getUnconfirmedBalance();

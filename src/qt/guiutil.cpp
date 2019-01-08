@@ -1081,8 +1081,15 @@ int FlowLayout::doLayout(const QRect &rect, bool testOnly) const
         if (!testOnly)
             item->setGeometry(QRect(QPoint(x, y), item->sizeHint()));
 
-        x = nextX;
         lineHeight = qMax(lineHeight, item->sizeHint().height());
+        QSizePolicy sizePolicy = wid->sizePolicy();
+        if (sizePolicy.horizontalPolicy() == QSizePolicy::Expanding) {
+            nextX = effectiveRect.x();
+            y = y + lineHeight + spaceY;
+            lineHeight = 0;
+        }
+
+        x = nextX;
     }
     return y + lineHeight - rect.y() + bottom;
 }

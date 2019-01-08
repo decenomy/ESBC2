@@ -298,7 +298,7 @@ BitcoinGUI::~BitcoinGUI()
     if (trayIcon) // Hide tray icon, as deleting will let it linger until quit (on Ubuntu)
         trayIcon->hide();
 #ifdef Q_OS_MAC
-    delete appMenuBar;
+//    delete appMenuBar;
     MacDockIconHandler::cleanup();
 #endif
 }
@@ -513,7 +513,8 @@ void BitcoinGUI::createMenuBar()
 {
 #ifdef Q_OS_MAC
     // Create a decoupled menu bar on Mac which stays even if the window is closed
-    appMenuBar = new QMenuBar();
+//    appMenuBar = new QMenuBar();
+    appMenuBar = menuBar();
 #else
     // Get the main window's menu bar on other platforms
     appMenuBar = menuBar();

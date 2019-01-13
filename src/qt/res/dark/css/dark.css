@@ -593,30 +593,27 @@
 
 
     /*************** ########Top tool bar########*****************/
-    QToolBar {
+    QToolBar#top_ToolBar {
         margin-top: 7px;
         margin-bottom: 0px;
         background-color: rgb(0, 0, 0);
         border-style: none;
         font-size: 8px ;
-/*        border-bottom:0px solid #2D2D2D;*/
-/*        border:1px solid;
-        border-color: #CCCCCC;*/
     }
 
-    QToolBar > QToolButton {
+    QToolBar#top_ToolBar > QToolButton {
         background-color: transparent;
         border:0px solid;
         border-color: #CCCCCC;
-        margin-left: 10px;
-        margin-right: 10px;
+        margin-left: 5px;
+        margin-right: 5px;
         qproperty-iconSize: 15px;
         padding-left: 8px;
         padding-right: 5px;
         padding-bottom: 3px;
     }
 
-    QToolBar > QToolButton:checked {
+    QToolBar#top_ToolBar > QToolButton:checked {
             border-bottom-style: solid;
             border-top-style: solid;
             border-bottom-width: 3px;
@@ -629,12 +626,46 @@
                     stop:1 #000000);
         }
 
-    QToolBar > QToolButton:hover:!checked {
+    QToolBar#top_ToolBar > QToolButton:hover:!checked {
             padding-left: 10px;
             padding-top: 7px;
     }
 
+    /*************** ########Left tool bar########*****************/
+    QToolBar#left_ToolBar {
+        margin-top: 7px;
+        margin-bottom: 0px;
+        background-color: rgb(0, 0, 0);
+        border-style: none;
+        font-size: 8px ;
+    }
 
+    QToolBar#left_ToolBar > QToolButton {
+        background-color: transparent;
+        border:0px solid;
+        border-color: #CCCCCC;
+        margin-left: 0px;
+        margin-right: 0px;
+        margin-top: 4px;
+        margin-bottom: 4px;
+        qproperty-iconSize: 15px;
+        padding-left: 10px;
+        padding-right: 10px;
+        padding-top: 5px;
+        padding-bottom: 6px;
+    }
+
+    QToolBar#left_ToolBar > QToolButton:checked {
+        background-color: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #000000, stop:0.15 #2A110A, stop:0.85 #2A110A, stop:1 #000000);
+    }
+
+    QToolBar#left_ToolBar > QToolButton:hover:!checked {
+        padding-left: 12px;
+        padding-top: 13px;
+    }
+
+
+    /*************** ########Status bar icons########*****************/
     QWidget  .QPushButton#ConnectionsIcon {
         background-color:transparent;
     }
@@ -2237,6 +2268,13 @@
     min-height:27px;
     font-weight:normal;
     padding-right:5px;
+    }
+
+    /****************************************************************************************/
+                    /*************** BLOCKEXPLORER PAGE *****************/
+    /****************************************************************************************/
+    QWidget#BlockExplorer {
+        background-color: #000000;
     }
 
     /****************************************************************************************/

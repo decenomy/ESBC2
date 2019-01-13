@@ -67,10 +67,10 @@ public:
     enum ColumnIndex {
         Date = 0,
         Address = 1,
-        Label = 2,
-        Message = 3,
-        Amount = 4,
-        Balance = 5,
+        Balance = 2,
+        Label = 3,
+        Message = 4,
+        Amount = 5,
         NUMBER_OF_COLUMNS
     };
 

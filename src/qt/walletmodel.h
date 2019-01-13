@@ -19,6 +19,7 @@
 #include <vector>
 
 #include <QObject>
+#include <QThread>
 
 class AddressTableModel;
 class OptionsModel;
@@ -98,11 +99,34 @@ public:
     }
 };
 
+class BalanceWorker : public QObject
+{
+    Q_OBJECT
+
+private:
+    std::map<QString, CAmount> mapAddressBalances;
+/*
+    CAmount balance;
+    CAmount unconfirmedBalance;
+    CAmount immatureBalance;
+    CAmount anonymizedBalance;
+    CAmount watchOnlyBalance;
+    CAmount watchUnconfBalance;
+    CAmount watchImmatureBalance;
+*/
+public slots:
+    void makeBalance(const bool& watchOnly = false);
+
+signals:
+    void balanceReady(const CAmount& balance, const CAmount& unconfirmedBalance, const CAmount& immatureBalance, const CAmount& anonymizedBalance, const CAmount& watchOnlyBalance, const CAmount& watchUnconfBalance, const CAmount& watchImmatureBalance);
+    void updateAddressBalances(const std::map<QString, CAmount>& addressBalances);
+};
+
 /** Interface to Bitcoin wallet from Qt view code. */
 class WalletModel : public QObject
 {
     Q_OBJECT
-
+    QThread workerThread;
 public:
     explicit WalletModel(CWallet* wallet, OptionsModel* optionsModel, QObject* parent = 0);
     ~WalletModel();
@@ -247,11 +271,13 @@ private:
 
     void subscribeToCoreSignals();
     void unsubscribeFromCoreSignals();
-    void checkBalanceChanged();
+//    void checkBalanceChanged();
 
 signals:
     // Signal that balance in wallet changed
     void balanceChanged(const CAmount& balance, const CAmount& unconfirmedBalance, const CAmount& immatureBalance, const CAmount& anonymizedBalance, const CAmount& watchOnlyBalance, const CAmount& watchUnconfBalance, const CAmount& watchImmatureBalance);
+
+    void makeBalance(const bool& watchOnly = false);
 
     // Encryption status of wallet changed
     void encryptionStatusChanged(int status);
@@ -276,6 +302,8 @@ signals:
     // MultiSig address added
     void notifyMultiSigChanged(bool fHaveMultiSig);
 public slots:
+    void updateAddressBalances(const std::map<QString, CAmount>& addressBalances);
+    void checkBalanceChanged(const CAmount& balance, const CAmount& unconfirmedBalance, const CAmount& immatureBalance, const CAmount& anonymizedBalance, const CAmount& watchOnlyBalance, const CAmount& watchUnconfBalance, const CAmount& watchImmatureBalance);
     /* Wallet status might have changed */
     void updateStatus();
     /* New transaction, or transaction changed status */

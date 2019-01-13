@@ -26,8 +26,77 @@
 #include <QDebug>
 #include <QSet>
 #include <QTimer>
+#include <QThread>
 
 using namespace std;
+
+
+void BalanceWorker::makeBalance(const bool& watchOnly)
+{
+    if (!pwalletMain)
+        return;
+
+    std::map<uint256, CWalletTx> mapWalletTx;
+
+//    int64_t nTime1 = GetTimeMillis();
+//    qWarning() << "LOCK2(cs_main, pwalletMain->cs_wallet) in makeBalance: " << "Start at " << nTime1;
+    {
+        LOCK(pwalletMain->cs_wallet);
+        mapWalletTx = pwalletMain->mapWallet;
+    }
+//    int64_t nTime2 = GetTimeMillis();
+//    qWarning() << "LOCK2(cs_main, pwalletMain->cs_wallet) in makeBalance: " << "End with " << nTime2-nTime1;
+
+    if (mapWalletTx.empty())
+        return;
+
+    CAmount balance = 0;
+    CAmount unconfirmedBalance = 0;
+    CAmount immatureBalance = 0;
+    CAmount anonymizedBalance = 0;
+    CAmount watchOnlyBalance = 0;
+    CAmount watchUnconfBalance = 0;
+    CAmount watchImmatureBalance = 0;
+
+    map<QString, CAmount> mapAB;
+
+    const isminefilter filter = ISMINE_SPENDABLE;
+    CAmount allFee;
+    string strSentAccount;
+    list<COutputEntry> listReceived;
+    list<COutputEntry> listSent;
+
+    for (map<uint256, CWalletTx>::const_iterator it = mapWalletTx.begin(); it != mapWalletTx.end(); ++it) {
+        const CWalletTx* pcoin = &(*it).second;
+
+        immatureBalance += pcoin->GetImmatureCredit();
+        if (watchOnly) watchImmatureBalance += pcoin->GetImmatureWatchOnlyCredit();
+        if (pcoin->IsTrusted()) {
+            balance += pcoin->GetAvailableCredit();
+            anonymizedBalance += pcoin->GetAnonymizedCredit();
+            if (watchOnly)
+                watchOnlyBalance += pcoin->GetAvailableWatchOnlyCredit();
+            // by address
+            pcoin->GetAmounts(listReceived, listSent, allFee, strSentAccount, filter);
+            BOOST_FOREACH (const COutputEntry& r, listReceived) {
+                std::string vAddress = CBitcoinAddress(r.destination).ToString();
+                mapAB[QString::fromStdString(vAddress)] += r.amount;
+            }
+        } else if (pcoin->GetDepthInMainChain() == 0) {
+            unconfirmedBalance += pcoin->GetAvailableCredit();
+            if (watchOnly)
+                watchUnconfBalance += pcoin->GetAvailableWatchOnlyCredit();
+        }
+    }
+
+//    nTime2 = GetTimeMillis();
+//    qWarning() << "makeBalance: " << "End with " << nTime2-nTime1;
+
+    //this->mapAddressBalances = mapAB;
+    emit updateAddressBalances(mapAB);
+
+    emit balanceReady(balance, unconfirmedBalance, immatureBalance, anonymizedBalance, watchOnlyBalance, watchUnconfBalance, watchImmatureBalance);
+}
 
 WalletModel::WalletModel(CWallet* wallet, OptionsModel* optionsModel, QObject* parent) : QObject(parent), wallet(wallet), optionsModel(optionsModel), addressTableModel(0),
                                                                                          transactionTableModel(0),
@@ -36,6 +105,16 @@ WalletModel::WalletModel(CWallet* wallet, OptionsModel* optionsModel, QObject* p
                                                                                          cachedEncryptionStatus(Unencrypted),
                                                                                          cachedNumBlocks(0)
 {
+    BalanceWorker *worker = new BalanceWorker;
+    worker->moveToThread(&workerThread);
+    connect(&workerThread, &QThread::finished, worker, &QObject::deleteLater);
+
+    connect(this, &WalletModel::makeBalance, worker, &BalanceWorker::makeBalance);
+    connect(worker, &BalanceWorker::balanceReady, this, &WalletModel::checkBalanceChanged);
+    connect(worker, &BalanceWorker::updateAddressBalances, this, &WalletModel::updateAddressBalances);
+
+    workerThread.start();
+
     fHaveWatchOnly = wallet->HaveWatchOnly();
     fHaveMultiSig = wallet->HaveMultiSig();
     fForceCheckBalanceChanged = false;
@@ -55,6 +134,13 @@ WalletModel::WalletModel(CWallet* wallet, OptionsModel* optionsModel, QObject* p
 WalletModel::~WalletModel()
 {
     unsubscribeFromCoreSignals();
+    workerThread.quit();
+    workerThread.wait();
+}
+
+void WalletModel::updateAddressBalances(const std::map<QString, CAmount>& addressBalances)
+{
+    this->mapAddressBalances = addressBalances;
 }
 
 CAmount WalletModel::getAddressBalance(const QString address) const
@@ -73,6 +159,17 @@ CAmount WalletModel::getAddressBalance(const QString address) const
 
 CAmount WalletModel::getBalance(const CCoinControl* coinControl)
 {
+    if (coinControl) {
+        CAmount nBalance = 0;
+        std::vector<COutput> vCoins;
+        wallet->AvailableCoins(vCoins, true, coinControl);
+        BOOST_FOREACH (const COutput& out, vCoins)
+            if (out.fSpendable)
+                nBalance += out.tx->vout[out.i].nValue;
+       return nBalance;
+    }
+    return wallet->GetBalance();
+/*
     CAmount nBalance = 0;
     std::vector<COutput> vCoins;
 
@@ -104,6 +201,7 @@ CAmount WalletModel::getBalance(const CCoinControl* coinControl)
 
     return nBalance;
 //    return wallet->GetBalance();
+*/
 }
 
 
@@ -169,45 +267,36 @@ void WalletModel::pollBalanceChanged()
         cachedNumBlocks = chainActive.Height();
         cachedObfuscationRounds = nObfuscationRounds;
 
-        checkBalanceChanged();
+//        checkBalanceChanged();
+        emit makeBalance(haveWatchOnly());
+
         if (transactionTableModel) {
             transactionTableModel->updateConfirmations();
         }
+        cachedTxLocks = nCompleteTXLocks; // ??
     }
 }
 
-void WalletModel::checkBalanceChanged()
+//void WalletModel::checkBalanceChanged()
+void WalletModel::checkBalanceChanged(const CAmount& balance, const CAmount& unconfirmedBalance, const CAmount& immatureBalance, const CAmount& anonymizedBalance, const CAmount& watchOnlyBalance, const CAmount& watchUnconfBalance, const CAmount& watchImmatureBalance)
 {
-//    TRY_LOCK(cs_main, lockMain);
-//    if (!lockMain) return;
-
-    CAmount newBalance = getBalance();
-    CAmount newUnconfirmedBalance = getUnconfirmedBalance();
-    CAmount newImmatureBalance = getImmatureBalance();
-    CAmount newAnonymizedBalance = getAnonymizedBalance();
-    CAmount newWatchOnlyBalance = 0;
-    CAmount newWatchUnconfBalance = 0;
-    CAmount newWatchImmatureBalance = 0;
-    if (haveWatchOnly()) {
-        newWatchOnlyBalance = getWatchBalance();
-        newWatchUnconfBalance = getWatchUnconfirmedBalance();
-        newWatchImmatureBalance = getWatchImmatureBalance();
+    if (cachedBalance != balance || cachedUnconfirmedBalance != unconfirmedBalance || cachedImmatureBalance != immatureBalance ||
+        cachedAnonymizedBalance != anonymizedBalance ||
+        cachedWatchOnlyBalance != watchOnlyBalance || cachedWatchUnconfBalance != watchUnconfBalance || cachedWatchImmatureBalance != watchImmatureBalance) {
+        cachedBalance = balance;
+        cachedUnconfirmedBalance = unconfirmedBalance;
+        cachedImmatureBalance = immatureBalance;
+        cachedAnonymizedBalance = anonymizedBalance;
+        cachedWatchOnlyBalance = watchOnlyBalance;
+        cachedWatchUnconfBalance = watchUnconfBalance;
+        cachedWatchImmatureBalance = watchImmatureBalance;
+        // balance need to update
+        emit balanceChanged(balance, unconfirmedBalance, immatureBalance, anonymizedBalance,
+            watchOnlyBalance, watchUnconfBalance, watchImmatureBalance);
+        // recive coin table model update
+        //emit ???
     }
-
-    if (cachedBalance != newBalance || cachedUnconfirmedBalance != newUnconfirmedBalance || cachedImmatureBalance != newImmatureBalance ||
-        cachedAnonymizedBalance != newAnonymizedBalance || cachedTxLocks != nCompleteTXLocks ||
-        cachedWatchOnlyBalance != newWatchOnlyBalance || cachedWatchUnconfBalance != newWatchUnconfBalance || cachedWatchImmatureBalance != newWatchImmatureBalance) {
-        cachedBalance = newBalance;
-        cachedUnconfirmedBalance = newUnconfirmedBalance;
-        cachedImmatureBalance = newImmatureBalance;
-        cachedAnonymizedBalance = newAnonymizedBalance;
-        cachedTxLocks = nCompleteTXLocks;
-        cachedWatchOnlyBalance = newWatchOnlyBalance;
-        cachedWatchUnconfBalance = newWatchUnconfBalance;
-        cachedWatchImmatureBalance = newWatchImmatureBalance;
-        emit balanceChanged(newBalance, newUnconfirmedBalance, newImmatureBalance, newAnonymizedBalance,
-            newWatchOnlyBalance, newWatchUnconfBalance, newWatchImmatureBalance);
-    }
+//    emit makeBalance(haveWatchOnly());
 }
 
 void WalletModel::updateTransaction()
@@ -408,7 +497,8 @@ WalletModel::SendCoinsReturn WalletModel::sendCoins(WalletModelTransaction& tran
         }
         emit coinsSent(wallet, rcp, transaction_array);
     }
-    checkBalanceChanged(); // update balance immediately, otherwise there could be a short noticeable delay until pollBalanceChanged hits
+//    checkBalanceChanged(); // update balance immediately, otherwise there could be a short noticeable delay until pollBalanceChanged hits
+    emit makeBalance(haveWatchOnly());
 
     return SendCoinsReturn(OK);
 }

@@ -41,6 +41,7 @@ public:
         ThirdPartyTxUrls,    // QString
         Digits,              // QString
         Theme,               // QString
+        ToolbarPosition,     // QString
         Language,            // QString
         CoinControlFeatures, // bool
         ThreadsScriptVerif,  // int

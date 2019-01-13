@@ -144,6 +144,8 @@ void OptionsModel::Init()
         settings.setValue("digits", "2");
     if (!settings.contains("theme"))
         settings.setValue("theme", "");
+    if (!settings.contains("toolbarPosition"))
+        settings.setValue("toolbarPosition", "Top");
     if (!settings.contains("fCSSexternal"))
         settings.setValue("fCSSexternal", false);
     if (!settings.contains("language"))
@@ -238,6 +240,8 @@ QVariant OptionsModel::data(const QModelIndex& index, int role) const
             return settings.value("digits");
         case Theme:
             return settings.value("theme");
+        case ToolbarPosition:
+            return settings.value("toolbarPosition");
         case Language:
             return settings.value("language");
         case CoinControlFeatures:
@@ -357,6 +361,12 @@ bool OptionsModel::setData(const QModelIndex& index, const QVariant& value, int 
         case Theme:
             if (settings.value("theme") != value) {
                 settings.setValue("theme", value);
+                setRestartRequired(true);
+            }
+            break;
+        case ToolbarPosition:
+            if (settings.value("toolbarPosition") != value) {
+                settings.setValue("toolbarPosition", value);
                 setRestartRequired(true);
             }
             break;

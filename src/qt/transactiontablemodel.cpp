@@ -175,10 +175,12 @@ public:
             // If a status update is needed (blocks came in since last check),
             //  update the status of this transaction from the wallet. Otherwise,
             // simply re-use the cached status.
+        if (rec->statusUpdateNeeded()) {
             TRY_LOCK(cs_main, lockMain);
             if (lockMain) {
                 TRY_LOCK(wallet->cs_wallet, lockWallet);
-                if (lockWallet && rec->statusUpdateNeeded()) {
+                if (lockWallet) {
+//                if (lockWallet && rec->statusUpdateNeeded()) {
                     std::map<uint256, CWalletTx>::iterator mi = wallet->mapWallet.find(rec->hash);
 
                     if (mi != wallet->mapWallet.end()) {
@@ -186,6 +188,8 @@ public:
                     }
                 }
             }
+        }
+
             return rec;
         }
         return 0;
@@ -245,8 +249,8 @@ void TransactionTableModel::updateConfirmations()
     // Invalidate status (number of confirmations) and (possibly) description
     //  for all rows. Qt is smart enough to only actually request the data for the
     //  visible rows.
-    emit dataChanged(index(0, Status), index(priv->size() - 1, Status));
-    emit dataChanged(index(0, ToAddress), index(priv->size() - 1, ToAddress));
+//    emit dataChanged(index(0, Status), index(priv->size() - 1, Status));
+//    emit dataChanged(index(0, ToAddress), index(priv->size() - 1, ToAddress));
 }
 
 int TransactionTableModel::rowCount(const QModelIndex& parent) const

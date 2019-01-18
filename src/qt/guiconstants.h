@@ -50,7 +50,7 @@ static const int MAX_URI_LENGTH = 255;
 /* Number of frames in spinner animation */
 #define SPINNER_FRAMES 30
 
-#define QAPP_ORG_NAME "ESportBettingCoin"
+#define QAPP_ORG_NAME "ESBC"
 #define QAPP_ORG_DOMAIN "esbproject.online"
 #define QAPP_APP_NAME_DEFAULT "esbcoin-qt"
 #define QAPP_APP_NAME_TESTNET "esbcoin-qt-testnet"

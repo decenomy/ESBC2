@@ -2176,9 +2176,9 @@ bool CWallet::CreateTransaction(const vector<pair<CScript, CAmount> >& vecSend,
                     if (coin_type == ALL_COINS) {
                         strFailReason = _("Insufficient funds.");
                     } else if (coin_type == ONLY_NOTDEPOSITIFMN) {
-                        strFailReason = _("Unable to locate enough funds for this transaction that are not equal MN collateral ESportBettingCoin.");
+                        strFailReason = _("Unable to locate enough funds for this transaction that are not equal MN collateral ESBC.");
                     } else if (coin_type == ONLY_NONDENOMINATED_NOTDEPOSITIFMN) {
-                        strFailReason = _("Unable to locate enough Obfuscation non-denominated funds for this transaction that are not equal MN collateral ESportBettingCoin.");
+                        strFailReason = _("Unable to locate enough Obfuscation non-denominated funds for this transaction that are not equal MN collateral ESBC.");
                     } else {
                         strFailReason = _("Unable to locate enough Obfuscation denominated funds for this transaction.");
                         strFailReason += " " + _("Obfuscation uses exact denominated amounts to send funds, you might simply need to anonymize some more coins.");

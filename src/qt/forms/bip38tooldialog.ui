@@ -30,7 +30,7 @@
        <item>
         <widget class="QLabel" name="infoLabel_ENC">
          <property name="text">
-          <string>Enter a ESportBettingCoin Address that you would like to encrypt using BIP 38. Enter a passphrase in the middle box. Press encrypt to compute the encrypted private key.</string>
+          <string>Enter a ESBC Address that you would like to encrypt using BIP 38. Enter a passphrase in the middle box. Press encrypt to compute the encrypted private key.</string>
          </property>
          <property name="textFormat">
           <enum>Qt::PlainText</enum>
@@ -61,7 +61,7 @@
          <item>
           <widget class="QValidatedLineEdit" name="addressIn_ENC">
            <property name="toolTip">
-            <string>The ESportBettingCoin address to sign the message with</string>
+            <string>The ESBC address to sign the message with</string>
            </property>
           </widget>
          </item>
@@ -185,7 +185,7 @@
          <item>
           <widget class="QPushButton" name="encryptKeyButton_ENC">
            <property name="toolTip">
-            <string>Sign the message to prove you own this ESportBettingCoin address</string>
+            <string>Sign the message to prove you own this ESBC address</string>
            </property>
            <property name="text">
             <string>Encrypt &amp;Key</string>
@@ -304,7 +304,7 @@
          <item>
           <widget class="QValidatedLineEdit" name="encryptedKeyIn_DEC">
            <property name="toolTip">
-            <string>The ESportBettingCoin address the message was signed with</string>
+            <string>The ESBC address the message was signed with</string>
            </property>
           </widget>
          </item>
@@ -342,7 +342,7 @@
          <item>
           <widget class="QPushButton" name="decryptKeyButton_DEC">
            <property name="toolTip">
-            <string>Verify the message to ensure it was signed with the specified ESportBettingCoin address</string>
+            <string>Verify the message to ensure it was signed with the specified ESBC address</string>
            </property>
            <property name="text">
             <string>Decrypt &amp;Key</string>

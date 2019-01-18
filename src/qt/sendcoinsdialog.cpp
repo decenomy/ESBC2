@@ -911,7 +911,7 @@ void SendCoinsDialog::coinControlChangeEdited(const QString& text)
             ui->labelCoinControlChangeLabel->setText("");
         } else if (!addr.IsValid()) // Invalid address
         {
-            ui->labelCoinControlChangeLabel->setText(tr("Warning: Invalid ESportBettingCoin address"));
+            ui->labelCoinControlChangeLabel->setText(tr("Warning: Invalid ESBC address"));
         } else // Valid address
         {
             CPubKey pubkey;

@@ -95,7 +95,7 @@ UniValue obfuscation(const UniValue& params, bool fHelp)
 
     CBitcoinAddress address(params[0].get_str());
     if (!address.IsValid())
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid ESportBettingCoin address");
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid ESBC address");
 
     // Amount
     CAmount nAmount = AmountFromValue(params[1]);

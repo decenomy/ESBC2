@@ -1,4 +1,4 @@
-e-Sport Betting Coin integration/staging repository
+ESBC Core integration/staging repository
 ======================================
 More information at (http://esbproject.online/)
 Visit our ANN thread at [BitcoinTalk](https://bitcointalk.org/index.php?topic=4889530.0), join ou group at [Discord] (https://discord.gg/C6t23JH).

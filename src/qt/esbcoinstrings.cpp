@@ -30,7 +30,7 @@ QT_TRANSLATE_NOOP("esbcoin-core", ""
 "notation for IPv6. This option can be specified multiple times (default: "
 "bind to all interfaces)"),
 QT_TRANSLATE_NOOP("esbcoin-core", ""
-"Cannot obtain a lock on data directory %s. e-Sport Betting Coin is probably already "
+"Cannot obtain a lock on data directory %s. ESBC is probably already "
 "running."),
 QT_TRANSLATE_NOOP("esbcoin-core", ""
 "Continuously rate-limit free transactions to <n>*1000 bytes per minute "
@@ -163,7 +163,7 @@ QT_TRANSLATE_NOOP("esbcoin-core", ""
 "It is also recommended to set alertnotify so you are notified of problems;\n"
 "for example: alertnotify=echo %%s | mail -s \"esbcoin Alert\" admin@foo.com\n"),
 QT_TRANSLATE_NOOP("esbcoin-core", ""
-"Unable to bind to %s on this computer. e-Sport Betting Coin is probably already running."),
+"Unable to bind to %s on this computer. ESBC is probably already running."),
 QT_TRANSLATE_NOOP("esbcoin-core", ""
 "Unable to locate enough Obfuscation denominated funds for this transaction."),
 QT_TRANSLATE_NOOP("esbcoin-core", ""
@@ -183,7 +183,7 @@ QT_TRANSLATE_NOOP("esbcoin-core", ""
 "pay if you send a transaction."),
 QT_TRANSLATE_NOOP("esbcoin-core", ""
 "Warning: Please check that your computer's date and time are correct! If "
-"your clock is wrong e-Sport Betting Coin will not work properly."),
+"your clock is wrong ESBC will not work properly."),
 QT_TRANSLATE_NOOP("esbcoin-core", ""
 "Warning: The network does not appear to fully agree! Some miners appear to "
 "be experiencing issues."),
@@ -238,7 +238,7 @@ QT_TRANSLATE_NOOP("esbcoin-core", "Connection options:"),
 QT_TRANSLATE_NOOP("esbcoin-core", "Copyright (C) 2009-%i The Bitcoin Core Developers"),
 QT_TRANSLATE_NOOP("esbcoin-core", "Copyright (C) 2014-%i The Dash Core Developers"),
 QT_TRANSLATE_NOOP("esbcoin-core", "Copyright (C) 2015-%i The PIVX Core Developers"),
-QT_TRANSLATE_NOOP("esbcoin-core", "Copyright (C) 2018-%i The e-Sport Betting Coin Developers"),
+QT_TRANSLATE_NOOP("esbcoin-core", "Copyright (C) 2018-%i The ESBC Core Developers"),
 QT_TRANSLATE_NOOP("esbcoin-core", "Corrupted block database detected"),
 QT_TRANSLATE_NOOP("esbcoin-core", "Could not parse -rpcbind value %s as network address"),
 QT_TRANSLATE_NOOP("esbcoin-core", "Could not parse masternode.conf"),
@@ -265,7 +265,7 @@ QT_TRANSLATE_NOOP("esbcoin-core", "Error initializing wallet database environmen
 QT_TRANSLATE_NOOP("esbcoin-core", "Error loading block database"),
 QT_TRANSLATE_NOOP("esbcoin-core", "Error loading wallet.dat"),
 QT_TRANSLATE_NOOP("esbcoin-core", "Error loading wallet.dat: Wallet corrupted"),
-QT_TRANSLATE_NOOP("esbcoin-core", "Error loading wallet.dat: Wallet requires newer version of e-Sport Betting Coin"),
+QT_TRANSLATE_NOOP("esbcoin-core", "Error loading wallet.dat: Wallet requires newer version of ESBC"),
 QT_TRANSLATE_NOOP("esbcoin-core", "Error opening block database"),
 QT_TRANSLATE_NOOP("esbcoin-core", "Error reading from database, shutting down."),
 QT_TRANSLATE_NOOP("esbcoin-core", "Error recovering public key."),
@@ -293,7 +293,7 @@ QT_TRANSLATE_NOOP("esbcoin-core", "Incompatible mode."),
 QT_TRANSLATE_NOOP("esbcoin-core", "Incompatible version."),
 QT_TRANSLATE_NOOP("esbcoin-core", "Incorrect or no genesis block found. Wrong datadir for network?"),
 QT_TRANSLATE_NOOP("esbcoin-core", "Information"),
-QT_TRANSLATE_NOOP("esbcoin-core", "Initialization sanity check failed. e-Sport Betting Coin is shutting down."),
+QT_TRANSLATE_NOOP("esbcoin-core", "Initialization sanity check failed. ESBC is shutting down."),
 QT_TRANSLATE_NOOP("esbcoin-core", "Input is not valid."),
 QT_TRANSLATE_NOOP("esbcoin-core", "Insufficient funds."),
 QT_TRANSLATE_NOOP("esbcoin-core", "Invalid -onion address or hostname: '%s'"),
@@ -434,7 +434,7 @@ QT_TRANSLATE_NOOP("esbcoin-core", "Verifying blocks..."),
 QT_TRANSLATE_NOOP("esbcoin-core", "Verifying wallet..."),
 QT_TRANSLATE_NOOP("esbcoin-core", "Wallet %s resides outside data directory %s"),
 QT_TRANSLATE_NOOP("esbcoin-core", "Wallet is locked."),
-QT_TRANSLATE_NOOP("esbcoin-core", "Wallet needed to be rewritten: restart e-Sport Betting Coin to complete"),
+QT_TRANSLATE_NOOP("esbcoin-core", "Wallet needed to be rewritten: restart ESBC wallet to complete"),
 QT_TRANSLATE_NOOP("esbcoin-core", "Wallet options:"),
 QT_TRANSLATE_NOOP("esbcoin-core", "Wallet window title"),
 QT_TRANSLATE_NOOP("esbcoin-core", "Warning"),

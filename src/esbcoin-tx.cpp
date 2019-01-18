@@ -48,7 +48,7 @@ static bool AppInitRawTx(int argc, char* argv[])
 
     if (argc < 2 || mapArgs.count("-?") || mapArgs.count("-help")) {
         // First part of help message is specific to this utility
-        std::string strUsage = _("e-Sport Betting Coin esbcoin-tx utility version") + " " + FormatFullVersion() + "\n\n" +
+        std::string strUsage = _("ESBC Core TX utility version") + " " + FormatFullVersion() + "\n\n" +
                                _("Usage:") + "\n" +
                                "  esbcoin-tx [options] <hex-tx> [commands]  " + _("Update hex-encoded esbcoin transaction") + "\n" +
                                "  esbcoin-tx [options] -create [commands]   " + _("Create hex-encoded esbcoin transaction") + "\n" +

@@ -1,7 +1,7 @@
 [Desktop Entry]
 Encoding=UTF-8
 Name=esbcoin
-Comment=ESportBettingCoin P2P Cryptocurrency
+Comment=ESBC P2P Cryptocurrency
 Exec=esbcoin-qt %u
 Terminal=false
 Type=Application

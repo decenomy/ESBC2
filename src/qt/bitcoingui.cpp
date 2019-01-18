@@ -883,13 +883,7 @@ void BitcoinGUI::gotoMasternodePage()
     }
 }
 
-void BitcoinGUI::gotoBlockExplorerPage()
-{
-//    openBlockExplorerAction->setChecked(true);
-//    if(openBlockExplorerAction) walletFrame->gotoBlockExplorerPage();
-}
 
-}
 
 void BitcoinGUI::gotoToolsPage()
 {

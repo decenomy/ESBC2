@@ -123,6 +123,7 @@ cache/
 share/BitcoindComparisonTool.jar
 
 !src/leveldb*/Makefile
+!depends/Makefile
 
 .vscode
 .cproject

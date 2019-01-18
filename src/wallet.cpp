@@ -1603,10 +1603,10 @@ bool CWallet::SelectStakeCoins(std::set<std::pair<const CWalletTx*, unsigned int
         if (nAmountSelected + out.tx->vout[out.i].nValue > nTargetAmount)
             continue;
 
-	 int64_t nTxTime = out.tx->GetTxTime();
+        int64_t nTxTime = out.tx->GetTxTime();
 
         //check for min age
-        if (GetAdjustedTime() - nTxTime < nStakeMinAge)
+        if (GetAdjustedTime() - nTxTime - nHashDrift < nStakeMinAge)
             continue;
 
         //check that it is matured

@@ -45,8 +45,7 @@ WalletView::WalletView(QWidget* parent) : QStackedWidget(parent),
 {
     // Create tabs
     overviewPage = new OverviewPage();
-
-    explorerWindow = new BlockExplorer();
+//    explorerWindow = new BlockExplorer();
 
     transactionsPage = new QWidget(this);
     QVBoxLayout* vbox = new QVBoxLayout();
@@ -85,7 +84,7 @@ WalletView::WalletView(QWidget* parent) : QStackedWidget(parent),
     addWidget(transactionsPage);
     addWidget(receiveCoinsPage);
     addWidget(sendCoinsPage);
-    addWidget(explorerWindow);
+//    addWidget(explorerWindow);
     addWidget(toolsPage);
 
     QSettings settings;
@@ -133,7 +132,7 @@ void WalletView::setBitcoinGUI(BitcoinGUI* gui)
         connect(this, SIGNAL(incomingTransaction(QString, int, CAmount, QString, QString)), gui, SLOT(incomingTransaction(QString, int, CAmount, QString, QString)));
 
         connect(toolsPage,SIGNAL(handleRestart(QStringList)), gui, SLOT(handleRestart(QStringList)));
-        connect(explorerWindow,SIGNAL(handleRestart(QStringList)), gui, SLOT(handleRestart(QStringList)));
+//        connect(explorerWindow,SIGNAL(handleRestart(QStringList)), gui, SLOT(handleRestart(QStringList)));
 
     }
 }
@@ -213,12 +212,12 @@ void WalletView::gotoHistoryPage()
 {
     setCurrentWidget(transactionsPage);
 }
-
-
+/*
 void WalletView::gotoBlockExplorerPage()
 {
     setCurrentWidget(explorerWindow);
 }
+*/
 
 void WalletView::gotoMasternodePage()
 {

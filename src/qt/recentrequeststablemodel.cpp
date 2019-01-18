@@ -26,7 +26,7 @@ RecentRequestsTableModel::RecentRequestsTableModel(CWallet* wallet, WalletModel*
         addNewRequest(request);
 
     /* These columns must match the indices in the ColumnIndex enumeration */
-    columns << tr("Date") << tr("Address") << tr("Label") << tr("Message") << getAmountTitle() << tr("Balance");
+    columns << tr("Date") << tr("Label") << tr("Address") << tr("Balance") << tr("Message") << getAmountTitle();
 
     connect(walletModel->getOptionsModel(), SIGNAL(displayUnitChanged(int)), this, SLOT(updateDisplayUnit()));
 }
@@ -87,8 +87,7 @@ QVariant RecentRequestsTableModel::data(const QModelIndex& index, int role) cons
                 else
                     return BitcoinUnits::format(walletModel->getOptionsModel()->getDisplayUnit(), rec->recipient.amount);
             case Balance:
-//                CAmount vvv = walletModel->getAddressBalance(rec->recipient.address);
-                return QString::number(static_cast<double>(walletModel->getAddressBalance(rec->recipient.address)/COIN), 'f', 8);
+                return QString::number(static_cast<double>(walletModel->getAddressBalance(rec->recipient.address)) / COIN, 'f', 2);
 
         }
     } else if (role == Qt::TextAlignmentRole) {

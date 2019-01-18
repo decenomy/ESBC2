@@ -34,11 +34,12 @@ class ReceiveCoinsDialog : public QDialog
 
 public:
     enum ColumnWidths {
-        DATE_COLUMN_WIDTH = 100,
-        ADDRESS_COLUMN_WIDTH = 200,
+        DATE_COLUMN_WIDTH = 110,
+        ADDRESS_COLUMN_WIDTH = 260,
         LABEL_COLUMN_WIDTH = 120,
+        BALANCE_COLUMN_WIDTH = 110,
         AMOUNT_MINIMUM_COLUMN_WIDTH = 120,
-        MINIMUM_COLUMN_WIDTH = 100
+        MINIMUM_COLUMN_WIDTH = 110
     };
 
     explicit ReceiveCoinsDialog(QWidget* parent = 0);

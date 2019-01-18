@@ -885,8 +885,9 @@ void BitcoinGUI::gotoMasternodePage()
 
 void BitcoinGUI::gotoBlockExplorerPage()
 {
-openBlockExplorerAction->setChecked(true);
-    if(openBlockExplorerAction) walletFrame->gotoBlockExplorerPage();
+//    openBlockExplorerAction->setChecked(true);
+//    if(openBlockExplorerAction) walletFrame->gotoBlockExplorerPage();
+}
 
 }
 

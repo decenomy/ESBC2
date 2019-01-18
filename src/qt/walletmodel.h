@@ -105,21 +105,12 @@ class BalanceWorker : public QObject
 
 private:
     std::map<QString, CAmount> mapAddressBalances;
-/*
-    CAmount balance;
-    CAmount unconfirmedBalance;
-    CAmount immatureBalance;
-    CAmount anonymizedBalance;
-    CAmount watchOnlyBalance;
-    CAmount watchUnconfBalance;
-    CAmount watchImmatureBalance;
-*/
+
 public slots:
     void makeBalance(const bool& watchOnly = false);
 
 signals:
     void balanceReady(const CAmount& balance, const CAmount& unconfirmedBalance, const CAmount& immatureBalance, const CAmount& anonymizedBalance, const CAmount& watchOnlyBalance, const CAmount& watchUnconfBalance, const CAmount& watchImmatureBalance);
-    void updateAddressBalances(const std::map<QString, CAmount>& addressBalances);
 };
 
 /** Interface to Bitcoin wallet from Qt view code. */
@@ -157,7 +148,7 @@ public:
     TransactionTableModel* getTransactionTableModel();
     RecentRequestsTableModel* getRecentRequestsTableModel();
 
-    CAmount getAddressBalance(const QString address) const;
+    CAmount getAddressBalance(const QString address);
     CAmount getBalance(const CCoinControl* coinControl = NULL);
     CAmount getUnconfirmedBalance() const;
     CAmount getImmatureBalance() const;
@@ -253,6 +244,7 @@ private:
     RecentRequestsTableModel* recentRequestsTableModel;
 
     std::map<QString, CAmount> mapAddressBalances;
+    bool cachedAddressBalances;
 
     // Cache some values to be able to detect changes
     CAmount cachedBalance;
@@ -302,7 +294,6 @@ signals:
     // MultiSig address added
     void notifyMultiSigChanged(bool fHaveMultiSig);
 public slots:
-    void updateAddressBalances(const std::map<QString, CAmount>& addressBalances);
     void checkBalanceChanged(const CAmount& balance, const CAmount& unconfirmedBalance, const CAmount& immatureBalance, const CAmount& anonymizedBalance, const CAmount& watchOnlyBalance, const CAmount& watchUnconfBalance, const CAmount& watchImmatureBalance);
     /* Wallet status might have changed */
     void updateStatus();

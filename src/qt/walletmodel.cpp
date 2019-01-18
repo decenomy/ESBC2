@@ -30,7 +30,6 @@
 
 using namespace std;
 
-
 void BalanceWorker::makeBalance(const bool& watchOnly)
 {
     if (!pwalletMain)
@@ -58,14 +57,6 @@ void BalanceWorker::makeBalance(const bool& watchOnly)
     CAmount watchUnconfBalance = 0;
     CAmount watchImmatureBalance = 0;
 
-    map<QString, CAmount> mapAB;
-
-    const isminefilter filter = ISMINE_SPENDABLE;
-    CAmount allFee;
-    string strSentAccount;
-    list<COutputEntry> listReceived;
-    list<COutputEntry> listSent;
-
     for (map<uint256, CWalletTx>::const_iterator it = mapWalletTx.begin(); it != mapWalletTx.end(); ++it) {
         const CWalletTx* pcoin = &(*it).second;
 
@@ -76,12 +67,6 @@ void BalanceWorker::makeBalance(const bool& watchOnly)
             anonymizedBalance += pcoin->GetAnonymizedCredit();
             if (watchOnly)
                 watchOnlyBalance += pcoin->GetAvailableWatchOnlyCredit();
-            // by address
-            pcoin->GetAmounts(listReceived, listSent, allFee, strSentAccount, filter);
-            BOOST_FOREACH (const COutputEntry& r, listReceived) {
-                std::string vAddress = CBitcoinAddress(r.destination).ToString();
-                mapAB[QString::fromStdString(vAddress)] += r.amount;
-            }
         } else if (pcoin->GetDepthInMainChain() == 0) {
             unconfirmedBalance += pcoin->GetAvailableCredit();
             if (watchOnly)
@@ -91,9 +76,6 @@ void BalanceWorker::makeBalance(const bool& watchOnly)
 
 //    nTime2 = GetTimeMillis();
 //    qWarning() << "makeBalance: " << "End with " << nTime2-nTime1;
-
-    //this->mapAddressBalances = mapAB;
-    emit updateAddressBalances(mapAB);
 
     emit balanceReady(balance, unconfirmedBalance, immatureBalance, anonymizedBalance, watchOnlyBalance, watchUnconfBalance, watchImmatureBalance);
 }
@@ -111,7 +93,6 @@ WalletModel::WalletModel(CWallet* wallet, OptionsModel* optionsModel, QObject* p
 
     connect(this, &WalletModel::makeBalance, worker, &BalanceWorker::makeBalance);
     connect(worker, &BalanceWorker::balanceReady, this, &WalletModel::checkBalanceChanged);
-    connect(worker, &BalanceWorker::updateAddressBalances, this, &WalletModel::updateAddressBalances);
 
     workerThread.start();
 
@@ -138,18 +119,27 @@ WalletModel::~WalletModel()
     workerThread.wait();
 }
 
-void WalletModel::updateAddressBalances(const std::map<QString, CAmount>& addressBalances)
+CAmount WalletModel::getAddressBalance(const QString address)
 {
-    this->mapAddressBalances = addressBalances;
-}
+    // check address balance cache
+    if (!cachedAddressBalances) {
+        mapAddressBalances.clear();
+        // make a new adresses balances
+        typedef std::map<CTxDestination, CAmount> balances_t;
+        balances_t balances = pwalletMain->GetAddressBalances();
+        BOOST_FOREACH( balances_t::value_type &el, balances ) {
+            std::string vAddress = CBitcoinAddress(el.first).ToString();
+            mapAddressBalances[QString::fromStdString(vAddress)] += el.second;
+        }
+        cachedAddressBalances = true;
 
-CAmount WalletModel::getAddressBalance(const QString address) const
-{
-/*
-    qWarning() << "--- Address List ---";
-    for(const auto& item : mapAddressBalances)
-        qWarning() << item.first << " : " << item.second;
-*/
+        // debug adress list
+        qWarning() << "--- Address List ---";
+        for(const auto& item : mapAddressBalances)
+            qWarning() << item.first << " : " << item.second;
+    }
+
+    // get balance by adress from cache
     auto it = mapAddressBalances.find(address);
     if (it != mapAddressBalances.end())
         return it->second;
@@ -290,6 +280,7 @@ void WalletModel::checkBalanceChanged(const CAmount& balance, const CAmount& unc
         cachedWatchOnlyBalance = watchOnlyBalance;
         cachedWatchUnconfBalance = watchUnconfBalance;
         cachedWatchImmatureBalance = watchImmatureBalance;
+        cachedAddressBalances = false;
         // balance need to update
         emit balanceChanged(balance, unconfirmedBalance, immatureBalance, anonymizedBalance,
             watchOnlyBalance, watchUnconfBalance, watchImmatureBalance);

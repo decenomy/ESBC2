@@ -685,7 +685,7 @@ void OverviewPage::toggleObfuscation()
 }
 
 void OverviewPage::on_pushButton_Website_clicked() {
-    QDesktopServices::openUrl(QUrl("http://esbproject.online/", QUrl::TolerantMode));
+    QDesktopServices::openUrl(QUrl("https://esbc.pro/", QUrl::TolerantMode));
 }
 void OverviewPage::on_pushButton_Discord_clicked() {
     QDesktopServices::openUrl(QUrl("https://esbc.pro/link/discord", QUrl::TolerantMode));

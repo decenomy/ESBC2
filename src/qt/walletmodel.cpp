@@ -37,14 +37,10 @@ void BalanceWorker::makeBalance(const bool& watchOnly)
 
     std::map<uint256, CWalletTx> mapWalletTx;
 
-//    int64_t nTime1 = GetTimeMillis();
-//    qWarning() << "LOCK2(cs_main, pwalletMain->cs_wallet) in makeBalance: " << "Start at " << nTime1;
     {
         LOCK(pwalletMain->cs_wallet);
         mapWalletTx = pwalletMain->mapWallet;
     }
-//    int64_t nTime2 = GetTimeMillis();
-//    qWarning() << "LOCK2(cs_main, pwalletMain->cs_wallet) in makeBalance: " << "End with " << nTime2-nTime1;
 
     if (mapWalletTx.empty())
         return;
@@ -73,9 +69,6 @@ void BalanceWorker::makeBalance(const bool& watchOnly)
                 watchUnconfBalance += pcoin->GetAvailableWatchOnlyCredit();
         }
     }
-
-//    nTime2 = GetTimeMillis();
-//    qWarning() << "makeBalance: " << "End with " << nTime2-nTime1;
 
     emit balanceReady(balance, unconfirmedBalance, immatureBalance, anonymizedBalance, watchOnlyBalance, watchUnconfBalance, watchImmatureBalance);
 }
@@ -132,11 +125,12 @@ CAmount WalletModel::getAddressBalance(const QString address)
             mapAddressBalances[QString::fromStdString(vAddress)] += el.second;
         }
         cachedAddressBalances = true;
-
+/*
         // debug adress list
         qWarning() << "--- Address List ---";
         for(const auto& item : mapAddressBalances)
             qWarning() << item.first << " : " << item.second;
+*/
     }
 
     // get balance by adress from cache
@@ -159,39 +153,6 @@ CAmount WalletModel::getBalance(const CCoinControl* coinControl)
        return nBalance;
     }
     return wallet->GetBalance();
-/*
-    CAmount nBalance = 0;
-    std::vector<COutput> vCoins;
-
-    map<QString, CAmount> mapAB;
-    CTxDestination address;
-    CAmount nValue;
-
-    if (coinControl)
-        wallet->AvailableCoins(vCoins, true, coinControl);
-    else
-        wallet->AvailableCoins(vCoins, false, coinControl);
-
-    BOOST_FOREACH (const COutput& out, vCoins) {
-        nValue = out.tx->vout[out.i].nValue;
-        if (ExtractDestination(out.tx->vout[out.i].scriptPubKey, address)) {
-            std::string vAddress = CBitcoinAddress(address).ToString();
-            mapAB[QString::fromStdString(vAddress)] += nValue;
-        }
-
-        if (coinControl) {
-            if (out.fSpendable)
-                nBalance += nValue;
-        } else {
-            nBalance += nValue;
-        }
-    }
-    this->mapAddressBalances = mapAB;
-//    qWarning() << "WalletModel::getBalance = " << nBalance;
-
-    return nBalance;
-//    return wallet->GetBalance();
-*/
 }
 
 

@@ -193,8 +193,6 @@ RES_ICONS = \
   qt/res/icons/address-book.png \
   qt/res/icons/esbcoin.ico \
   qt/res/icons/esbcoin.png \
-  qt/res/icons/esbcoin_testnet.ico \
-  qt/res/icons/esbcoin_testnet.png \
   qt/res/icons/browse.png \
   qt/res/icons/clock1.png \
   qt/res/icons/clock2.png \
@@ -245,8 +243,6 @@ RES_ICONS = \
   qt/res/dark/icons/address-book.png \
   qt/res/dark/icons/esbcoin.ico \
   qt/res/dark/icons/esbcoin.png \
-  qt/res/dark/icons/esbcoin_testnet.ico \
-  qt/res/dark/icons/esbcoin_testnet.png \
   qt/res/dark/icons/browse.png \
   qt/res/dark/icons/clock1.png \
   qt/res/dark/icons/clock2.png \
@@ -335,7 +331,7 @@ BITCOIN_QT_CPP += \
   qt/editaddressdialog.cpp \
   qt/masternodelist.cpp \
   qt/multisenddialog.cpp \
-  qt/multisigdialog.cpp\
+  qt/multisigdialog.cpp \
   qt/openuridialog.cpp \
   qt/overviewpage.cpp \
   qt/paymentrequestplus.cpp \
@@ -364,7 +360,6 @@ endif
 RES_IMAGES = \
   qt/res/images/about.png \
   qt/res/images/splash.png \
-  qt/res/images/splash_testnet.png \
   qt/res/images/esbcoin_logo_horizontal.png \
   qt/res/images/frame_blue.png \
   qt/res/images/downArrow.png \
@@ -375,7 +370,6 @@ RES_IMAGES = \
   qt/res/images/qtreeview_selected.png \
   qt/res/dark/images/about.png \
   qt/res/dark/images/splash.png \
-  qt/res/dark/images/splash_testnet.png \
   qt/res/dark/images/esbcoin_logo_horizontal.png \
   qt/res/dark/images/frame_blue.png \
   qt/res/dark/images/downArrow.png \

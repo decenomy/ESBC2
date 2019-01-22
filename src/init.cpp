@@ -512,7 +512,7 @@ std::string LicenseInfo()
            "\n" +
            FormatParagraph(_("Copyright (C) 2017-2018 The XDNA Core Developers")) + "\n" +
            "\n" +
-           FormatParagraph(_("Copyright (C) 2018-2019 The e-Sport Betting Coin Developers")) + "\n" +
+           FormatParagraph(_("Copyright (C) 2018-2019 The ESBC Core Developers")) + "\n" +
            "\n" +
            FormatParagraph(_("This is experimental software.")) + "\n" +
            "\n" +
@@ -891,7 +891,7 @@ bool AppInit2(boost::thread_group& threadGroup)
 
     // Sanity check
     if (!InitSanityCheck())
-        return InitError(_("Initialization sanity check failed. e-Sport Betting Coin is shutting down."));
+        return InitError(_("Initialization sanity check failed. ESBC is shutting down."));
 
     std::string strDataDir = GetDataDir().string();
 #ifdef ENABLE_WALLET
@@ -907,7 +907,7 @@ bool AppInit2(boost::thread_group& threadGroup)
 
     // Wait maximum 10 seconds if an old wallet is still running. Avoids lockup during restart
     if (!lock.timed_lock(boost::get_system_time() + boost::posix_time::seconds(10)))
-        return InitError(strprintf(_("Cannot obtain a lock on data directory %s. e-Sport Betting Coin is probably already running."), strDataDir));
+        return InitError(strprintf(_("Cannot obtain a lock on data directory %s. ESBC is probably already running."), strDataDir));
 
 #ifndef WIN32
     CreatePidFile(GetPidFile(), getpid());
@@ -1378,9 +1378,9 @@ bool AppInit2(boost::thread_group& threadGroup)
                              " or address book entries might be missing or incorrect."));
                 InitWarning(msg);
             } else if (nLoadWalletRet == DB_TOO_NEW)
-                strErrors << _("Error loading wallet.dat: Wallet requires newer version of e-Sport Betting Coin") << "\n";
+                strErrors << _("Error loading wallet.dat: Wallet requires newer version of ESBC") << "\n";
             else if (nLoadWalletRet == DB_NEED_REWRITE) {
-                strErrors << _("Wallet needed to be rewritten: restart e-Sport Betting Coin to complete") << "\n";
+                strErrors << _("Wallet needed to be rewritten: restart ESBC to complete") << "\n";
                 LogPrintf("%s", strErrors.str());
                 return InitError(strErrors.str());
             } else

@@ -21,14 +21,14 @@ Build-Depends: debhelper,
  libprotobuf-dev, protobuf-compiler
 Standards-Version: 1.0
 Homepage: http://esbproject.online/
-Vcs-Git: https://github.com/BlockchainFor/ESportBettingCoin.git
-Vcs-Browser: https://github.com/BlockchainFor/ESportBettingCoin
+Vcs-Git: https://github.com/BlockchainFor/ESBC2.git
+Vcs-Browser: https://github.com/BlockchainFor/ESBC2
 
 Package: esbcoind
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: peer-to-peer network based digital currency - daemon
- ESportBettingCoin is a free open source peer-to-peer electronic cash system that
+ ESBC daemon is a free open source peer-to-peer electronic cash system that
  is completely decentralized, without the need for a central server or
  trusted parties.  Users hold the crypto keys to their own money and
  transact directly with each other, with the help of a P2P network to
@@ -44,7 +44,7 @@ Package: esbcoin-qt
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: peer-to-peer network based digital currency - Qt GUI
- ESportBettingCoin is a free open source peer-to-peer electronic cash system that
+ ESBC wallet is a free open source peer-to-peer electronic cash system that
  is completely decentralized, without the need for a central server or
  trusted parties.  Users hold the crypto keys to their own money and
  transact directly with each other, with the help of a P2P network to
@@ -53,4 +53,4 @@ Description: peer-to-peer network based digital currency - Qt GUI
  Full transaction history is stored locally at each client.  This
  requires 1+ GB of space, slowly growing.
  .
- This package provides esbcoin-qt, a GUI for ESportBettingCoin based on Qt.
+ This package provides esbcoin-qt, a GUI for ESBC wallet based on Qt.

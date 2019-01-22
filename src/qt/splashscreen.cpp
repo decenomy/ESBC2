@@ -35,12 +35,12 @@ SplashScreen::SplashScreen(Qt::WindowFlags f, const NetworkStyle* networkStyle) 
     float fontFactor = 1.0;
 
     // define text to place
-    QString titleText = tr("e-Sport Betting Coin");
+    QString titleText = tr("ESBC wallet");
     QString versionText = QString(tr("Version %1")).arg(QString::fromStdString(FormatFullVersion()));
-    QString copyrightTextBtc = QChar(0xA9) + QString(" 2009-2014 ").arg(COPYRIGHT_YEAR) + QString(tr("The Bitcoin Core developers"));
-    QString copyrightTextDash = QChar(0xA9) + QString(" 2014-2015 ").arg(COPYRIGHT_YEAR) + QString(tr("The Dash Core developers"));
-    QString copyrightTextPIVX = QChar(0xA9) + QString(" 2015-2017 ").arg(COPYRIGHT_YEAR) + QString(tr("The PIVX Core developers"));
-    QString copyrightTextesbcoin = QChar(0xA9) + QString(" 2018-2019 ").arg(COPYRIGHT_YEAR) + QString(tr("The e-Sport Betting Coin developers"));
+    QString copyrightTextBtc = QChar(0xA9) + QString(" 2009-%1 ").arg(COPYRIGHT_YEAR) + QString(tr("The Bitcoin Core developers"));
+    QString copyrightTextDash = QChar(0xA9) + QString(" 2014-%1 ").arg(COPYRIGHT_YEAR) + QString(tr("The Dash Core developers"));
+    QString copyrightTextPIVX = QChar(0xA9) + QString(" 2015-%1 ").arg(COPYRIGHT_YEAR) + QString(tr("The PIVX Core developers"));
+    QString copyrightTextesbcoin = QChar(0xA9) + QString(" 2018-%1 ").arg(COPYRIGHT_YEAR) + QString(tr("The ESBC Core developers"));
     QString titleAddText = networkStyle->getTitleAddText();
 
     QString font = QApplication::font().toString();
@@ -48,7 +48,7 @@ SplashScreen::SplashScreen(Qt::WindowFlags f, const NetworkStyle* networkStyle) 
     this->setWindowFlags(Qt::FramelessWindowHint);
     // load the bitmap for writing some text over it
     pixmap = networkStyle->getSplashImage();
-  
+
     QPainter pixPaint(&pixmap);
     pixPaint.setPen(QColor(255, 255, 255));
 
@@ -96,7 +96,7 @@ SplashScreen::SplashScreen(Qt::WindowFlags f, const NetworkStyle* networkStyle) 
     QRect r(QPoint(), pixmap.size());
     resize(r.size());
     setFixedSize(r.size());
-    
+
     move(QApplication::desktop()->screenGeometry().center() - r.center());
 
     subscribeToCoreSignals();

@@ -68,7 +68,6 @@ libconftest.dylib*
 *.pyc
 *.o
 *.o-*
-*.patch
 .esbcoin
 *.a
 *.pb.cc
@@ -123,6 +122,7 @@ cache/
 share/BitcoindComparisonTool.jar
 
 !src/leveldb*/Makefile
+!depends/Makefile
 
 .vscode
 .cproject

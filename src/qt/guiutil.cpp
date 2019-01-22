@@ -111,7 +111,7 @@ void setupAddressWidget(QValidatedLineEdit* widget, QWidget* parent)
 #if QT_VERSION >= 0x040700
     // We don't want translators to use own addresses in translations
     // and this is the only place, where this address is supplied.
-    widget->setPlaceholderText(QObject::tr("Enter a ESportBettingCoin address (e.g. %1)").arg("XEBxEjGXmJxwpXxXAJqeXztdUR4MsZZJsE"));
+    widget->setPlaceholderText(QObject::tr("Enter a ESBC address (e.g. %1)").arg("eSBxEjGXmJxwpXxXAJqeXztdUR4MsZZJsE"));
 #endif
     widget->setValidator(new BitcoinAddressEntryValidator(parent));
     widget->setCheckValidator(new BitcoinAddressCheckValidator(parent));
@@ -700,7 +700,7 @@ bool SetStartOnSystemStartup(bool fAutoStart)
         // Write a esbcoin.desktop file to the autostart directory:
         optionFile << "[Desktop Entry]\n";
         optionFile << "Type=Application\n";
-        optionFile << "Name=ESportBettingCoin\n";
+        optionFile << "Name=ESBC wallet\n";
         optionFile << "Exec=" << pszExePath << " -min\n";
         optionFile << "Terminal=false\n";
         optionFile << "Hidden=false\n";
@@ -1081,8 +1081,15 @@ int FlowLayout::doLayout(const QRect &rect, bool testOnly) const
         if (!testOnly)
             item->setGeometry(QRect(QPoint(x, y), item->sizeHint()));
 
-        x = nextX;
         lineHeight = qMax(lineHeight, item->sizeHint().height());
+        QSizePolicy sizePolicy = wid->sizePolicy();
+        if (sizePolicy.horizontalPolicy() == QSizePolicy::Expanding) {
+            nextX = effectiveRect.x();
+            y = y + lineHeight + spaceY;
+            lineHeight = 0;
+        }
+
+        x = nextX;
     }
     return y + lineHeight - rect.y() + bottom;
 }

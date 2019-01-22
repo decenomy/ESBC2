@@ -1,5 +1,5 @@
 IDI_ICON1 ICON DISCARDABLE "icons/esbcoin.ico"
-IDI_ICON2 ICON DISCARDABLE "icons/esbcoin_testnet.ico"
+IDI_ICON2 ICON DISCARDABLE "icons/esbcoin.ico"
 
 #include <windows.h>             // needed for VERSIONINFO
 #include "../../clientversion.h" // holds the needed client version information
@@ -19,14 +19,14 @@ BEGIN
     BEGIN
         BLOCK "040904E4" // U.S. English - multilingual (hex)
         BEGIN
-            VALUE "CompanyName",        "e-Sport Betting"
-            VALUE "FileDescription",    "e-Sport Betting Coin (OSS GUI client)"
+            VALUE "CompanyName",        "ESBC"
+            VALUE "FileDescription",    "ESBC (OSS GUI client)"
             VALUE "FileVersion",        VER_FILEVERSION_STR
             VALUE "InternalName",       "esbcoin-qt"
             VALUE "LegalCopyright",     COPYRIGHT_STR
             VALUE "LegalTrademarks1",   "Distributed under the MIT/X11 software license, see the accompanying file COPYING or http://www.opensource.org/licenses/mit-license.php."
             VALUE "OriginalFilename",   "esbcoin-qt.exe"
-            VALUE "ProductName",        "e-Sport Betting Coin"
+            VALUE "ProductName",        "ESBC wallet"
             VALUE "ProductVersion",     VER_PRODUCTVERSION_STR
         END
     END

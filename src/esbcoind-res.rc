@@ -16,8 +16,8 @@ BEGIN
     BEGIN
         BLOCK "040904E4" // U.S. English - multilingual (hex)
         BEGIN
-            VALUE "CompanyName",        "ESportBetting"
-            VALUE "FileDescription",    "esbcoind (OSS daemon/client for ESportBettingCoin)"
+            VALUE "CompanyName",        "ESBC"
+            VALUE "FileDescription",    "esbcoind (OSS daemon/client for ESBC)"
             VALUE "FileVersion",        VER_FILEVERSION_STR
             VALUE "InternalName",       "esbcoind"
             VALUE "LegalCopyright",     COPYRIGHT_STR

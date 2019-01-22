@@ -442,7 +442,7 @@
       </rect>
      </property>
      <property name="text">
-      <string>Buy ESportBettingCoin</string>
+      <string>Buy ESBC coin</string>
      </property>
      <property name="icon">
       <iconset resource="../esbcoin.qrc">
@@ -512,7 +512,7 @@
       </rect>
      </property>
      <property name="text">
-      <string>ESportBettingCoin</string>
+      <string>ESBC</string>
      </property>
     </widget>
     <widget class="QLabel" name="label_5">
@@ -1704,7 +1704,7 @@
       </rect>
      </property>
      <property name="text">
-      <string>ESportBettingCoin</string>
+      <string>ESBC</string>
      </property>
     </widget>
     <widget class="QLineEdit" name="UnitsInputesbcoin">
@@ -1751,7 +1751,7 @@
       </rect>
      </property>
      <property name="text">
-      <string>Sell ESportBettingCoin</string>
+      <string>Sell ESBC coin</string>
      </property>
      <property name="icon">
       <iconset resource="../esbcoin">
@@ -1777,7 +1777,7 @@
          </font>
         </property>
         <property name="text">
-         <string>ESportBettingCoin Available:</string>
+         <string>ESBC Available:</string>
         </property>
        </widget>
       </item>
@@ -2221,7 +2221,7 @@
          </font>
         </property>
         <property name="text">
-         <string>ESportBettingCoin</string>
+         <string>ESBC</string>
         </property>
        </widget>
       </item>
@@ -2762,7 +2762,7 @@
       </font>
      </property>
      <property name="text">
-      <string>ESportBettingCoin Balance:</string>
+      <string>ESBC Balance:</string>
      </property>
     </widget>
     <widget class="QLabel" name="label_12">
@@ -2813,7 +2813,7 @@
       </font>
      </property>
      <property name="text">
-      <string>ESportBettingCoin Available:</string>
+      <string>ESBC Available:</string>
      </property>
     </widget>
     <widget class="QLabel" name="label_14">
@@ -2832,7 +2832,7 @@
       </font>
      </property>
      <property name="text">
-      <string>ESportBettingCoin Pending:</string>
+      <string>ESBC Pending:</string>
      </property>
     </widget>
     <widget class="QLabel" name="esbcoinPendingLabel">
@@ -2928,7 +2928,7 @@
       </font>
      </property>
      <property name="text">
-      <string>Bittrex ESportBettingCoin Deposit Address:</string>
+      <string>Bittrex ESBC Deposit Address:</string>
      </property>
     </widget>
     <widget class="QPushButton" name="GenDepositBTN">
@@ -2941,7 +2941,7 @@
       </rect>
      </property>
      <property name="text">
-      <string>Generate ESportBettingCoin Deposit Address</string>
+      <string>Generate ESBC Deposit Address</string>
      </property>
      <property name="icon">
       <iconset resource="../esbcoin.qrc">

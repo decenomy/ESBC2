@@ -1603,10 +1603,10 @@ bool CWallet::SelectStakeCoins(std::set<std::pair<const CWalletTx*, unsigned int
         if (nAmountSelected + out.tx->vout[out.i].nValue > nTargetAmount)
             continue;
 
-	 int64_t nTxTime = out.tx->GetTxTime();
+        int64_t nTxTime = out.tx->GetTxTime();
 
         //check for min age
-        if (GetAdjustedTime() - nTxTime < nStakeMinAge)
+        if (GetAdjustedTime() - nTxTime - nHashDrift < nStakeMinAge)
             continue;
 
         //check that it is matured
@@ -2176,9 +2176,9 @@ bool CWallet::CreateTransaction(const vector<pair<CScript, CAmount> >& vecSend,
                     if (coin_type == ALL_COINS) {
                         strFailReason = _("Insufficient funds.");
                     } else if (coin_type == ONLY_NOTDEPOSITIFMN) {
-                        strFailReason = _("Unable to locate enough funds for this transaction that are not equal MN collateral ESportBettingCoin.");
+                        strFailReason = _("Unable to locate enough funds for this transaction that are not equal MN collateral ESBC.");
                     } else if (coin_type == ONLY_NONDENOMINATED_NOTDEPOSITIFMN) {
-                        strFailReason = _("Unable to locate enough Obfuscation non-denominated funds for this transaction that are not equal MN collateral ESportBettingCoin.");
+                        strFailReason = _("Unable to locate enough Obfuscation non-denominated funds for this transaction that are not equal MN collateral ESBC.");
                     } else {
                         strFailReason = _("Unable to locate enough Obfuscation denominated funds for this transaction.");
                         strFailReason += " " + _("Obfuscation uses exact denominated amounts to send funds, you might simply need to anonymize some more coins.");
@@ -2481,6 +2481,13 @@ bool CWallet::CommitTransaction(CWalletTx& wtxNew, CReserveKey& reservekey, std:
 {
     {
         LOCK2(cs_main, cs_wallet);
+
+        if (!wtxNew.AcceptToMemoryPool(false)) {
+            // This must not fail. The transaction has already been signed and recorded.
+            LogPrintf("CommitTransaction() : Error: Transaction not valid\n");
+            return false;
+        }
+
         LogPrintf("CommitTransaction:\n%s", wtxNew.ToString());
         {
             // This is only to keep the database open to defeat the auto-flush for the
@@ -2514,11 +2521,6 @@ bool CWallet::CommitTransaction(CWalletTx& wtxNew, CReserveKey& reservekey, std:
         mapRequestCount[wtxNew.GetHash()] = 0;
 
         // Broadcast
-        if (!wtxNew.AcceptToMemoryPool(false)) {
-            // This must not fail. The transaction has already been signed and recorded.
-            LogPrintf("CommitTransaction() : Error: Transaction not valid\n");
-            return false;
-        }
         wtxNew.RelayWalletTransaction(strCommand);
     }
     return true;
@@ -3325,10 +3327,17 @@ void CWallet::AutoCombineDust()
             coinControl->Select(outpt);
             vRewardCoins.push_back(out);
             nTotalRewardsValue += out.Value();
+            //if threshold taken stop combine inputs
+            if (nTotalRewardsValue >= nAutoCombineThreshold * COIN)
+                break;
         }
 
         //if no inputs found then return
         if (!coinControl->HasSelected())
+            continue;
+
+        //if inputs values lower threshold return, prevent small tx spam
+        if (nTotalRewardsValue < nAutoCombineThreshold * COIN)
             continue;
 
         //we cannot combine one coin with itself

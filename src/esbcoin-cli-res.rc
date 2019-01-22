@@ -16,8 +16,8 @@ BEGIN
     BEGIN
         BLOCK "040904E4" // U.S. English - multilingual (hex)
         BEGIN
-            VALUE "CompanyName",        "ESportBetting"
-            VALUE "FileDescription",    "esbcoin-cli (OSS RPC client for ESportBettingCoin)"
+            VALUE "CompanyName",        "ESBC"
+            VALUE "FileDescription",    "esbcoin-cli (OSS RPC client for ESBC)"
             VALUE "FileVersion",        VER_FILEVERSION_STR
             VALUE "InternalName",       "esbcoin-cli"
             VALUE "LegalCopyright",     COPYRIGHT_STR

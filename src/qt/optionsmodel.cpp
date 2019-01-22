@@ -111,6 +111,12 @@ void OptionsModel::Init()
     if (!SoftSetBoolArg("-spendzeroconfchange", settings.value("bSpendZeroConfChange").toBool()))
         addOverriddenOption("-spendzeroconfchange");
 #endif
+    if (!settings.contains("nStakeSplitThreshold"))
+        settings.setValue("nStakeSplitThreshold", 200);
+    if (!settings.contains("nAutoCombineRewards"))
+        settings.setValue("nAutoCombineRewards", 500);
+    if (!settings.contains("bAutoCombine"))
+        settings.setValue("bAutoCombine", false);
 
     // Network
     if (!settings.contains("fUseUPnP"))
@@ -138,6 +144,8 @@ void OptionsModel::Init()
         settings.setValue("digits", "2");
     if (!settings.contains("theme"))
         settings.setValue("theme", "");
+    if (!settings.contains("toolbarPosition"))
+        settings.setValue("toolbarPosition", "Top");
     if (!settings.contains("fCSSexternal"))
         settings.setValue("fCSSexternal", false);
     if (!settings.contains("language"))
@@ -209,7 +217,21 @@ QVariant OptionsModel::data(const QModelIndex& index, int role) const
             return settings.value("bSpendZeroConfChange");
         case ShowMasternodesTab:
             return settings.value("fShowMasternodesTab");
+
+        case StakeSplitThreshold:
+            if (pwalletMain)
+                return QVariant((int)pwalletMain->nStakeSplitThreshold);
+            return settings.value("nStakeSplitThreshold");
+        case AutoCombineRewards:
+            if (pwalletMain)
+                return QVariant((int)pwalletMain->nAutoCombineThreshold);
+            return settings.value("nAutoCombineRewards");
+        case AutoCombine:
+            if (pwalletMain)
+                return QVariant((bool)pwalletMain->fCombineDust);
+            return settings.value("bAutoCombine");
 #endif
+
         case DisplayUnit:
             return nDisplayUnit;
         case ThirdPartyTxUrls:
@@ -218,6 +240,8 @@ QVariant OptionsModel::data(const QModelIndex& index, int role) const
             return settings.value("digits");
         case Theme:
             return settings.value("theme");
+        case ToolbarPosition:
+            return settings.value("toolbarPosition");
         case Language:
             return settings.value("language");
         case CoinControlFeatures:
@@ -305,6 +329,19 @@ bool OptionsModel::setData(const QModelIndex& index, const QVariant& value, int 
             }
             break;
 #endif
+
+        case StakeSplitThreshold:
+             settings.setValue("nStakeSplitThreshold", value.toInt());
+             break;
+        case AutoCombineRewards:
+            settings.setValue("nAutoCombineRewards", value.toInt());
+            break;
+        case AutoCombine:
+            if (settings.value("bAutoCombine") != value) {
+                settings.setValue("bAutoCombine", value);
+            }
+            break;
+
         case DisplayUnit:
             setDisplayUnit(value);
             break;
@@ -324,6 +361,12 @@ bool OptionsModel::setData(const QModelIndex& index, const QVariant& value, int 
         case Theme:
             if (settings.value("theme") != value) {
                 settings.setValue("theme", value);
+                setRestartRequired(true);
+            }
+            break;
+        case ToolbarPosition:
+            if (settings.value("toolbarPosition") != value) {
+                settings.setValue("toolbarPosition", value);
                 setRestartRequired(true);
             }
             break;

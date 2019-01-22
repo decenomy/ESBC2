@@ -130,10 +130,15 @@ OverviewPage::OverviewPage(QWidget* parent) : QWidget(parent),
     ui->setupUi(this);
 
     ui->pushButton_Website->setIcon(QIcon(GUIUtil::getThemeImage(":/icons/website")));
+    ui->pushButton_Website->setStatusTip(tr("ESBC Website"));
     ui->pushButton_Discord->setIcon(QIcon(GUIUtil::getThemeImage(":/icons/discord")));
+    ui->pushButton_Discord->setStatusTip(tr("ESBC Discord"));
     ui->pushButton_Telegram->setIcon(QIcon(GUIUtil::getThemeImage(":/icons/telegram")));
+    ui->pushButton_Telegram->setStatusTip(tr("ESBC Telegram"));
     ui->pushButton_Twitter->setIcon(QIcon(GUIUtil::getThemeImage(":/icons/twitter")));
+    ui->pushButton_Twitter->setStatusTip(tr("ESBC Twitter"));
     ui->pushButton_Explorer->setIcon(QIcon(GUIUtil::getThemeImage(":/icons/explorer")));
+    ui->pushButton_Explorer->setStatusTip(tr("ESBC Explorer"));
 
     // Recent transactions
     ui->listTransactions->setItemDelegate(txdelegate);
@@ -279,8 +284,8 @@ void OverviewPage::setWalletModel(WalletModel* model)
 
         //----------
         // Keep up to date with wallet
-        setBalance(model->getBalance(), model->getUnconfirmedBalance(), model->getImmatureBalance(), model->getAnonymizedBalance(),
-        model->getWatchBalance(), model->getWatchUnconfirmedBalance(), model->getWatchImmatureBalance());
+//        setBalance(model->getBalance(), model->getUnconfirmedBalance(), model->getImmatureBalance(), model->getAnonymizedBalance(),
+//        model->getWatchBalance(), model->getWatchUnconfirmedBalance(), model->getWatchImmatureBalance());
         connect(model, SIGNAL(balanceChanged(CAmount, CAmount, CAmount, CAmount, CAmount, CAmount, CAmount)), this, SLOT(setBalance(CAmount, CAmount, CAmount, CAmount, CAmount, CAmount, CAmount)));
 
         connect(model->getOptionsModel(), SIGNAL(displayUnitChanged(int)), this, SLOT(updateDisplayUnit()));
@@ -291,6 +296,7 @@ void OverviewPage::setWalletModel(WalletModel* model)
         connect(model, SIGNAL(notifyWatchonlyChanged(bool)), this, SLOT(updateWatchOnlyLabels(bool)));
         connect(ui->blabel_esbcoin, SIGNAL(clicked()), this, SLOT(openMyAddresses()));
 
+        emit model->makeBalance();
     }
 
     // update the display unit, to not use the default ("esbcoin")
@@ -444,6 +450,8 @@ void OverviewPage::showOutOfSyncWarning(bool fShow)
 
 void OverviewPage::updateObfuscationProgress()
 {
+    return; // not used at this time
+
     if (!masternodeSync.IsBlockchainSynced() || ShutdownRequested()) return;
 
     if (!pwalletMain) return;
@@ -677,16 +685,16 @@ void OverviewPage::toggleObfuscation()
 }
 
 void OverviewPage::on_pushButton_Website_clicked() {
-    QDesktopServices::openUrl(QUrl("http://esbproject.online/", QUrl::TolerantMode));
+    QDesktopServices::openUrl(QUrl("https://esbc.pro/", QUrl::TolerantMode));
 }
 void OverviewPage::on_pushButton_Discord_clicked() {
-    QDesktopServices::openUrl(QUrl("https://discord.gg/JgJMvKQ", QUrl::TolerantMode));
+    QDesktopServices::openUrl(QUrl("https://esbc.pro/link/discord", QUrl::TolerantMode));
 }
 void OverviewPage::on_pushButton_Telegram_clicked() {
-    QDesktopServices::openUrl(QUrl("https://t.me/esportbettingcoin", QUrl::TolerantMode));
+    QDesktopServices::openUrl(QUrl("https://esbc.pro/link/telegram", QUrl::TolerantMode));
 }
 void OverviewPage::on_pushButton_Twitter_clicked() {
-    QDesktopServices::openUrl(QUrl("https://twitter.com/ESBCrypto", QUrl::TolerantMode));
+    QDesktopServices::openUrl(QUrl("https://esbc.pro/link/twitter", QUrl::TolerantMode));
 }
 /*
 void OverviewPage::on_pushButton_Facebook_clicked() {
@@ -694,5 +702,5 @@ void OverviewPage::on_pushButton_Facebook_clicked() {
 }
 */
 void OverviewPage::on_pushButton_Explorer_clicked() {
-    QDesktopServices::openUrl(QUrl("http://explorer.esbproject.online/", QUrl::TolerantMode));
+    QDesktopServices::openUrl(QUrl("https://esbc.pro/link/explorer", QUrl::TolerantMode));
 }

@@ -32,9 +32,11 @@ public:
     void setMapper();
 
     /* Update StakeSplitThreshold's value in wallet */
-    void setStakeSplitThreshold();
+//    void setStakeSplitThreshold();
     /* Update AutoCombineRewards value in wallet */
-    void setAutoCombineRewards();
+//    void setAutoCombineRewards();
+    /* Update Settings value in wallet */
+    void setWalletOptions();
 
 protected:
     bool eventFilter(QObject* object, QEvent* event);
@@ -56,8 +58,10 @@ private slots:
 
     void on_stakeThresholdEdit_valueChanged(int i);
     void on_autoCombineEdit_valueChanged(int i);
+    void on_autoCombineLimitEdit_valueChanged(int i);
     void on_stakeThresholdSlider_valueChanged(int value);
     void on_autoCombineSlider_valueChanged(int value);
+    void on_autoCombineLimitSlider_valueChanged(int value);
     void on_autoCombineCheckBox_stateChanged(int state);
 
 signals:

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>576</width>
-    <height>442</height>
+    <height>469</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -263,7 +263,7 @@
           <item>
            <widget class="QLabel" name="stakeThresholdLabel">
             <property name="text">
-             <string>Value:</string>
+             <string>Threshold value:</string>
             </property>
            </widget>
           </item>
@@ -334,34 +334,80 @@
               <number>0</number>
              </property>
              <item>
-              <widget class="QLabel" name="autoCombineLabel">
-               <property name="text">
-                <string>Value:</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QSlider" name="autoCombineSlider">
-               <property name="minimum">
-                <number>0</number>
-               </property>
-               <property name="maximum">
-                <number>5000</number>
-               </property>
-               <property name="orientation">
-                <enum>Qt::Horizontal</enum>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QSpinBox" name="autoCombineEdit">
-               <property name="minimum">
-                <number>0</number>
-               </property>
-               <property name="maximum">
-                <number>5000</number>
-               </property>
-              </widget>
+              <layout class="QGridLayout" name="autoCombineGrid">
+               <item row="0" column="1">
+                <widget class="QSlider" name="autoCombineSlider">
+                 <property name="minimum">
+                  <number>0</number>
+                 </property>
+                 <property name="maximum">
+                  <number>5000</number>
+                 </property>
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="2">
+                <widget class="QSpinBox" name="autoCombineEdit">
+                 <property name="minimum">
+                  <number>0</number>
+                 </property>
+                 <property name="maximum">
+                  <number>5000</number>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="0">
+                <widget class="QLabel" name="autoCombineLabel">
+                 <property name="toolTip">
+                  <string>Combine outputs, within the same address, to the setting value. A standard transaction will be created, one combine operation on each chain block.</string>
+                 </property>
+                 <property name="text">
+                  <string>Autocombine value:</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="0">
+                <widget class="QLabel" name="autoCombineLimitLabel">
+                 <property name="toolTip">
+                  <string>Do not affect the inputs with the number of confirmations over the limit ( 0 = disabled, confirmations are not checked )</string>
+                 </property>
+                 <property name="text">
+                  <string>Confirmations limit:</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="1">
+                <widget class="QSlider" name="autoCombineLimitSlider">
+                  <property name="minimum">
+                   <number>0</number>
+                  </property>
+                  <property name="maximum">
+                   <number>5000</number>
+                  </property>
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="2">
+                <widget class="QSpinBox" name="autoCombineLimitEdit">
+                  <property name="minimum">
+                   <number>0</number>
+                  </property>
+                  <property name="maximum">
+                   <number>5000</number>
+                  </property>
+                </widget>
+               </item>
+              </layout>
              </item>
             </layout>
            </widget>

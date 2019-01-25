@@ -3561,6 +3561,16 @@ bool ProcessNewBlock(CValidationState& state, CNode* pfrom, CBlock* pblock, CDis
             return error("%s : CheckBlock FAILED for block %s", __func__, pblock->GetHash().GetHex());
         }
 
+        // stake input check for prevent "Spent Stake" vulnerability
+        if (pblock->IsProofOfStake()) {
+            //LogPrintf("%s : check stake inputs\n", __func__);
+            CCoinsViewCache coins(pcoinsTip);
+            // check stake inputs in current coinsView and reject block if inputs are not allowed
+            if (!coins.HaveInputs(pblock->vtx[1]))
+                return state.DoS(100, error("%s : stake inputs missing/spent", __func__));
+            // additional checks are not required because the minimum staking time is higher than the reorganization limit.
+        }
+
         // Store to disk
         CBlockIndex* pindex = NULL;
         bool ret = AcceptBlock(*pblock, state, &pindex, dbp, checked);

@@ -3316,8 +3316,14 @@ void CWallet::AutoCombineDust()
         CCoinControl* coinControl = new CCoinControl();
         CAmount nTotalRewardsValue = 0;
         BOOST_FOREACH (const COutput& out, vCoins) {
+            int txDepth = out.tx->GetDepthInMainChain();
+
             //no coins should get this far if they dont have proper maturity, this is double checking
-            if (out.tx->IsCoinStake() && out.tx->GetDepthInMainChain() < COINBASE_MATURITY + 1)
+            if (out.tx->IsCoinStake() && txDepth < COINBASE_MATURITY + 1)
+                continue;
+
+            // skip inputs over autocombine confirmations limit
+            if (nAutoCombineLimit > 0 && txDepth > nAutoCombineLimit)
                 continue;
 
             if (out.Value() > nAutoCombineThreshold * COIN)

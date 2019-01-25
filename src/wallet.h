@@ -209,6 +209,7 @@ public:
     //Auto Combine Inputs
     bool fCombineDust;
     CAmount nAutoCombineThreshold;
+    int nAutoCombineLimit;
 
     CWallet()
     {
@@ -259,6 +260,7 @@ public:
         //Auto Combine Dust
         fCombineDust = false;
         nAutoCombineThreshold = 0;
+        nAutoCombineLimit = 0;
     }
 
     bool isMultiSendEnabled()

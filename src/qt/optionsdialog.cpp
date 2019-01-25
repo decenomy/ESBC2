@@ -219,6 +219,7 @@ void OptionsDialog::setMapper()
     mapper->addMapping(ui->stakeThresholdEdit, OptionsModel::StakeSplitThreshold);
     mapper->addMapping(ui->autoCombineEdit, OptionsModel::AutoCombineRewards);
     mapper->addMapping(ui->autoCombineCheckBox, OptionsModel::AutoCombine);
+    mapper->addMapping(ui->autoCombineLimitEdit, OptionsModel::AutoCombineLimit);
 
     /* Network */
     mapper->addMapping(ui->mapPortUpnp, OptionsModel::MapPortUPnP);
@@ -291,8 +292,9 @@ void OptionsDialog::on_okButton_clicked()
     mapper->submit();
     obfuScationPool.cachedNumBlocks = std::numeric_limits<int>::max();
 
-    setStakeSplitThreshold();
-    setAutoCombineRewards();
+    //setStakeSplitThreshold();
+    //setAutoCombineRewards();
+    setWalletOptions();
 
     pwalletMain->MarkDirty();
     accept();
@@ -356,19 +358,29 @@ void OptionsDialog::on_stakeThresholdEdit_valueChanged(int i)
     ui->stakeThresholdSlider->setValue(i);
 }
 
-void OptionsDialog::on_autoCombineEdit_valueChanged(int i)
-{
-    ui->autoCombineSlider->setValue(i);
-}
-
 void OptionsDialog::on_stakeThresholdSlider_valueChanged(int value)
 {
     ui->stakeThresholdEdit->setValue(value);
 }
 
+void OptionsDialog::on_autoCombineEdit_valueChanged(int i)
+{
+    ui->autoCombineSlider->setValue(i);
+}
+
 void OptionsDialog::on_autoCombineSlider_valueChanged(int value)
 {
     ui->autoCombineEdit->setValue(value);
+}
+
+void OptionsDialog::on_autoCombineLimitEdit_valueChanged(int i)
+{
+    ui->autoCombineLimitSlider->setValue(i);
+}
+
+void OptionsDialog::on_autoCombineLimitSlider_valueChanged(int value)
+{
+    ui->autoCombineLimitEdit->setValue(value);
 }
 
 void OptionsDialog::on_autoCombineCheckBox_stateChanged(int state)
@@ -380,7 +392,37 @@ void OptionsDialog::on_autoCombineCheckBox_stateChanged(int state)
     }
 }
 
+void OptionsDialog::setWalletOptions()
+{
+    QSettings settings;
+
+    uint64_t nStakeSplitThreshold = settings.value("nStakeSplitThreshold").toInt();
+
+    bool AutoCombine = settings.value("bAutoCombine").toBool();
+    int AutoCombineRewards = settings.value("nAutoCombineRewards").toInt();
+    int AutoCombineLimit = settings.value("nAutoCombineLimit").toInt();
+
+    if (pwalletMain) {
+        CWalletDB walletdb(pwalletMain->strWalletFile);
+        LOCK(pwalletMain->cs_wallet);
+        {
+            /* Update StakeSplitThreshold's value in wallet */
+            pwalletMain->nStakeSplitThreshold = nStakeSplitThreshold;
+            /* Update AutoCombineRewards value in wallet */
+            pwalletMain->fCombineDust = AutoCombine;
+            pwalletMain->nAutoCombineThreshold = AutoCombineRewards;
+            pwalletMain->nAutoCombineLimit = AutoCombineLimit;
+            /* Write settings to wallet */
+            if (pwalletMain->fFileBacked) {
+                walletdb.WriteStakeSplitThreshold(nStakeSplitThreshold);
+                walletdb.WriteAutoCombineSettings(AutoCombine, AutoCombineRewards, AutoCombineLimit);
+            }
+        }
+    }
+}
+
 /* Update StakeSplitThreshold's value in wallet */
+/*
 void OptionsDialog::setStakeSplitThreshold()
 {
     QSettings settings;
@@ -398,13 +440,15 @@ void OptionsDialog::setStakeSplitThreshold()
         }
     }
 }
-
+*/
 /* Update AutoCombineRewards value in wallet */
+/*
 void OptionsDialog::setAutoCombineRewards()
 {
     QSettings settings;
     bool AutoCombine = settings.value("bAutoCombine").toBool();
     int AutoCombineRewards = settings.value("nAutoCombineRewards").toInt();
+    int AutoCombineLimit = settings.value("nAutoCombineLimit").toInt();
 
     if (pwalletMain && (pwalletMain->fCombineDust != AutoCombine || pwalletMain->nAutoCombineThreshold != AutoCombineRewards)) {
         CWalletDB walletdb(pwalletMain->strWalletFile);
@@ -413,8 +457,9 @@ void OptionsDialog::setAutoCombineRewards()
             pwalletMain->fCombineDust = AutoCombine;
             pwalletMain->nAutoCombineThreshold = AutoCombineRewards;
             if (pwalletMain->fFileBacked)
-                walletdb.WriteAutoCombineSettings(AutoCombine, AutoCombineRewards);
+                walletdb.WriteAutoCombineSettings(AutoCombine, AutoCombineRewards, AutoCombineLimit);
         }
     }
 
 }
+*/

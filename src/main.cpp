@@ -57,6 +57,7 @@ BlockMap mapBlockIndex;
 map<uint256, uint256> mapProofOfStake;
 set<pair<COutPoint, unsigned int> > setStakeSeen;
 map<unsigned int, unsigned int> mapHashedBlocks;
+map<COutPoint, int> mapStakeSpent;
 CChain chainActive;
 CBlockIndex* pindexBestHeader = NULL;
 int64_t nTimeBestReceived = 0;
@@ -2048,6 +2049,8 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
                 if (coins->vout.size() < out.n + 1)
                     coins->vout.resize(out.n + 1);
                 coins->vout[out.n] = undo.txout;
+                // erase the spent input
+                mapStakeSpent.erase(out);
             }
         }
     }
@@ -2269,6 +2272,26 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
     if (fTxIndex)
         if (!pblocktree->WriteTxIndex(vPos))
             return state.Abort("Failed to write transaction index");
+
+    // add new entries
+    for (const CTransaction tx: block.vtx) {
+        if (tx.IsCoinBase())
+            continue;
+        for (const CTxIn in: tx.vin) {
+//            LogPrint("map", "mapStakeSpent: Insert %s | %u\n", in.prevout.ToString(), pindex->nHeight);
+            mapStakeSpent.insert(std::make_pair(in.prevout, pindex->nHeight));
+        }
+    }
+    // delete old entries
+    for (auto it = mapStakeSpent.begin(); it != mapStakeSpent.end();) {
+        if (it->second < pindex->nHeight - Params().MaxReorganizationDepth()) {
+//            LogPrint("map", "mapStakeSpent: Erase %s | %u\n", it->first.ToString(), it->second);
+            it = mapStakeSpent.erase(it);
+        }
+        else {
+            it++;
+        }
+    }
 
     // add this block to the view's block chain
     view.SetBestBlock(pindex->GetBlockHash());
@@ -3563,12 +3586,34 @@ bool ProcessNewBlock(CValidationState& state, CNode* pfrom, CBlock* pblock, CDis
 
         // stake input check for prevent "Spent Stake" vulnerability
         if (pblock->IsProofOfStake()) {
-            //LogPrintf("%s : check stake inputs\n", __func__);
             CCoinsViewCache coins(pcoinsTip);
             // check stake inputs in current coinsView and reject block if inputs are not allowed
-            if (!coins.HaveInputs(pblock->vtx[1]))
-                return state.DoS(100, error("%s : stake inputs missing/spent", __func__));
-            // additional checks are not required because the minimum staking time is higher than the reorganization limit.
+            if (!coins.HaveInputs(pblock->vtx[1])) {
+                std::pair<COutPoint, unsigned int> ProofOfStake = pblock->GetProofOfStake();
+
+                // the inputs are spent at the chain tip so we should look at the recently spent outputs
+                auto it = mapStakeSpent.find(ProofOfStake.first/*pblock->vtx[1].vin[0].prevout*/);
+                if (it == mapStakeSpent.end())
+                    return state.DoS(100, error("%s : stake input missing/spent", __func__));
+
+                // Check for coin age.
+            		// First try finding the previous transaction in database.
+            		CTransaction txPrev;
+            		uint256 hashBlockPrev;
+            		if (!GetTransaction(ProofOfStake.first.hash/*pblock->vtx[1].vin[0].prevout.hash*/, txPrev, hashBlockPrev, true))
+            			  return state.DoS(100, error("%s : stake failed to find vin transaction", __func__));
+            		// Find block in map.
+            		CBlockIndex* pindex = NULL;
+            		BlockMap::iterator itBlock = mapBlockIndex.find(hashBlockPrev);
+            		if (itBlock != mapBlockIndex.end())
+            			  pindex = itBlock->second;
+            		else
+            			  return state.DoS(100, error("%s : stake failed to find block index", __func__));
+            		// Check block time vs stake age requirement.
+            		if (pindex->GetBlockHeader().nTime + nStakeMinAge > ProofOfStake.second/*pblock->GetBlockHeader().nTime*/)
+            			  return state.DoS(100, error("%s : stake under min. stake age", __func__));
+
+            }
         }
 
         // Store to disk

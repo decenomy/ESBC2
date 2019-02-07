@@ -328,6 +328,8 @@ double roi1, roi2, roi3, roi4;
 
 void OverviewPage::updateMasternodeInfo()
 {
+  int CurrentBlock = clientModel->getNumBlocks();
+
   if (masternodeSync.IsBlockchainSynced() && masternodeSync.IsSynced())
   {
 
@@ -366,13 +368,14 @@ void OverviewPage::updateMasternodeInfo()
 
     // TODO: need a read actual 24h blockcount from chain
     int BlockCount24h = block24hCount > 0 ? block24hCount : 1440;
+
     // update ROI
-    double BlockReward = GetBlockValue(chainActive.Height());
+    double BlockReward = GetBlockValue(CurrentBlock);
     (mn1==0) ? roi1 = 0 : roi1 = (0.2*BlockReward*BlockCount24h)/mn1/COIN;
     (mn2==0) ? roi2 = 0 : roi2 = (0.3*BlockReward*BlockCount24h)/mn2/COIN;
     (mn3==0) ? roi3 = 0 : roi3 = (0.3*BlockReward*BlockCount24h)/mn3/COIN;
     (mn4==0) ? roi4 = 0 : roi4 = (0.02*BlockReward*BlockCount24h)/mn4/COIN;
-    if (chainActive.Height() >= 0) {
+    if (CurrentBlock >= 0) {
         /*
         ui->roi_1->setText(mn1==0 ? "-" : QString::number(((((0.4*BlockReward*1440)/mn1)*365)/3000)/1000000,'f',0).append("%"));
         ui->roi_2->setText(mn2==0 ? "-" : QString::number(((((0.2*BlockReward*1440)/mn2)*365)/10000)/1000000,'f',0).append("%"));
@@ -399,7 +402,7 @@ void OverviewPage::updateMasternodeInfo()
   }
 
   // update collateral info
-  if (chainActive.Height() >= 0) {
+  if (CurrentBlock >= 0) {
       ui->label_lcolat->setText("5000 ESBC");
       ui->label_mcolat->setText("25000 ESBC");
       ui->label_fcolat->setText("50000 ESBC");
@@ -412,9 +415,9 @@ void OverviewPage::updatBlockChainInfo()
 {
     if (masternodeSync.IsBlockchainSynced())
     {
-        int CurrentBlock = (int)chainActive.Height();
+        int CurrentBlock = clientModel->getNumBlocks();
         int64_t netHashRate = chainActive.GetNetworkHashPS(24, CurrentBlock-1);
-        double BlockReward = GetBlockValue(chainActive.Height());
+        double BlockReward = GetBlockValue(CurrentBlock);
         double BlockRewardesbcoin =  static_cast<double>(BlockReward/COIN);
         double CurrentDiff = GetDifficulty();
 

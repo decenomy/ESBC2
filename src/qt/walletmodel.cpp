@@ -205,17 +205,17 @@ void WalletModel::pollBalanceChanged()
     // periodical polls if the core is holding the locks for a longer time -
     // for example, during a wallet rescan.
     TRY_LOCK(cs_main, lockMain);
-    if (!lockMain)
-        return;
-    TRY_LOCK(wallet->cs_wallet, lockWallet);
-    if (!lockWallet)
-        return;
+    if (!lockMain) return;
 
-    if (fForceCheckBalanceChanged || chainActive.Height() != cachedNumBlocks || nObfuscationRounds != cachedObfuscationRounds || cachedTxLocks != nCompleteTXLocks) {
+    int CurrentBlock = (int)chainActive.Height();
+
+    if (fForceCheckBalanceChanged || CurrentBlock != cachedNumBlocks || nObfuscationRounds != cachedObfuscationRounds || cachedTxLocks != nCompleteTXLocks) {
         fForceCheckBalanceChanged = false;
 
+        TRY_LOCK(wallet->cs_wallet, lockWallet);
+        if (!lockWallet) return;
         // Balance and number of transactions might have changed
-        cachedNumBlocks = chainActive.Height();
+        cachedNumBlocks = CurrentBlock;
         cachedObfuscationRounds = nObfuscationRounds;
 
 //        checkBalanceChanged();

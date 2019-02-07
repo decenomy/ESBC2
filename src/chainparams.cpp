@@ -107,6 +107,7 @@ public:
         nMinerThreads = 0;
         nTargetSpacing = 2 * 60;  // 2 minute
         nTargetSpacingSlowLaunch = 2 * 60; // before block 100
+        nPoSTargetSpacing = 60;  // 1 minute
         nMaturity = 40;
         nMasternodeCountDrift = 3;
         nMaxMoneyOut = 13994245  * COIN;

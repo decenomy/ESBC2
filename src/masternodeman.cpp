@@ -677,32 +677,17 @@ CMasternode* CMasternodeMan::GetNextMasternodeInQueueForPayment(int nBlockHeight
     uint256 nHigh = 0;
     CMasternode* pBestMasternode = nullptr;
 
-    if (IsSporkActive(SPORK_8_NEW_PROTOCOL_ENFORCEMENT)) {
-        for(const auto& s : vecMasternodeLastPaid) {
-            CMasternode* pmn = Find(s.second);
-            if (!pmn)
-                continue;
-            uint256 n = pmn->CalculateScore(1, nBlockHeight - 100);
-            if (n > nHigh) {
-                nHigh = n;
-                pBestMasternode = pmn;
-            }
+    for(const auto& s : vecMasternodeLastPaid) {
+        CMasternode* pmn = Find(s.second);
+        if (!pmn)
+            continue;
+        uint256 n = pmn->CalculateScore(1, nBlockHeight - 100);
+        if (n > nHigh) {
+            nHigh = n;
+            pBestMasternode = pmn;
+        }
 //          LogPrintf("New Level: %d, ID: %d, LastPay: %d, Address: %s, Score: %s\n", mnlevel, nCountTenth, s.first, CBitcoinAddress(pmn->pubKeyCollateralAddress.GetID()).ToString(), n.ToString());
-            if(--nCountTenth <= 0) break;
-        }
-    } else {
-        for(const auto& s : vecMasternodeLastPaid) {
-            CMasternode* pmn = Find(s.second);
-            if (!pmn)
-                continue;
-            uint256 n = pmn->CalculateScore(1, nBlockHeight - 100);
-            if (n > nHigh) {
-                nHigh = n;
-                pBestMasternode = pmn;
-            }
-//          LogPrintf("Level: %d, ID: %d, LastPay: %d, Address: %s, Score: %s\n", mnlevel, nCountTenth, s.first, CBitcoinAddress(pmn->pubKeyCollateralAddress.GetID()).ToString(), n.ToString());
-            if(--nCountTenth > 0) break;
-        }
+        if(--nCountTenth <= 0) break;
     }
 //    if (pBestMasternode)
 //      LogPrintf("Level: %d Winner: %s\n", mnlevel, CBitcoinAddress(pBestMasternode->pubKeyCollateralAddress.GetID()).ToString());

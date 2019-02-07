@@ -221,11 +221,19 @@ void WalletModel::pollBalanceChanged()
 //        checkBalanceChanged();
         emit makeBalance(haveWatchOnly());
 
+/*
         if (transactionTableModel) {
             transactionTableModel->updateConfirmations();
         }
+*/
         cachedTxLocks = nCompleteTXLocks; // ??
     }
+}
+
+void WalletModel::refreshClicked()
+{
+    if (transactionTableModel)
+        transactionTableModel->updateConfirmations();
 }
 
 //void WalletModel::checkBalanceChanged()

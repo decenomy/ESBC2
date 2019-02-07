@@ -227,10 +227,10 @@ int ClientModel::getNumConnections(unsigned int flags) const
 
 QString ClientModel::getMasternodeCountString() const
 {
-    return tr("Total: %1 (OBF compatible: %2 / Enabled: %3)")
+    return tr("Total: %1 (Enabled: %2)")
       .arg(QString::number(mnodeman.size()))
-      .arg(QString::number(mnodeman.CountEnabled(CMasternode::LevelValue::UNSPECIFIED, ActiveProtocol())))
-      .arg(QString::number(mnodeman.CountEnabled()));
+      .arg(QString::number(mnodeman.CountEnabled(CMasternode::LevelValue::UNSPECIFIED, ActiveProtocol())));
+//      .arg(QString::number(mnodeman.CountEnabled()));
 }
 
 int ClientModel::getNumBlocks() const

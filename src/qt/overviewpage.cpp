@@ -179,7 +179,7 @@ OverviewPage::OverviewPage(QWidget* parent) : QWidget(parent),
     timerinfo_mn->start(1000);
 
     timerinfo_blockchain = new QTimer(this);
-    connect(timerinfo_blockchain, SIGNAL(timeout()), this, SLOT(updatBlockChainInfo()));
+    connect(timerinfo_blockchain, SIGNAL(timeout()), this, SLOT(updateBlockChainInfo()));
     timerinfo_blockchain->start(1000); //30sec
 
     // start with displaying the "out of sync" warnings
@@ -328,6 +328,8 @@ double roi1, roi2, roi3, roi4;
 
 void OverviewPage::updateMasternodeInfo()
 {
+  int CurrentBlock = clientModel->getNumBlocks();
+
   if (masternodeSync.IsBlockchainSynced() && masternodeSync.IsSynced())
   {
 
@@ -366,13 +368,14 @@ void OverviewPage::updateMasternodeInfo()
 
     // TODO: need a read actual 24h blockcount from chain
     int BlockCount24h = block24hCount > 0 ? block24hCount : 1440;
+
     // update ROI
-    double BlockReward = GetBlockValue(chainActive.Height());
+    double BlockReward = GetBlockValue(CurrentBlock);
     (mn1==0) ? roi1 = 0 : roi1 = (0.2*BlockReward*BlockCount24h)/mn1/COIN;
     (mn2==0) ? roi2 = 0 : roi2 = (0.3*BlockReward*BlockCount24h)/mn2/COIN;
     (mn3==0) ? roi3 = 0 : roi3 = (0.3*BlockReward*BlockCount24h)/mn3/COIN;
     (mn4==0) ? roi4 = 0 : roi4 = (0.02*BlockReward*BlockCount24h)/mn4/COIN;
-    if (chainActive.Height() >= 0) {
+    if (CurrentBlock >= 0) {
         /*
         ui->roi_1->setText(mn1==0 ? "-" : QString::number(((((0.4*BlockReward*1440)/mn1)*365)/3000)/1000000,'f',0).append("%"));
         ui->roi_2->setText(mn2==0 ? "-" : QString::number(((((0.2*BlockReward*1440)/mn2)*365)/10000)/1000000,'f',0).append("%"));
@@ -390,7 +393,8 @@ void OverviewPage::updateMasternodeInfo()
         ui->roi_42->setText(mn4==0 ? " " : QString::number(250000/roi4,'f',1).append(" days"));
     }
     CAmount tNodesSumm = mn1*5000 + mn2*25000 + mn3*50000 + mn4*250000;
-    double tLocked = 100 * static_cast<double>(tNodesSumm) / static_cast<double>(chainActive.Tip()->nMoneySupply / COIN);
+    CAmount tMoneySupply = chainActive.Tip()->nMoneySupply;
+    double tLocked = tMoneySupply > 0 ? 100 * static_cast<double>(tNodesSumm) / static_cast<double>(tMoneySupply / COIN) : 0;
     ui->label_LockedCoin_value->setText(QString::number(tNodesSumm).append(" (" + QString::number(tLocked,'f',1) + "%)"));
 
     // update timer
@@ -399,7 +403,7 @@ void OverviewPage::updateMasternodeInfo()
   }
 
   // update collateral info
-  if (chainActive.Height() >= 0) {
+  if (CurrentBlock >= 0) {
       ui->label_lcolat->setText("5000 ESBC");
       ui->label_mcolat->setText("25000 ESBC");
       ui->label_fcolat->setText("50000 ESBC");
@@ -408,13 +412,13 @@ void OverviewPage::updateMasternodeInfo()
 
 }
 
-void OverviewPage::updatBlockChainInfo()
+void OverviewPage::updateBlockChainInfo()
 {
     if (masternodeSync.IsBlockchainSynced())
     {
-        int CurrentBlock = (int)chainActive.Height();
+        int CurrentBlock = clientModel->getNumBlocks();
         int64_t netHashRate = chainActive.GetNetworkHashPS(24, CurrentBlock-1);
-        double BlockReward = GetBlockValue(chainActive.Height());
+        double BlockReward = GetBlockValue(CurrentBlock);
         double BlockRewardesbcoin =  static_cast<double>(BlockReward/COIN);
         double CurrentDiff = GetDifficulty();
 

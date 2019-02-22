@@ -39,6 +39,7 @@ static int blockOldest = 0;
 static int blockLast = 0;
 static std::vector<std::pair<int, statElement>> statSourceData;
 
+CCriticalSection cs_stat;
 map<std::string, CAmount> masternodeRewards;
 CAmount posMin, posMax, posMedian;
 int block24hCount;
@@ -64,7 +65,7 @@ ClientModel::ClientModel(OptionsModel* optionsModel, QObject* parent) : QObject(
 
     poll24hStatsTimer = new QTimer(this);
     connect(poll24hStatsTimer, SIGNAL(timeout()), this, SLOT(update24hStatsTimer()));
-    poll24hStatsTimer->start(MODEL_UPDATE_DELAY * 4);
+    poll24hStatsTimer->start(MODEL_UPDATE_DELAY * 10);
 
     subscribeToCoreSignals();
 }
@@ -85,10 +86,13 @@ void ClientModel::update24hStatsTimer()
   // periodical polls if the core is holding the locks for a longer time -
   // for example, during a wallet rescan.
   TRY_LOCK(cs_main, lockMain);
-  if (!lockMain)
-      return;
+  if (!lockMain) return;
 
-  if (masternodeSync.IsBlockchainSynced()) {
+  TRY_LOCK(cs_stat, lockStat);
+  if (!lockStat) return;
+
+  if (masternodeSync.IsBlockchainSynced() && !IsInitialBlockDownload()) {
+    qDebug() << __FUNCTION__ << ": Process stats...";
     const int64_t syncStartTime = GetTime();
 
     CBlock block;
@@ -100,79 +104,75 @@ void ClientModel::update24hStatsTimer()
     int currentBlock = pblockindex->nHeight;
     // read block from last to last scaned
     while (pblockindex->nHeight > blockLast) {
-      if (!ReadBlockFromDisk(block, pblockindex))
-        return;
+        if (ReadBlockFromDisk(block, pblockindex)) {
+            if (block.IsProofOfStake()) {
+                // decode transactions
+                const CTransaction& tx = block.vtx[1];
+                if (tx.IsCoinStake()) {
+                    // decode txIn
+                    CTransaction txIn;
+                    uint256 hashBlock;
+                    if (GetTransaction(tx.vin[0].prevout.hash, txIn, hashBlock, true)) {
+                        CAmount valuePoS = txIn.vout[tx.vin[0].prevout.n].nValue; // vin Value
+                        ExtractDestination(txIn.vout[tx.vin[0].prevout.n].scriptPubKey, Dest);
+                        Address.Set(Dest);
+                        std::string addressPoS = Address.ToString(); // vin Address
 
-      if (!block.IsProofOfStake())
-        continue; // skip not PoS block
+                        statElement blockStat;
+                        blockStat.blockTime = block.nTime;
+                        blockStat.txInValue = valuePoS;
+                        blockStat.mnPayee.clear();
 
-      // decode transactions
-      const CTransaction& tx = block.vtx[1];
-      if (!tx.IsCoinStake())
-        continue; // skip if tx is not coin stake
-
-      // decode txIn
-      CTransaction txIn;
-      uint256 hashBlock;
-      if (!GetTransaction(tx.vin[0].prevout.hash, txIn, hashBlock, true))
-        continue; // skip if not found txin
-
-      CAmount valuePoS = txIn.vout[tx.vin[0].prevout.n].nValue; // vin Value
-      ExtractDestination(txIn.vout[tx.vin[0].prevout.n].scriptPubKey, Dest);
-      Address.Set(Dest);
-      std::string addressPoS = Address.ToString(); // vin Address
-
-      statElement blockStat;
-      blockStat.blockTime = block.nTime;
-      blockStat.txInValue = valuePoS;
-      blockStat.mnPayee.clear();
-
-      // decode txOut
-      CAmount sumPoS = 0;
-      for (unsigned int i = 0; i < tx.vout.size(); i++) {
-          CTxOut txOut = tx.vout[i];
-          ExtractDestination(txOut.scriptPubKey, Dest);
-          Address.Set(Dest);
-          std::string addressOut = Address.ToString(); // vout Address
-          if (addressPoS == addressOut && valuePoS > sumPoS) {
-            // skip pos output
-            sumPoS += txOut.nValue;
-          } else {
-            // store vout payee and value
-            blockStat.mnPayee.push_back( make_pair(addressOut, txOut.nValue) );
-            // and update node rewards
-            masternodeRewards[addressOut] += txOut.nValue;
-          }
-      }
-
-      // store block stat
-      statSourceData.push_back( make_pair(pblockindex->nHeight, blockStat) );
-
-      // stop if blocktime over 24h past
-      if ( (block.nTime + 24*60*60) < syncStartTime ) {
-        blockOldest = pblockindex->nHeight;
-        break;
-      }
-      // select next (previous) block
-      pblockindex = pblockindex->pprev;
+                        // decode txOut
+                        CAmount sumPoS = 0;
+                        for (unsigned int i = 0; i < tx.vout.size(); i++) {
+                            CTxOut txOut = tx.vout[i];
+                            ExtractDestination(txOut.scriptPubKey, Dest);
+                            Address.Set(Dest);
+                            std::string addressOut = Address.ToString(); // vout Address
+                            if (addressPoS == addressOut && valuePoS > sumPoS) {
+                                // skip pos output
+                                sumPoS += txOut.nValue;
+                            } else {
+                                // store vout payee and value
+                                blockStat.mnPayee.push_back( make_pair(addressOut, txOut.nValue) );
+                                // and update node rewards
+                                masternodeRewards[addressOut] += txOut.nValue;
+                            }
+                        }
+                        // store block stat
+                        statSourceData.push_back( make_pair(pblockindex->nHeight, blockStat) );
+                        // stop if blocktime over 24h past
+                        if ( (block.nTime + 24*60*60) < syncStartTime ) {
+                            blockOldest = pblockindex->nHeight;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        // select next (previous) block
+        pblockindex = pblockindex->pprev;
     }
 
     // clear over 24h block data
     std::vector<pair<std::string, CAmount>> tMN;
     std::string tAddress;
     CAmount tValue;
-    for (auto it = statSourceData.rbegin(); it != statSourceData.rend(); ++it) {
-      if ( (it->second.blockTime + 24*60*60) < syncStartTime) {
-        tMN = it->second.mnPayee;
-        for (auto im = tMN.begin(); im != tMN.end(); ++im) {
-          tAddress = im->first;
-          tValue = im->second;
-          masternodeRewards[tAddress] -= tValue;
+    if (statSourceData.size() > 0) {
+        for (auto it = statSourceData.rbegin(); it != statSourceData.rend(); ++it) {
+            if ( (it->second.blockTime + 24*60*60) < syncStartTime) {
+                tMN = it->second.mnPayee;
+                for (auto im = tMN.begin(); im != tMN.end(); ++im) {
+                    tAddress = im->first;
+                    tValue = im->second;
+                    masternodeRewards[tAddress] -= tValue;
+                }
+                // remove element
+                *it = statSourceData.back();
+                statSourceData.pop_back();
+            }
         }
-        // remove element
-        *it = statSourceData.back();
-        statSourceData.pop_back();
-      }
     }
 
     // recalc stats data if new block found
@@ -202,10 +202,12 @@ void ClientModel::update24hStatsTimer()
     }
 
     blockLast = currentBlock;
-  }
 
-  if (poll24hStatsTimer->interval() == 1000)
-              poll24hStatsTimer->setInterval(30000);
+    if (poll24hStatsTimer->interval() < 30000)
+        poll24hStatsTimer->setInterval(30000);
+
+    qDebug() << __FUNCTION__ << ": Stats ready...";
+  }
 
   // sending signal
   //emit stats24hUpdated();
@@ -214,6 +216,7 @@ void ClientModel::update24hStatsTimer()
 int ClientModel::getNumConnections(unsigned int flags) const
 {
     LOCK(cs_vNodes);
+    qDebug() << __FUNCTION__ << ": LOCK(cs_vNodes)";
     if (flags == CONNECTIONS_ALL) // Shortcut if we want total
         return vNodes.size();
 
@@ -227,10 +230,10 @@ int ClientModel::getNumConnections(unsigned int flags) const
 
 QString ClientModel::getMasternodeCountString() const
 {
-    return tr("Total: %1 (OBF compatible: %2 / Enabled: %3)")
+    return tr("Total: %1 (Enabled: %2)")
       .arg(QString::number(mnodeman.size()))
-      .arg(QString::number(mnodeman.CountEnabled(CMasternode::LevelValue::UNSPECIFIED, ActiveProtocol())))
-      .arg(QString::number(mnodeman.CountEnabled()));
+      .arg(QString::number(mnodeman.CountEnabled(CMasternode::LevelValue::UNSPECIFIED, ActiveProtocol())));
+//      .arg(QString::number(mnodeman.CountEnabled()));
 }
 
 int ClientModel::getNumBlocks() const
@@ -258,6 +261,7 @@ quint64 ClientModel::getTotalBytesSent() const
 QDateTime ClientModel::getLastBlockDate() const
 {
     LOCK(cs_main);
+    qDebug() << __FUNCTION__ << ": LOCK(cs_main)";
     if (chainActive.Tip())
         return QDateTime::fromTime_t(chainActive.Tip()->GetBlockTime());
     else
@@ -272,12 +276,6 @@ double ClientModel::getVerificationProgress() const
 
 void ClientModel::updateTimer()
 {
-    // Get required lock upfront. This avoids the GUI from getting stuck on
-    // periodical polls if the core is holding the locks for a longer time -
-    // for example, during a wallet rescan.
-    TRY_LOCK(cs_main, lockMain);
-    if (!lockMain)
-        return;
     // Some quantities (such as number of blocks) change so fast that we don't want to be notified for each change.
     // Periodically check and update with a timer.
     int newNumBlocks = getNumBlocks();
@@ -303,12 +301,6 @@ void ClientModel::updateTimer()
 
 void ClientModel::updateMnTimer()
 {
-    // Get required lock upfront. This avoids the GUI from getting stuck on
-    // periodical polls if the core is holding the locks for a longer time -
-    // for example, during a wallet rescan.
-    TRY_LOCK(cs_main, lockMain);
-    if (!lockMain)
-        return;
     QString newMasternodeCountString = getMasternodeCountString();
 
     if (cachedMasternodeCountString != newMasternodeCountString) {

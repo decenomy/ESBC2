@@ -83,6 +83,7 @@ public:
     bool RequireStandard() const { return fRequireStandard; }
     int64_t TargetSpacing() const { return nTargetSpacing; }
     int64_t TargetSpacingSlowLaunch() const { return nTargetSpacingSlowLaunch; }
+    int64_t PoSTargetSpacing() const { return nPoSTargetSpacing; }
     /** Instamine Prevention, Zero reward to block **/
     // int ANTI_INSTAMINE_TIME() const { return nAntiInstamineTime; }
     int COINBASE_MATURITY() const { return nMaturity; }
@@ -132,6 +133,7 @@ protected:
     int nToCheckBlockUpgradeMajority;
     int64_t nTargetSpacing;
     int64_t nTargetSpacingSlowLaunch;
+    int64_t nPoSTargetSpacing;
     // int nAntiInstamineTime;
     int nLastPOWBlock;
     int nStartMasternodePaymentsBlock;

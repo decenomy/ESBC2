@@ -382,6 +382,12 @@ void TransactionView::exportClicked()
     }
 }
 
+void TransactionView::refreshClicked()
+{
+    if (model)
+        model->refreshClicked();
+}
+
 void TransactionView::contextualMenu(const QPoint& point)
 {
     QModelIndex index = transactionView->indexAt(point);

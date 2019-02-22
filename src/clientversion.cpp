@@ -88,7 +88,8 @@ static std::string FormatVersion(int nVersion)
 
 std::string FormatFullVersion()
 {
-    return "2.0.4.7";
+    return strprintf("%d.%d.%d.%d", CLIENT_VERSION_MAJOR, CLIENT_VERSION_MINOR, CLIENT_VERSION_REVISION, CLIENT_VERSION_BUILD);
+//    return "2.0.4.11";
 //    return CLIENT_BUILD;
 }
 

@@ -52,11 +52,20 @@ WalletView::WalletView(QWidget* parent) : QStackedWidget(parent),
     QHBoxLayout* hbox_buttons = new QHBoxLayout();
     transactionView = new TransactionView(this);
     vbox->addWidget(transactionView);
+
     QPushButton* exportButton = new QPushButton(tr("&Export"), this);
     exportButton->setToolTip(tr("Export the data in the current tab to a file"));
 #ifndef Q_OS_MAC // Icons on push buttons are very uncommon on Mac
     exportButton->setIcon(QIcon(GUIUtil::getThemeImage(":/icons/export")));
 #endif
+
+    QPushButton* refreshButton = new QPushButton(tr("&Refresh"), this);
+    refreshButton->setToolTip(tr("Refresh the data in the table"));
+#ifndef Q_OS_MAC // Icons on push buttons are very uncommon on Mac
+    refreshButton->setIcon(QIcon(GUIUtil::getThemeImage(":/icons/tx_inout")));
+#endif
+
+    hbox_buttons->addWidget(refreshButton);
     hbox_buttons->addStretch();
 
     // Sum of selected transactions
@@ -104,6 +113,9 @@ WalletView::WalletView(QWidget* parent) : QStackedWidget(parent),
 
     // Clicking on "Export" allows to export the transaction list
     connect(exportButton, SIGNAL(clicked()), transactionView, SLOT(exportClicked()));
+
+    // Clicking on "Refresh" on transaction table
+    connect(refreshButton, SIGNAL(clicked()), transactionView, SLOT(refreshClicked()));
 
     // Pass through messages from sendCoinsPage
     connect(sendCoinsPage, SIGNAL(message(QString, QString, unsigned int)), this, SIGNAL(message(QString, QString, unsigned int)));

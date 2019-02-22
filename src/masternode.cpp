@@ -276,10 +276,7 @@ int64_t CMasternode::GetLastPaid()
     const CBlockIndex* BlockReading = pindexPrev;
 
     int nMnCount = 0;
-    if (IsSporkActive(SPORK_8_NEW_PROTOCOL_ENFORCEMENT))
-        nMnCount = int(mnodeman.CountEnabled(Level()) * 1.25); // new
-    else
-        nMnCount = int(mnodeman.CountEnabled(Level()) / 1.25);
+    nMnCount = int(mnodeman.CountEnabled(Level()) * 1.25); // new
 
     int n = 0;
     for (unsigned int i = 1; BlockReading && BlockReading->nHeight > 0; i++) {
@@ -290,17 +287,10 @@ int64_t CMasternode::GetLastPaid()
 
         if (masternodePayments.mapMasternodeBlocks.count(BlockReading->nHeight)) {
             /*
-                Search for this payee, with at least 2 votes. This will aid in consensus allowing the network
-                to converge on the same payees quickly, then keep the same schedule.
+                Search for this payee, with at least 6 votes.
             */
-            if (IsSporkActive(SPORK_8_NEW_PROTOCOL_ENFORCEMENT)) { //new
-                if (masternodePayments.mapMasternodeBlocks[BlockReading->nHeight].HasPayeeWithVotes(mnpayee, 6)) {
-                    return BlockReading->nTime - nOffset;
-                }
-            } else {
-                if (masternodePayments.mapMasternodeBlocks[BlockReading->nHeight].HasPayeeWithVotes(mnpayee, 2)) {
-                    return BlockReading->nTime - nOffset;
-                }
+            if (masternodePayments.mapMasternodeBlocks[BlockReading->nHeight].HasPayeeWithVotes(mnpayee, 6)) {
+                return BlockReading->nTime - nOffset;
             }
         }
 
@@ -615,7 +605,7 @@ bool CMasternodeBroadcast::CheckInputsAndAdd(int& nDoS)
     // search existing Masternode list
     CMasternode* pmn = mnodeman.Find(vin);
 
-    if(pmn) {
+    if (pmn) {
         // nothing to do here if we already know about this masternode and it's enabled
         if (pmn->IsEnabled())
             return true;
@@ -632,20 +622,18 @@ bool CMasternodeBroadcast::CheckInputsAndAdd(int& nDoS)
 */
 
     CMutableTransaction tx;
-
-    CValidationState state = CMasternodeMan::GetInputCheckingTx(vin, tx);
-
-    if(!state.IsValid()) {
-        state.IsInvalid(nDoS);
-        return false;
-    }
-
     {
         TRY_LOCK(cs_main, lockMain);
         if (!lockMain) {
             // not mnb fault, let it to be checked again later
             mnodeman.mapSeenMasternodeBroadcast.erase(GetHash());
             masternodeSync.mapSeenSyncMNB.erase(GetHash());
+            return false;
+        }
+
+        CValidationState state = CMasternodeMan::GetInputCheckingTx(vin, tx);
+        if (!state.IsValid()) {
+            state.IsInvalid(nDoS);
             return false;
         }
 

@@ -107,9 +107,10 @@ public:
         nMinerThreads = 0;
         nTargetSpacing = 2 * 60;  // 2 minute
         nTargetSpacingSlowLaunch = 2 * 60; // before block 100
+        nPoSTargetSpacing = 60;  // 1 minute
         nMaturity = 40;
         nMasternodeCountDrift = 3;
-        nMaxMoneyOut = 13994245  * COIN;
+        nMaxMoneyOut = 25481245  * COIN;
         nStartMasternodePaymentsBlock = 100;
 
         /** Height or Time Based Activations **/
@@ -219,12 +220,12 @@ public:
         nMaxMoneyOut = 1000000000 * COIN;
 
         //! Modify the testnet genesis block so the timestamp is valid for a later start.
-        genesis.nTime = 1541462411;
-        genesis.nNonce = 290796;
+        genesis.nTime = 1546300800;
+        genesis.nNonce = 0;
 
         hashGenesisBlock = genesis.GetHash();
 
-        //assert(hashGenesisBlock == uint256("0"));
+        assert(hashGenesisBlock == uint256("019a701040d795514ea77eda681e74f8de73afdb1b39d541fc0c697585b878dc"));
 
         vFixedSeeds.clear();
         vSeeds.clear();
@@ -247,9 +248,9 @@ public:
 
         nPoolMaxTransactions = 2;
 
-        vAlertPubKey = ParseHex("0428e89226dd86459df40d436a067c83749c78d653e22c556ae2d9b322296f3f1604e2f4789128386bc4acd6184c9a0062cf0cb98cf71cdbca1e808c25b7670367");
-        vGMPubKey = ParseHex("049e20bd6cc0da7270bfa60daf381593377418ce9270b7dd38a93026acae98966e89da65067b41e388e194a7e4e2276336b3ddba5e3d5bbc81a78a04f982dfb4fc");
-        strSporkKey = "0416726a44c09752eddf582f08ad668bd49d563322a6ad746347eb6874bbfce2a6ce12c0f991fed88289d977395e1814a0cc1778f24ee2eeaa68d58183f3bd6195";
+        vAlertPubKey = ParseHex("04e2a902b30e8e5430e4f3d1ac79630282cc65a036d0aa70ec041d8903b9a626b601a888d8479412bcc363250b02cb2f0e783e7dbeef8606a6ab635fde952949f9");
+        vGMPubKey = ParseHex("0414b78fd29848ca55bacabe49c6bf53c8cb5224cdd84590f21616457c564b01d2c26c69fea8a55b5e336cb40981ba3167b04ddd149a21f59ab07cf30a4b7285b1");
+        strSporkKey = "043f305881c14698ca11d9ccbbef49714a816da377bcc0b25d2d54e5a5b266605353e5ec4c7f9958899b5e7a550225d652151ada50d040277ef75ada1214f92e77";
         strObfuscationPoolDummyAddress = "xJR9MjNhPLKLLCowMWNznC9gkEQHQPjcJr";
 
     }

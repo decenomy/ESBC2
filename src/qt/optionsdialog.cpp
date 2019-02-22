@@ -404,8 +404,8 @@ void OptionsDialog::setWalletOptions()
 
     if (pwalletMain) {
         CWalletDB walletdb(pwalletMain->strWalletFile);
-        LOCK(pwalletMain->cs_wallet);
         {
+            LOCK(pwalletMain->cs_wallet);
             /* Update StakeSplitThreshold's value in wallet */
             pwalletMain->nStakeSplitThreshold = nStakeSplitThreshold;
             /* Update AutoCombineRewards value in wallet */
@@ -420,46 +420,3 @@ void OptionsDialog::setWalletOptions()
         }
     }
 }
-
-/* Update StakeSplitThreshold's value in wallet */
-/*
-void OptionsDialog::setStakeSplitThreshold()
-{
-    QSettings settings;
-    // XXX: maybe it's worth to wrap related stuff with WALLET_ENABLE ?
-    uint64_t nStakeSplitThreshold;
-    nStakeSplitThreshold = settings.value("nStakeSplitThreshold").toInt();
-
-    if (pwalletMain && pwalletMain->nStakeSplitThreshold != nStakeSplitThreshold) {
-        CWalletDB walletdb(pwalletMain->strWalletFile);
-        LOCK(pwalletMain->cs_wallet);
-        {
-            pwalletMain->nStakeSplitThreshold = nStakeSplitThreshold;
-            if (pwalletMain->fFileBacked)
-                walletdb.WriteStakeSplitThreshold(nStakeSplitThreshold);
-        }
-    }
-}
-*/
-/* Update AutoCombineRewards value in wallet */
-/*
-void OptionsDialog::setAutoCombineRewards()
-{
-    QSettings settings;
-    bool AutoCombine = settings.value("bAutoCombine").toBool();
-    int AutoCombineRewards = settings.value("nAutoCombineRewards").toInt();
-    int AutoCombineLimit = settings.value("nAutoCombineLimit").toInt();
-
-    if (pwalletMain && (pwalletMain->fCombineDust != AutoCombine || pwalletMain->nAutoCombineThreshold != AutoCombineRewards)) {
-        CWalletDB walletdb(pwalletMain->strWalletFile);
-        LOCK(pwalletMain->cs_wallet);
-        {
-            pwalletMain->fCombineDust = AutoCombine;
-            pwalletMain->nAutoCombineThreshold = AutoCombineRewards;
-            if (pwalletMain->fFileBacked)
-                walletdb.WriteAutoCombineSettings(AutoCombine, AutoCombineRewards, AutoCombineLimit);
-        }
-    }
-
-}
-*/

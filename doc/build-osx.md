@@ -5,7 +5,7 @@ This guide will show you how to build esbcoind (headless client) for OSX.
 Notes
 -----
 
-* Tested on OS X 10.7 through 10.10 on 64-bit Intel processors only.
+* Tested on OS X 10.12.
 
 * All of the commands should be executed in a Terminal application. The
 built-in one is located in `/Applications/Utilities`.
@@ -21,12 +21,6 @@ Xcode 4.3 or later, you'll need to install its command line tools. This can
 be done in `Xcode > Preferences > Downloads > Components` and generally must
 be re-done or updated every time Xcode is updated.
 
-There's also an assumption that you already have `git` installed. If
-not, it's the path of least resistance to install [Github for Mac](https://mac.github.com/)
-(OS X 10.7+) or
-[Git for OS X](https://code.google.com/p/git-osx-installer/). It is also
-available via Homebrew.
-
 You will also need to install [Homebrew](http://brew.sh) in order to install library
 dependencies.
 
@@ -38,14 +32,16 @@ Instructions: Homebrew
 
 #### Install dependencies using Homebrew
 
-        brew install autoconf automake berkeley-db4 libtool boost miniupnpc openssl pkg-config protobuf qt5 libzmq
+        brew install autoconf automake berkeley-db4 libtool miniupnpc openssl pkg-config protobuf qt5 libevent librsvg
+        brew install boost@1.57
+        brew link boost@1.57 --force
 
-### Building `esbcoind`
+### Building `ESBC`
 
 1. Clone the github tree to get the source code and go into the directory.
 
-        git clone https://github.com/esbcoin-Core/esbcoin.git
-        cd esbcoin
+        git clone https://github.com/BlockchainFor/ESBC2.git
+        cd ESBC2
 
 2.  Build esbcoind:
 
@@ -60,6 +56,11 @@ Instructions: Homebrew
 4.  (Optional) You can also install esbcoind to your path:
 
         make install
+
+5.  (Optional) You can also build dmg image for esbcoin-qt:
+
+        make deploy
+
 
 Use Qt Creator as IDE
 ------------------------

@@ -75,7 +75,7 @@ private slots:
     void updateAlerts(const QString& warnings);
     void updateWatchOnlyLabels(bool showWatchOnly);
     void updateMasternodeInfo();
-    void updatBlockChainInfo();
+    void updateBlockChainInfo();
     void openMyAddresses();
     void on_pushButton_Website_clicked();
     void on_pushButton_Discord_clicked();

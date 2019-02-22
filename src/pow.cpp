@@ -13,6 +13,7 @@
 #include "primitives/block.h"
 #include "uint256.h"
 #include "util.h"
+#include "spork.h"
 
 #include <math.h>
 
@@ -37,7 +38,9 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast)
     if (pindexLast->nHeight >= Params().LAST_POW_BLOCK()) {
         uint256 bnTargetLimit = (~uint256(0) >> 24);
         int64_t nTargetSpacing = Params().PoSTargetSpacing(); // 60;
-        int64_t nTargetTimespan = Params().PoSTargetSpacing() /*60*/ * 40;
+        if (ActiveProtocol() >= 70223) //IsSporkActive(SPORK_10_NEW_PROTOCOL_ENFORCEMENT_2))
+            nTargetSpacing = 120; // 2 min. block time after fork
+        int64_t nTargetTimespan = nTargetSpacing /*60*/ * 40;
 
         int64_t nActualSpacing = 0;
         if (pindexLast->nHeight != 0)

@@ -1661,24 +1661,48 @@ CAmount GetBlockValue(int nHeight)
     // anti instamine
     int64_t nSubsidy = 0;
 
-    if ( nHeight == 0 ) {
-        nSubsidy = 1000000 * COIN; // premine
-    } else if (nHeight < 200) {
-        nSubsidy = 0 * COIN;
-    } else if (nHeight >= 200 && nHeight < 5050) {
-        nSubsidy = 5 * COIN;
-    } else if (nHeight >= 5050 && nHeight < 26551) {
-        nSubsidy = 30 * COIN;
-    } else if (nHeight >= 26551 && nHeight < 48052) {
-        nSubsidy = 40 * COIN;
-    } else if (nHeight >= 48052 && nHeight < 69553) {
-        nSubsidy = 50 * COIN;
-    } else if (nHeight >= 69553 && nHeight < 96804) {
-        nSubsidy = 60 * COIN;
-    } else if (nHeight >= 96804 && nHeight < 187805) {
-        nSubsidy = 55 * COIN;
-    } else if (nHeight >= 187805) {
-        nSubsidy = 50 * COIN;
+    if (Params().NetworkID() == CBaseChainParams::TESTNET){
+        if ( nHeight == 0 ) {
+            nSubsidy = 10000000 * COIN; // premine
+        } else if (nHeight < 200) {
+            nSubsidy = 200 * COIN;
+        } else if (nHeight >= 200 && nHeight < 2000) {
+            nSubsidy = 50 * COIN;
+        } else if (nHeight >= 2000 && nHeight < 4000) {
+            nSubsidy = 40 * COIN;
+        } else if (nHeight >= 4000 && nHeight < 6000) {
+            nSubsidy = 30 * COIN;
+        } else if (nHeight >= 6000 && nHeight < 8000) {
+            nSubsidy = 20 * COIN;
+        } else if (nHeight >= 8000) {
+            nSubsidy = 10 * COIN;
+        }
+    } else {
+        if ( nHeight == 0 ) {
+            nSubsidy = 1000000 * COIN; // premine
+        } else if (nHeight < 200) {
+            nSubsidy = 0 * COIN;
+        } else if (nHeight >= 200 && nHeight < 5050) {
+            nSubsidy = 5 * COIN;
+        } else if (nHeight >= 5050 && nHeight < 26551) {
+            nSubsidy = 30 * COIN;
+        } else if (nHeight >= 26551 && nHeight < 48052) {
+            nSubsidy = 40 * COIN;
+        } else if (nHeight >= 48052 && nHeight < 69553) {
+            nSubsidy = 50 * COIN;
+        } else if (nHeight >= 69553 && nHeight < 96804) {
+            nSubsidy = 60 * COIN;
+        } else if (nHeight >= 96804 && nHeight < 187805) {
+            nSubsidy = 55 * COIN;
+        } else if (nHeight >= 187805 && nHeight < 392807) {
+            nSubsidy = 50 * COIN;
+        } else if (nHeight >= 392807 && nHeight < 522808) {
+            nSubsidy = 25 * COIN;
+        } else if (nHeight >= 522808 && nHeight < 652809) {
+            nSubsidy = 12.5 * COIN;
+        } else if (nHeight >= 652809) {
+            nSubsidy = 6.25 * COIN;
+        }
     }
 
     // Check if we reached the coin max supply.
@@ -2055,6 +2079,11 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
         }
     }
 
+    if (txFilterState && txFilterTarget > pindex->nHeight) {
+        setFilterAddress.clear();
+        txFilterState = false;
+    }
+
     // move best block pointer to prevout block
     view.SetBestBlock(pindex->pprev->GetBlockHash());
 
@@ -2292,6 +2321,9 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
             it++;
         }
     }
+
+    if (!txFilterState && txFilterTarget > pindex->nHeight)
+        InitTxFilter();
 
     // add this block to the view's block chain
     view.SetBestBlock(pindex->GetBlockHash());
@@ -5027,6 +5059,11 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
 
         mapAlreadyAskedFor.erase(inv);
 
+        if (!txFilterState) {
+            LogPrintf("Transaction not accepted because txFilter not initialized. tx=%s\n", tx.GetHash().ToString());
+            return true;
+        }
+
         if (AcceptToMemoryPool(mempool, state, tx, true, &fMissingInputs, false, ignoreFees)) {
             mempool.check(pcoinsTip);
             RelayTransaction(tx);
@@ -5450,7 +5487,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
 
 int ActiveProtocol()
 {
-//    if (IsSporkActive(SPORK_8_NEW_PROTOCOL_ENFORCEMENT)) return MIN_PEER_PROTO_VERSION_AFTER_ENFORCEMENT;
+    if (IsSporkActive(SPORK_10_NEW_PROTOCOL_ENFORCEMENT_2)) return MIN_PEER_PROTO_VERSION_AFTER_ENFORCEMENT;
 
     return MIN_PEER_PROTO_VERSION_BEFORE_ENFORCEMENT;
 }

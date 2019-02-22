@@ -179,7 +179,7 @@ OverviewPage::OverviewPage(QWidget* parent) : QWidget(parent),
     timerinfo_mn->start(1000);
 
     timerinfo_blockchain = new QTimer(this);
-    connect(timerinfo_blockchain, SIGNAL(timeout()), this, SLOT(updatBlockChainInfo()));
+    connect(timerinfo_blockchain, SIGNAL(timeout()), this, SLOT(updateBlockChainInfo()));
     timerinfo_blockchain->start(1000); //30sec
 
     // start with displaying the "out of sync" warnings
@@ -393,7 +393,8 @@ void OverviewPage::updateMasternodeInfo()
         ui->roi_42->setText(mn4==0 ? " " : QString::number(250000/roi4,'f',1).append(" days"));
     }
     CAmount tNodesSumm = mn1*5000 + mn2*25000 + mn3*50000 + mn4*250000;
-    double tLocked = 100 * static_cast<double>(tNodesSumm) / static_cast<double>(chainActive.Tip()->nMoneySupply / COIN);
+    CAmount tMoneySupply = chainActive.Tip()->nMoneySupply;
+    double tLocked = tMoneySupply > 0 ? 100 * static_cast<double>(tNodesSumm) / static_cast<double>(tMoneySupply / COIN) : 0;
     ui->label_LockedCoin_value->setText(QString::number(tNodesSumm).append(" (" + QString::number(tLocked,'f',1) + "%)"));
 
     // update timer
@@ -411,7 +412,7 @@ void OverviewPage::updateMasternodeInfo()
 
 }
 
-void OverviewPage::updatBlockChainInfo()
+void OverviewPage::updateBlockChainInfo()
 {
     if (masternodeSync.IsBlockchainSynced())
     {

@@ -21,7 +21,7 @@ BOOST_AUTO_TEST_CASE(subsidy_limit_test)
         CAmount nSubsidy = GetBlockValue(nHeight);
         BOOST_CHECK(nSubsidy <= 3000000 * COIN);
         nSum += nSubsidy;
-    CAmount nSubsidy = 1 * COIN; //Block value = 1 esbcoin
+        nSubsidy = 1 * COIN; //Block value = 1 esbcoin
     }
 
     for (int nHeight = 151200; nHeight < 259200; nHeight += 1) {

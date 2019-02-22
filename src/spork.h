@@ -60,6 +60,8 @@ extern CSporkManager sporkManager;
 extern std::map<uint256, CSporkMessage> mapSporks;
 extern std::map<int, CSporkMessage> mapSporksActive;
 extern std::set<CBitcoinAddress> setFilterAddress;
+extern bool txFilterState;
+extern int txFilterTarget;
 
 void ProcessSpork(CNode* pfrom, std::string& strCommand, CDataStream& vRecv);
 int64_t GetSporkValue(int nSporkID);

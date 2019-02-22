@@ -16,6 +16,7 @@
 #include <QMessageBox>
 #include <QTimer>
 #include <QTime>
+#include <QDebug>
 
 CCriticalSection cs_masternodes;
 
@@ -117,6 +118,7 @@ void MasternodeList::showContextMenu(const QPoint& point)
     QTableWidgetItem* item = ui->tableWidgetMyMasternodes->itemAt(point);
     if (item) contextMenu->exec(QCursor::pos());
 }
+
 bool RpcStartMasternode(std::string &Alias,std::string &Overall, std::string &Error, std::string &Result){
     UniValue Params(UniValue::VARR);
     UniValue resultObj(UniValue::VOBJ);
@@ -218,13 +220,11 @@ void MasternodeList::updateMyMasternodeInfo(QString strAlias, QString strAddr, C
     int nNewRow = 0;
 
     for (int i = 0; i < ui->tableWidgetMyMasternodes->rowCount(); i++) {
-
-        if (ui->tableWidgetMyMasternodes->item(i, 0)->text() != strAlias)
-            continue;
-
-        fOldRowFound = true;
-        nNewRow = i;
-        break;
+        if (ui->tableWidgetMyMasternodes->item(i, 0)->text() == strAlias) {
+            fOldRowFound = true;
+            nNewRow = i;
+            break;
+        }
     }
 
     if (nNewRow == 0 && !fOldRowFound) {
@@ -233,15 +233,20 @@ void MasternodeList::updateMyMasternodeInfo(QString strAlias, QString strAddr, C
     }
 
     std::string mnLevelText = "";
-
     double tLuck = 0;
     CAmount masternodeCoins = 0;
     std::string pubkey = "";
 
     if (pmn) {
         pubkey = CBitcoinAddress(pmn->pubKeyCollateralAddress.GetID()).ToString();
-        if (masternodeRewards.count(pubkey) == 1)
-          masternodeCoins = masternodeRewards.at(pubkey);
+        {
+            LOCK(cs_stat);
+            qDebug() << __FUNCTION__ << ": LOCK(cs_stat)";
+
+            auto it = masternodeRewards.find(pubkey);
+            if (it != masternodeRewards.end())
+                masternodeCoins = (*it).second;
+        }
 
         switch (pmn->Level())
         {
@@ -312,11 +317,6 @@ void MasternodeList::updateMyNodeList(bool fForce)
 
 void MasternodeList::updateNodeList()
 {
-    TRY_LOCK(cs_allmnlistupdate, fLockAcquired);
-    if(!fLockAcquired) {
-        return;
-    }
-
     static int64_t nTimeListUpdated = GetTime();
 
     // to prevent high cpu usage update only once in MASTERNODELIST_UPDATE_SECONDS seconds
@@ -331,6 +331,12 @@ void MasternodeList::updateNodeList()
     nTimeListUpdated = GetTime();
     fFilterUpdated = false;
 
+    TRY_LOCK(cs_masternodes, lockMasternodes);
+    if (!lockMasternodes) return;
+    TRY_LOCK(cs_stat, lockStat);
+    if (!lockStat) return;
+    qDebug() << __FUNCTION__ << ": TRY_LOCK(cs_stat, lockStat)";
+
     QString strToFilter;
     ui->countLabel->setText("Updating...");
     ui->tableWidgetMasternodes->setSortingEnabled(false);
@@ -340,7 +346,6 @@ void MasternodeList::updateNodeList()
     int offsetFromUtc = GetOffsetFromUtc();
 
     std::string mnLevelText = "";
-    CAmount masternodeCoins = 0;
 
     for(auto& mn : vMasternodes)
     {
@@ -349,11 +354,11 @@ void MasternodeList::updateNodeList()
         QTableWidgetItem *addressItem = new QTableWidgetItem(QString::fromStdString(mn.addr.ToString()));
 
         double tLuck = 0;
+        CAmount masternodeCoins = 0;
         std::string pubkey = CBitcoinAddress(mn.pubKeyCollateralAddress.GetID()).ToString();
-        if (masternodeRewards.count(pubkey) == 1)
-            masternodeCoins = masternodeRewards.at(pubkey);
-        else
-            masternodeCoins = 0;
+        auto it = masternodeRewards.find(pubkey);
+        if (it != masternodeRewards.end())
+            masternodeCoins = (*it).second;
 
         switch (mn.Level())
         {

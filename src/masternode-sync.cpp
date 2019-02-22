@@ -156,6 +156,7 @@ void CMasternodeSync::GetNextAsset()
         case (MASTERNODE_SYNC_GM):
             LogPrintf("CMasternodeSync::GetNextAsset - Sync has finished\n");
             RequestedMasternodeAssets = MASTERNODE_SYNC_FINISHED;
+            if (!txFilterState) InitTxFilter();
             break;
     }
     RequestedMasternodeAttempt = 0;

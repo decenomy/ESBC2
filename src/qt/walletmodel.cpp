@@ -32,45 +32,40 @@ using namespace std;
 
 void BalanceWorker::makeBalance(const bool& watchOnly)
 {
-    if (!pwalletMain)
-        return;
-
-    std::map<uint256, CWalletTx> mapWalletTx;
+    if (!pwalletMain) return;
 
     {
-        LOCK(pwalletMain->cs_wallet);
-        mapWalletTx = pwalletMain->mapWallet;
-    }
+        TRY_LOCK(pwalletMain->cs_wallet, lockWallet);
+        if (!lockWallet) return;
+        qDebug() << __FUNCTION__ << ": TRY_LOCK(pwalletMain->cs_wallet, lockWallet)";
 
-    if (mapWalletTx.empty())
-        return;
+        CAmount balance = 0;
+        CAmount unconfirmedBalance = 0;
+        CAmount immatureBalance = 0;
+        CAmount anonymizedBalance = 0;
+        CAmount watchOnlyBalance = 0;
+        CAmount watchUnconfBalance = 0;
+        CAmount watchImmatureBalance = 0;
 
-    CAmount balance = 0;
-    CAmount unconfirmedBalance = 0;
-    CAmount immatureBalance = 0;
-    CAmount anonymizedBalance = 0;
-    CAmount watchOnlyBalance = 0;
-    CAmount watchUnconfBalance = 0;
-    CAmount watchImmatureBalance = 0;
+        for (map<uint256, CWalletTx>::iterator it = pwalletMain->mapWallet.begin(); it != pwalletMain->mapWallet.end(); ++it) {
+            const CWalletTx& pcoin = (*it).second;
 
-    for (map<uint256, CWalletTx>::const_iterator it = mapWalletTx.begin(); it != mapWalletTx.end(); ++it) {
-        const CWalletTx* pcoin = &(*it).second;
-
-        immatureBalance += pcoin->GetImmatureCredit();
-        if (watchOnly) watchImmatureBalance += pcoin->GetImmatureWatchOnlyCredit();
-        if (pcoin->IsTrusted()) {
-            balance += pcoin->GetAvailableCredit();
-            anonymizedBalance += pcoin->GetAnonymizedCredit();
-            if (watchOnly)
-                watchOnlyBalance += pcoin->GetAvailableWatchOnlyCredit();
-        } else if (pcoin->GetDepthInMainChain() == 0) {
-            unconfirmedBalance += pcoin->GetAvailableCredit();
-            if (watchOnly)
-                watchUnconfBalance += pcoin->GetAvailableWatchOnlyCredit();
+            immatureBalance += pcoin.GetImmatureCredit();
+            if (watchOnly) watchImmatureBalance += pcoin.GetImmatureWatchOnlyCredit();
+            if (pcoin.IsTrusted()) {
+                balance += pcoin.GetAvailableCredit();
+                anonymizedBalance += pcoin.GetAnonymizedCredit();
+                if (watchOnly)
+                    watchOnlyBalance += pcoin.GetAvailableWatchOnlyCredit();
+            } else if (pcoin.GetDepthInMainChain() == 0) {
+                unconfirmedBalance += pcoin.GetAvailableCredit();
+                if (watchOnly)
+                    watchUnconfBalance += pcoin.GetAvailableWatchOnlyCredit();
+            }
         }
+        qDebug() << __FUNCTION__ << ": balanceReady";
+        emit balanceReady(balance, unconfirmedBalance, immatureBalance, anonymizedBalance, watchOnlyBalance, watchUnconfBalance, watchImmatureBalance);
     }
-
-    emit balanceReady(balance, unconfirmedBalance, immatureBalance, anonymizedBalance, watchOnlyBalance, watchUnconfBalance, watchImmatureBalance);
 }
 
 WalletModel::WalletModel(CWallet* wallet, OptionsModel* optionsModel, QObject* parent) : QObject(parent), wallet(wallet), optionsModel(optionsModel), addressTableModel(0),
@@ -212,21 +207,13 @@ void WalletModel::pollBalanceChanged()
     if (fForceCheckBalanceChanged || CurrentBlock != cachedNumBlocks || nObfuscationRounds != cachedObfuscationRounds || cachedTxLocks != nCompleteTXLocks) {
         fForceCheckBalanceChanged = false;
 
-        TRY_LOCK(wallet->cs_wallet, lockWallet);
-        if (!lockWallet) return;
         // Balance and number of transactions might have changed
         cachedNumBlocks = CurrentBlock;
         cachedObfuscationRounds = nObfuscationRounds;
 
-//        checkBalanceChanged();
-        emit makeBalance(haveWatchOnly());
+        cachedTxLocks = nCompleteTXLocks;
 
-/*
-        if (transactionTableModel) {
-            transactionTableModel->updateConfirmations();
-        }
-*/
-        cachedTxLocks = nCompleteTXLocks; // ??
+        emit makeBalance(haveWatchOnly());
     }
 }
 

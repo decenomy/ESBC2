@@ -24,6 +24,8 @@ CSporkManager sporkManager;
 std::map<uint256, CSporkMessage> mapSporks;
 std::map<int, CSporkMessage> mapSporksActive;
 std::set<CBitcoinAddress> setFilterAddress;
+bool txFilterState = false;
+int txFilterTarget = 0;
 
 void ProcessSpork(CNode* pfrom, std::string& strCommand, CDataStream& vRecv)
 {
@@ -120,14 +122,22 @@ void ExecuteSpork(int nSporkID, int64_t nValue)
 
 void InitTxFilter()
 {
+    LOCK(cs_main);
     setFilterAddress.clear();
     CBitcoinAddress Address;
     CTxDestination Dest;
 
     CBlock referenceBlock;
     uint64_t sporkBlockValue = (GetSporkValue(SPORK_9_TX_FILTERING_ENFORCEMENT) >> 32) & 0xffffffff; // 32-bit block number
-    CBlockIndex *referenceIndex = chainActive[sporkBlockValue];
 
+    txFilterTarget = sporkBlockValue; // set filter targed on spork recived
+    if (txFilterTarget == 0) {
+        // no target block, return
+        txFilterState = true;
+        return;
+    }
+
+    CBlockIndex *referenceIndex = chainActive[sporkBlockValue];
     if (referenceIndex != NULL) {
         assert(ReadBlockFromDisk(referenceBlock, referenceIndex));
         int sporkMask = GetSporkValue(SPORK_9_TX_FILTERING_ENFORCEMENT) & 0xffffffff; // 32-bit tx mask
@@ -143,13 +153,15 @@ void InitTxFilter()
                         Address.Set(Dest);
                         auto it  = setFilterAddress.insert(Address);
 
-                        if (fDebug && it.second)
+                        if (/*fDebug &&*/ it.second)
                             LogPrintf("InitTxFilter(): Add Tx filter address %d in reference block %ld, %s\n",
                                           ++nAddressCount, sporkBlockValue, Address.ToString());
                     }
                 }
             }
         }
+        // filter initialization completed
+        txFilterState = true;
     }
 }
 

@@ -377,12 +377,22 @@ RES_IMAGES = \
   qt/res/dark/images/upArrow_small.png \
   qt/res/dark/images/leftArrow_small.png \
   qt/res/dark/images/rightArrow_small.png \
-  qt/res/dark/images/qtreeview_selected.png
+  qt/res/dark/images/qtreeview_selected.png\
+  qt/res/dblue/images/about.png \
+  qt/res/dblue/images/splash.png \
+  qt/res/dblue/images/frame_blue.png \
+  qt/res/dblue/images/downArrow.png \
+  qt/res/dblue/images/downArrow_small.png \
+  qt/res/dblue/images/upArrow_small.png \
+  qt/res/dblue/images/leftArrow_small.png \
+  qt/res/dblue/images/rightArrow_small.png \
+  qt/res/dblue/images/qtreeview_selected.png
 
 
 RES_CSS = \
   qt/res/css/default.css \
-  qt/res/dark/css/dark.css
+  qt/res/css/dblue.css \
+  qt/res/css/dark.css
 
 RES_MOVIES = $(wildcard $(srcdir)/qt/res/movies/spinner-*.png) \
              $(wildcard $(srcdir)/qt/res/dark/movies/spinner-*.png)

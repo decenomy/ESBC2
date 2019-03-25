@@ -974,7 +974,7 @@ bool MoneyRange(CAmount nValueOut)
     return nValueOut >= 0 && nValueOut <= Params().MaxMoneyOut();
 }
 
-bool CheckTransaction(const CTransaction& tx, CValidationState& state)
+bool CheckTransaction(const CTransaction& tx, CValidationState& state, const int64_t nBlockTime)
 {
     // Basic checks that don't depend on any context
     if (tx.vin.empty())
@@ -1030,7 +1030,7 @@ bool CheckTransaction(const CTransaction& tx, CValidationState& state)
 
     // Check tx filter
     if (!IsInitialBlockDownload()) {
-         if (!CheckTxFilter(tx)) {
+         if (!CheckTxFilter(tx, nBlockTime)) {
             return state.DoS(100, error("CheckTransaction() : filtered address detected"),
                              REJECT_INVALID, "filtered-address");
          }
@@ -1039,30 +1039,37 @@ bool CheckTransaction(const CTransaction& tx, CValidationState& state)
     return true;
 }
 
-bool CheckTxFilter(const CTransaction& tx)
+bool CheckTxFilter(const CTransaction& tx, const int64_t nBlockTime)
 {
-    bool acceptTx = true;
-    CTxDestination Dest;
-    CBitcoinAddress Address;
-    // Check if they are fitered spenders in the current tx
-    if (!setFilterAddress.empty()) {
+    if (nBlockTime != 0 && nBlockTime < GetAdjustedTime() - 24 * 60 * 60)
+        return true;
+    // Check if they are filtered spender in the current tx
+    if (!mapFilterAddress.empty()) {
         CTransaction prevoutTx;
         uint256 prevoutHashBlock;
+        txnouttype txType;
+        vector<CTxDestination> vDest;
+        CBitcoinAddress Address;
+        int nRequiredRet;
         BOOST_FOREACH (const CTxIn& txin, tx.vin) {
-            if (GetTransaction(txin.prevout.hash, prevoutTx, prevoutHashBlock)) {
-                for (std::set<CBitcoinAddress>::iterator it = setFilterAddress.begin(); it != setFilterAddress.end(); ++it) {
-                    ExtractDestination(prevoutTx.vout[txin.prevout.n].scriptPubKey, Dest);
-                    Address.Set(Dest);
-                    if (Address == *it) {
-                        acceptTx = false;
+            if (!GetTransaction(txin.prevout.hash, prevoutTx, prevoutHashBlock))
+                continue;
+            if (!ExtractDestinations(prevoutTx.vout[txin.prevout.n].scriptPubKey, txType, vDest, nRequiredRet))
+                continue;
+            BOOST_FOREACH (const CTxDestination& txDest, vDest) {
+                Address.Set(txDest);
+                auto it = mapFilterAddress.find(Address);
+                if (it != mapFilterAddress.end()) {
+                    if (nBlockTime == 0 || nBlockTime > (*it).second) {
                         LogPrintf("CheckTxFilter(): Tx %s contains the filtered "
                                   "address %s\n", tx.GetHash().ToString(), Address.ToString());
+                        return false;
                     }
                 }
             }
         }
     }
-    return acceptTx;
+    return true;
 }
 
 bool CheckFinalTx(const CTransaction& tx, int flags)
@@ -1717,12 +1724,19 @@ CAmount GetBlockValue(int nHeight)
     return nSubsidy;
 }
 
-int64_t GetMasternodePayment(int nHeight, unsigned mnlevel, int64_t blockValue)
+int64_t GetMasternodePayment(int nProtocol, unsigned mnlevel, int64_t blockValue)
 {
-    if (nHeight <= Params().StartMNPaymentsBlock())
-        return 0;
+//    if (nHeight <= Params().StartMNPaymentsBlock())
+//        return 0;
 
-    if (nHeight >= 0) {
+    if (nProtocol >= CONSENSUS_FORK_PROTO) {
+        switch(mnlevel) {
+            case 1: return blockValue * 0.15;
+            case 2: return blockValue * 0.20;
+            case 3: return blockValue * 0.25;
+            case 4: return blockValue * 0.30;
+        }
+    } else {
         switch(mnlevel) {
             case 1: return blockValue * 0.2;
             case 2: return blockValue * 0.3;
@@ -2080,7 +2094,8 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
     }
 
     if (txFilterState && txFilterTarget > pindex->nHeight) {
-        setFilterAddress.clear();
+        //setFilterAddress.clear();
+        InitTxFilter();
         txFilterState = false;
     }
 
@@ -2323,7 +2338,7 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
     }
 
     if (!txFilterState && txFilterTarget > pindex->nHeight)
-        InitTxFilter();
+        BuildTxFilter();
 
     // add this block to the view's block chain
     view.SetBestBlock(pindex->GetBlockHash());
@@ -3256,7 +3271,7 @@ bool CheckBlock(const CBlock& block, CValidationState& state, bool fCheckPOW, bo
 
     // Check transactions
     BOOST_FOREACH (const CTransaction& tx, block.vtx)
-        if (!CheckTransaction(tx, state))
+        if (!CheckTransaction(tx, state, block.GetBlockTime()))
             return error("CheckBlock() : CheckTransaction failed");
 
     unsigned int nSigOps = 0;
@@ -5120,7 +5135,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
             BOOST_FOREACH (uint256 hash, vEraseQueue)
                 EraseOrphanTx(hash);
         } else if (fMissingInputs) {
-            if (CheckTxFilter(tx)) {
+            if (CheckTxFilter(tx, 0)) {
                 AddOrphanTx(tx, pfrom->GetId());
                 // DoS prevention: do not allow mapOrphanTransactions to grow unbounded
                 unsigned int nMaxOrphanTx = (unsigned int)std::max((int64_t)0, GetArg("-maxorphantx", DEFAULT_MAX_ORPHAN_TRANSACTIONS));

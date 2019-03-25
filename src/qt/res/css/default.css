@@ -829,15 +829,11 @@
     /*************** Frame_bottom_1 section*****************/
     /********************* Masternodes *********************/
 
-    QWidget .QFrame#frameInfo {  /*bottom frame 1 - info */
-      background-color: #ffffff;
-      border-style: none;
+    QWidget#infoWidget {  /*bottom frame 1 - info */
+        background-color: #ffffff;
+        border-style: none;
         border:1px solid;
         border-color: #d2d2d2;
-    }
-
-    QWidget .QFrame#frame_bottom_1 {
-       border-style: solid;
     }
 
     QWidget .QFrame#frameMnInfo {
@@ -959,15 +955,10 @@
 
 
     /*************** Frame_bottom_2 section*****************/
-
-
     QWidget .QFrame#frame_bottom_2 { /*bottom frame 2 - transactions */
-
         background-color: transparent;
         border-style: none;
-
     }
-
 
     QWidget .QFrame#frame_bottom_2 .QLabel#label_4 {
         background-color:transparent;
@@ -975,36 +966,33 @@
         font-size:12px;
     }
 
-
-
     QWidget .QFrame#frame_bottom_2 .QLabel#labelTransactionsStatus{
         background-color:transparent;
         color: #FF0F0F;
         font-size:12px;
     }
 
-
-
-
-    QWidget .QFrame#frame_bottom_2 .QListView { /* Transaction List */
-        font-weight:normal;
-        font-size:12px;
-        margin-left:0px;
-        padding: 4px;
-        padding-top:8px;
-
+    QWidget#recentTxWidget {  /* bottom frame 2 */
         background-color: rgb(255, 255, 255);
         alternate-background-color: rgb(255, 255, 255);
-        border:1px solid;
+        border: 1px solid;
         border-color: #d2d2d2;
-       }
+    }
 
-  .QListView::item { /* Transaction List */
+    QWidget .QFrame#frame_bottom_2 .QListView { /* Transaction List */
+        font-weight: normal;
+        font-size: 12px;
+        margin-left: 0px;
+        padding: 0px;
+        padding-top: 4px;
+        background-color: transparent;
+        alternate-background-color:  transparent;
+        border: 0px solid;
+   }
 
-    padding:10px;
-     }
-
-
+   .QListView::item { /* Transaction List */
+        padding:10px;
+    }
 
 
     /*************** ########bottom status bar########*****************/

@@ -183,10 +183,10 @@ QString windowTitle = tr("ESBC") + " - ";
     QHBoxLayout* frameBlocksLayout = new QHBoxLayout(frameBlocks);
     if (settings.value("toolbarPosition", "Top").toString() == "Top") {
         frameBlocksLayout->setSpacing(9);
-        frameBlocksLayout->setContentsMargins(3, 0, 3, 0);
+        frameBlocksLayout->setContentsMargins(3, 2, 3, 2);
     } else {
         frameBlocksLayout->setSpacing(4);
-        frameBlocksLayout->setContentsMargins(3, 0, 13, 0);
+        frameBlocksLayout->setContentsMargins(8, 0, 8, 0);
     }
 
     labelStakingIcon = new QLabel();

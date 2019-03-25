@@ -1,13 +1,11 @@
 // Copyright (c) 2010 Satoshi Nakamoto
 // Copyright (c) 2009-2013 The Bitcoin developers
-// Copyright (c) 2018 e-Sport Betting Coin developers
+// Copyright (c) 2018-2019 The ESBC Core developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-//#ifndef BITCOIN_ALERT_H
-//#define BITCOIN_ALERT_H
-#ifndef ESPB_GM_H
-#define ESPB_GM_H
+#ifndef ESBC_GM_H
+#define ESBC_GM_H
 
 #include "base58.h"
 #include "key.h"
@@ -112,4 +110,4 @@ public:
     static CGM getMessageByHash(const uint256& hash);
 };
 
-#endif // ESPB_GM_H // BITCOIN_ALERT_H
+#endif // ESBC_GM_H

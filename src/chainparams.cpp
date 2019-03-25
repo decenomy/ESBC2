@@ -148,11 +148,7 @@ public:
         vSeeds.push_back(CDNSSeedData("", "144.202.22.6"));
         vSeeds.push_back(CDNSSeedData("", "144.202.16.146"));
         vSeeds.push_back(CDNSSeedData("", "144.202.30.41"));
-//        vSeeds.push_back(CDNSSeedData("", "188.225.77.175"));
-//        vSeeds.push_back(CDNSSeedData("", "188.225.77.88"));
-//        vSeeds.push_back(CDNSSeedData("", "188.225.77.84"));
-//        vSeeds.push_back(CDNSSeedData("", "188.225.77.83"));
-//        vSeeds.push_back(CDNSSeedData("", "188.225.77.82"));
+        vSeeds.push_back(CDNSSeedData("", "79.143.187.24"));
 
         base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1, 92); // e
         base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1, 63); // S
@@ -174,6 +170,9 @@ public:
         fHeadersFirstSyncingActive = false;
 
         nPoolMaxTransactions = 3;
+
+        nStakeInputMin = 10 * COIN;
+        strDevFeeAddress = "eDevFundRTnKngZ3zFPPaqaTuvKvGVdStf";
 
         vAlertPubKey = ParseHex("0428e89226dd86459df40d436a067c83749c78d653e22c556ae2d9b322296f3f1604e2f4789128386bc4acd6184c9a0062cf0cb98cf71cdbca1e808c25b7670367");
         vGMPubKey = ParseHex("049e20bd6cc0da7270bfa60daf381593377418ce9270b7dd38a93026acae98966e89da65067b41e388e194a7e4e2276336b3ddba5e3d5bbc81a78a04f982dfb4fc");
@@ -213,7 +212,7 @@ public:
         nToCheckBlockUpgradeMajority = 100;
         nMinerThreads = 0;
         nTargetSpacing = 1 * 60;  // 1 minute
-        nLastPOWBlock = std::numeric_limits<decltype(nLastPOWBlock)>::max();
+//        nLastPOWBlock = std::numeric_limits<decltype(nLastPOWBlock)>::max();
         nMaturity = 15;
         nMasternodeCountDrift = 4;
         nModifierUpdateBlock = std::numeric_limits<decltype(nModifierUpdateBlock)>::max();
@@ -247,6 +246,8 @@ public:
         fTestnetToBeDeprecatedFieldRPC = true;
 
         nPoolMaxTransactions = 2;
+        nStakeInputMin = 1 * COIN;
+        strDevFeeAddress = "xJETLzAQWJj18aQ74cHqAtdStrZves2U4A";
 
         vAlertPubKey = ParseHex("04e2a902b30e8e5430e4f3d1ac79630282cc65a036d0aa70ec041d8903b9a626b601a888d8479412bcc363250b02cb2f0e783e7dbeef8606a6ab635fde952949f9");
         vGMPubKey = ParseHex("0414b78fd29848ca55bacabe49c6bf53c8cb5224cdd84590f21616457c564b01d2c26c69fea8a55b5e336cb40981ba3167b04ddd149a21f59ab07cf30a4b7285b1");

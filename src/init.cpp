@@ -1609,6 +1609,7 @@ bool AppInit2(boost::thread_group& threadGroup)
     threadGroup.create_thread(boost::bind(&ThreadCheckObfuScationPool));
 
     // ********************************************************* Step 11: start node
+    InitTxFilter();
 
     if (!CheckDiskSpace())
         return false;

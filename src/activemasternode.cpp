@@ -38,7 +38,7 @@ void CActiveMasternode::ManageStatus()
         pmn = mnodeman.Find(pubKeyMasternode);
         if (pmn != NULL) {
             pmn->Check();
-            if (pmn->IsEnabled() && pmn->protocolVersion == PROTOCOL_VERSION)
+            if (pmn->IsEnabled() && pmn->protocolVersion >= ActiveProtocol())
                 EnableHotColdMasterNode(pmn->vin, pmn->addr);
         }
     }
@@ -176,7 +176,7 @@ bool CActiveMasternode::SendMasternodePing(std::string& errorMessage)
     // Update lastPing for our masternode in Masternode list
     CMasternode* pmn = mnodeman.Find(vin);
     if (pmn != NULL) {
-        if (pmn->IsPingedWithin(MASTERNODE_PING_SECONDS, mnp.sigTime)) {
+        if (pmn->IsPingedWithin((ActiveProtocol() >= CONSENSUS_FORK_PROTO) ? MASTERNODE_PING_SECONDS2 : MASTERNODE_PING_SECONDS, mnp.sigTime)) {
             errorMessage = "Too early to send Masternode Ping";
             return false;
         }

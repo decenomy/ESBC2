@@ -1,7 +1,7 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2014 The Bitcoin developers
 // Copyright (c) 2015-2017 The PIVX developers
-// Copyright (c) 2018-2019 The esbcoin Core developers
+// Copyright (c) 2018-2019 The ESBC Core developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -37,10 +37,19 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast)
 
     if (pindexLast->nHeight >= Params().LAST_POW_BLOCK()) {
         uint256 bnTargetLimit = (~uint256(0) >> 24);
-        int64_t nTargetSpacing = Params().PoSTargetSpacing(); // 60;
-        if (ActiveProtocol() >= 70223) //IsSporkActive(SPORK_10_NEW_PROTOCOL_ENFORCEMENT_2))
-            nTargetSpacing = 120; // 2 min. block time after fork
-        int64_t nTargetTimespan = nTargetSpacing /*60*/ * 40;
+        int64_t nTargetSpacing = Params().PoSTargetSpacing(); // 60 sec
+        if (ActiveProtocol() >= CONSENSUS_FORK_PROTO && pindexLast->GetBlockTime() >= GetSporkValue(SPORK_10_NEW_PROTOCOL_ENFORCEMENT_2))
+        {
+            if (pindexLast->GetBlockTime() >= GetSporkValue(SPORK_10_NEW_PROTOCOL_ENFORCEMENT_2) + 6 * 7 * 24 * 60 * 60)
+                nTargetSpacing = 120; // 120 sec. block time after trasition period
+            else {
+                int64_t nTimeTarget = pindexLast->GetBlockTime() - GetSporkValue(SPORK_10_NEW_PROTOCOL_ENFORCEMENT_2);
+                nTimeTarget = (nTimeTarget / (7 * 24 * 60 * 60)) + 1;
+                nTargetSpacing += nTimeTarget * 10; // slow down 10 sec. each week
+            }
+            //LogPrintf("GetNextWorkRequired: nTargetSpacing = %d\n", nTargetSpacing);
+        }
+        int64_t nTargetTimespan = nTargetSpacing * 40;
 
         int64_t nActualSpacing = 0;
         if (pindexLast->nHeight != 0)

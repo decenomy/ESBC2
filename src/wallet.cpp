@@ -1605,6 +1605,10 @@ bool CWallet::SelectStakeCoins(std::set<std::pair<const CWalletTx*, unsigned int
 
         int64_t nTxTime = out.tx->GetTxTime();
 
+        //check for min input size
+        if (ActiveProtocol() >= CONSENSUS_FORK_PROTO && out.tx->vout[out.i].nValue < Params().StakeInputMin())
+            continue;
+
         //check for min age
         if (GetAdjustedTime() - nTxTime - nHashDrift < nStakeMinAge)
             continue;
@@ -1632,9 +1636,15 @@ bool CWallet::MintableCoins()
     AvailableCoins(vCoins, true);
 
     for (const COutput& out : vCoins) {
-	int64_t nTxTime = out.tx->GetTxTime();
-	if (GetAdjustedTime() - nTxTime > nStakeMinAge)
-            return true;
+        int64_t nTxTime = out.tx->GetTxTime();
+
+        if (ActiveProtocol() >= CONSENSUS_FORK_PROTO){
+            if (out.tx->vout[out.i].nValue >= Params().StakeInputMin() && GetAdjustedTime() - nTxTime > nStakeMinAge)
+                return true;
+        } else {
+            if (GetAdjustedTime() - nTxTime > nStakeMinAge)
+                return true;
+        }
     }
 
     return false;
@@ -2105,7 +2115,7 @@ bool CWallet::CreateTransaction(const vector<pair<CScript, CAmount> >& vecSend,
     bool useIX,
     CAmount nFeePay)
 {
-    if (useIX && nFeePay < CENT) nFeePay = CENT;
+    if (useIX && nFeePay < MIN_SWIFTTX_FEE) nFeePay = MIN_SWIFTTX_FEE;
 
     CAmount nValue = 0;
 
@@ -2322,7 +2332,7 @@ bool CWallet::CreateTransaction(CScript scriptPubKey, const CAmount& nValue, CWa
 }
 
 // ppcoin: create coin stake transaction
-bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int64_t nSearchInterval, CMutableTransaction& txNew, unsigned int& nTxNewTime)
+bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int64_t nSearchInterval, CMutableTransaction& txNew, unsigned int& nTxNewTime, CAmount nFees)
 {
     // The following split & combine thresholds are important to security
     // Should not be adjusted if you don't understand the consequences
@@ -2444,20 +2454,31 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
         return false;
 
     // Calculate reward
-    const CBlockIndex* pIndex0 = chainActive.Tip();
+    CAmount blockReward = GetBlockValue(chainActive.Height()) + nFees;
 
-    nCredit += GetBlockValue(pIndex0->nHeight);
+    // Dev fee from spork val. max.10%
+    int64_t devFee = GetSporkValue(SPORK_11_DEV_FEE);
+    if (devFee > 0){
+        if (devFee > 10) devFee = 10;
+        CAmount devFeeFund = blockReward * devFee / 100;
+        blockReward -= devFeeFund;
 
-    //Masternode payment
-    CAmount MnDevFund;
-    CAmount mnblock_value = GetBlockValue(chainActive.Height());
-    MnDevFund = masternodePayments.FillBlockPayee(txNew, mnblock_value, true);
+        CBitcoinAddress devFeeAddress(Params().DevFeeAddress());
+        CScript payee = GetScriptForDestination(devFeeAddress.Get());
+        txNew.vout.emplace_back(devFeeFund, payee);
+    }
 
-    nCredit -= MnDevFund;
+    // after fee add block reward to credit
+    nCredit += blockReward;
+
+    // get masternode payment and substract from credit
+    CAmount masternodesFund = masternodePayments.FillBlockPayee(txNew, blockReward, true);
+    nCredit -= masternodesFund;
+
     //presstab HyperStake - calculate the total size of our new output including the stake reward so that we can use it to decide whether to split the stake outputs
     if (nCredit / 2 > nStakeSplitThreshold * COIN) {
         txNew.vout[1].nValue = (nCredit / 2 / CENT) * CENT;
-        txNew.vout.push_back(CTxOut(nCredit - txNew.vout[1].nValue, txNew.vout[1].scriptPubKey));
+        txNew.vout.emplace_back(nCredit - txNew.vout[1].nValue, txNew.vout[1].scriptPubKey);
     } else {
         txNew.vout[1].nValue = nCredit;
     }
@@ -3365,7 +3386,7 @@ void CWallet::AutoCombineDust()
         CreateTransaction(vecSend, wtxdummy, keyChange, nFeeRet, strErr, coinControl, ALL_COINS, false, CAmount(0));
         vecSend[0].second = nTotalRewardsValue - nFeeRet - 500;
 
-        if (!CreateTransaction(vecSend, wtx, keyChange, nFeeRet, strErr, coinControl, ALL_COINS, false, CAmount(0))) {
+        if (!CreateTransaction(vecSend, wtx, keyChange, nFeeRet, strErr, coinControl, ALL_COINS, false, nFeeRet + 500)) {
             LogPrintf("AutoCombineDust createtransaction failed, reason: %s\n", strErr);
             continue;
         }

@@ -846,15 +846,11 @@
     /*************** Frame_bottom_1 section*****************/
     /********************* Masternodes *********************/
 
-    QWidget .QFrame#frameInfo {  /*bottom frame 1 - info */
-      background-color: #000000;
-      border-style: none;
+    QWidget#infoWidget {  /*bottom frame 1 - info */
+        background-color: #000000;
+        border-style: none;
         border:1px solid;
         border-color: #2D2D2D;
-    }
-
-    QWidget .QFrame#frame_bottom_1 {
-       border-style: solid;
     }
 
     QWidget .QFrame#frameMnInfo {
@@ -1000,17 +996,22 @@
         font-size:12px;
     }
 
-    QWidget .QFrame#frame_bottom_2 .QListView { /* Transaction List */
-        font-weight:normal;
-        font-size:12px;
-        margin-left:0px;
-        padding: 4px;
-        padding-top:8px;
-
+    QWidget#recentTxWidget {  /* bottom frame 2 */
         background-color: rgb(0, 0, 0);
         alternate-background-color: rgb(0, 0, 0);
-        border:1px solid;
+        border: 1px solid;
         border-color: #2D2D2D;
+    }
+
+    QWidget .QFrame#frame_bottom_2 .QListView { /* Transaction List */
+        font-weight: normal;
+        font-size: 12px;
+        margin-left: 0px;
+        padding: 0px;
+        padding-top: 4px;
+        background-color: transparent;
+        alternate-background-color:  transparent;
+        border: 0px solid;
     }
 
     .QListView::item { /* Transaction List */

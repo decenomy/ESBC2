@@ -52,7 +52,7 @@ bool CMasternodeSync::IsBlockchainSynced()
 
     if (!pindex) return false;
 
-    if (pindex->nTime + 12 * 60 * 60 < GetTime())
+    if (pindex->nTime + 60 * 60 < GetTime())
         return false;
 
     fBlockchainSynced = true;
@@ -156,7 +156,7 @@ void CMasternodeSync::GetNextAsset()
         case (MASTERNODE_SYNC_GM):
             LogPrintf("CMasternodeSync::GetNextAsset - Sync has finished\n");
             RequestedMasternodeAssets = MASTERNODE_SYNC_FINISHED;
-            if (!txFilterState) InitTxFilter();
+            if (!txFilterState) BuildTxFilter();
             break;
     }
     RequestedMasternodeAttempt = 0;
@@ -179,7 +179,7 @@ std::string CMasternodeSync::GetSyncStatus()
         case MASTERNODE_SYNC_FINISHED:
             return _("Synchronization finished");
         case MASTERNODE_SYNC_GM:
-            return _("Synchronizing GM data...");
+            return _("Synchronizing ESBC data...");
     }
     return "";
 }
@@ -302,7 +302,7 @@ void CMasternodeSync::Process()
         if (RequestedMasternodeAssets == MASTERNODE_SYNC_GM) {
             if (pnode->HasFulfilledRequest("getgm"))
                 continue;
-            if (RequestedMasternodeAttempt >= 1) {
+            if (RequestedMasternodeAttempt >= 2) {
                 GetNextAsset();
                 return;
             }

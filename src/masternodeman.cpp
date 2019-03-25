@@ -251,7 +251,7 @@ void CMasternodeMan::AskForMN(CNode* pnode, CTxIn& vin)
 
     LogPrint("masternode", "CMasternodeMan::AskForMN - Asking node for missing entry, vin: %s\n", vin.prevout.hash.ToString());
     pnode->PushMessage("dseg", vin);
-    int64_t askAgain = GetTime() + MASTERNODE_MIN_MNP_SECONDS;
+    int64_t askAgain = GetTime() + (ActiveProtocol() >= CONSENSUS_FORK_PROTO) ? MASTERNODE_MIN_MNP_SECONDS2 : MASTERNODE_MIN_MNP_SECONDS;
     mWeAskedForMasternodeListEntry[vin.prevout] = askAgain;
 }
 
@@ -549,12 +549,15 @@ bool CMasternodeMan::WinnersUpdate(CNode* node)
         }
     }
 
-//    node->PushMessage("mnget", mnodeman.CountEnabled());
+    // request full size winners list
+    node->PushMessage("mnget", mnodeman.CountEnabled());
+/*
     auto mn_counts = mnodeman.CountEnabledByLevels();
     unsigned max_mn_count = 0u;
     for(const auto& count : mn_counts)
         max_mn_count = std::max(max_mn_count, count.second);
     node->PushMessage("mnget", max_mn_count);
+*/
 
     int64_t askAgain = GetTime() + MASTERNODES_MNGET_SECONDS;
     mWeAskedForWinnerMasternodeList[node->addr] = askAgain;
@@ -1074,7 +1077,7 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
         }
 
         masternodePayments.Sync(pfrom, nCountNeeded);
-        LogPrint("mnpayments", "mnget - Sent Masternode winners to peer %i\n", pfrom->GetId());
+        LogPrint("mnpayments", "CMasternodeMan - mnget - Sent Masternode winners to peer %i\n", pfrom->GetId());
     }
 
 }

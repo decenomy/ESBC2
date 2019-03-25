@@ -790,7 +790,7 @@ bool CMasternodePing::CheckAndUpdate(int& nDos, bool fRequireEnabled)
         // LogPrintf("mnping - Found corresponding mn for vin: %s\n", vin.ToString());
         // update only if there is no known ping for this masternode or
         // last ping was more then MASTERNODE_MIN_MNP_SECONDS-60 ago comparing to this one
-        if (!pmn->IsPingedWithin(MASTERNODE_MIN_MNP_SECONDS - 60, sigTime)) {
+        if (!pmn->IsPingedWithin((ActiveProtocol() >= CONSENSUS_FORK_PROTO) ? MASTERNODE_MIN_MNP_SECONDS2 - 60 : MASTERNODE_MIN_MNP_SECONDS - 60, sigTime)) {
             std::string strMessage = vin.ToString() + blockHash.ToString() + boost::lexical_cast<std::string>(sigTime);
 
             std::string errorMessage = "";

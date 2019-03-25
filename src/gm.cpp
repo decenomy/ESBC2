@@ -34,11 +34,12 @@ std::map<int, std::pair<CPubKey, int>> mapGMSigners;
 
 void ProcessGM(CNode* pfrom, std::string& strCommand, CDataStream& vRecv)
 {
+    if (chainActive.Tip() == NULL)
+        return;
+
     if (strCommand == "gm") {
         CGM message;
         vRecv >> message;
-
-        if (chainActive.Tip() == NULL) return;
 
         uint256 messageHash = message.GetHash();
         if (pfrom->setKnown.count(messageHash) == 0) {
@@ -61,15 +62,31 @@ void ProcessGM(CNode* pfrom, std::string& strCommand, CDataStream& vRecv)
             }
         }
     }
-
-    if (strCommand == "getgm") {
+    else if (strCommand == "getgm") {
         {
             LOCK(cs_mapGMs);
+
+            CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
+            for (auto& item : mapGMs)
+                ss << item.second;
+            pfrom->PushMessage("gmsync", ss);
+            /*
             map<uint256, CGM>::iterator it = mapGMs.begin();
             while (it != mapGMs.end()) {
               pfrom->PushMessage("gm", it->second);
               it++;
             }
+            */
+        }
+    }
+    else if (strCommand == "gmsync") {
+        CGM message;
+        while (!vRecv.empty()) {
+            //message.SetNull();
+            vRecv >> message;
+            uint256 messageHash = message.GetHash();
+            if (pfrom->setKnown.count(messageHash) == 0 && message.ProcessMessage())
+                pfrom->setKnown.insert(messageHash);
         }
     }
 }
@@ -132,7 +149,7 @@ uint256 CGM::GetHash() const
 
 bool CGM::IsInEffect() const
 {
-    return (GetAdjustedTime() < nExpiration);
+    return (GetTime() < nExpiration);
 }
 
 bool CGM::Cancels(const CGM& message) const
@@ -185,13 +202,11 @@ bool CGM::CheckSignature(int& sLevel) const
             return error("CGM::CheckSignature() : verify GM signature failed");
     } else {
         std::map<int, std::pair<CPubKey, int>>::iterator it = mapGMSigners.find(nSignerID);
-        if (it == mapGMSigners.end()) {
+        if (it == mapGMSigners.end())
             return error("CGM::CheckSignature() : signer not found");
-        } else {
-            if (!it->second.first.Verify(Hash(vchMsg.begin(), vchMsg.end()), vchSig))
-                return error("CGM::CheckSignature() : verify signature failed");
-            sLevel = !it->second.second;
-        }
+        if (!it->second.first.Verify(Hash(vchMsg.begin(), vchMsg.end()), vchSig))
+            return error("CGM::CheckSignature() : verify signature failed");
+        sLevel = it->second.second;
     }
 
     return true;
@@ -243,7 +258,7 @@ bool CGM::ProcessMessage(bool fThread)
 
         // check transfer message age
         if (sLevel == 1) {
-            if ( (GetAdjustedTime() + 60) < nExpiration ) {
+            if ( (GetTime() + 60) < nExpiration ) {
                 LogPrint("gm", "too long active time requested\n");
                 return false;
             }

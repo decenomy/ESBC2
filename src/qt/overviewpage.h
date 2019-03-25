@@ -81,6 +81,8 @@ private slots:
     void on_pushButton_Discord_clicked();
     void on_pushButton_Telegram_clicked();
     void on_pushButton_Twitter_clicked();
+    void on_pushButton_Medium_clicked();
+    void on_pushButton_Reddit_clicked();
 /*    void on_pushButton_Facebook_clicked();*/
     void on_pushButton_Explorer_clicked();
 };

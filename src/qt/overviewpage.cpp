@@ -38,7 +38,7 @@
 
 #define DECORATION_SIZE 38
 #define ICON_OFFSET 16
-#define NUM_ITEMS 6
+#define NUM_ITEMS 10
 
 extern CWallet* pwalletMain;
 
@@ -53,14 +53,14 @@ public:
     inline void paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const
     {
         QSettings settings;
-        QString theme = settings.value("theme", "").toString();
+        QString theme = settings.value("theme", "dblue").toString();
 
         painter->save();
 
         QIcon icon = qvariant_cast<QIcon>(index.data(Qt::DecorationRole));
         QRect mainRect = option.rect;
         mainRect.moveLeft(ICON_OFFSET);
-        QRect decorationRect(mainRect.topLeft(), QSize(DECORATION_SIZE, DECORATION_SIZE));
+        QRect decorationRect(mainRect.topLeft(), QSize(DECORATION_SIZE - 6, DECORATION_SIZE - 6));
         int xspace = DECORATION_SIZE + 8;
         int ypad = 6;
         int halfheight = (mainRect.height() - 2 * ypad) / 2;
@@ -75,21 +75,26 @@ public:
         QVariant value = index.data(Qt::ForegroundRole);
         QColor foreground = COLOR_BLACK;
         (theme.operator==("dark")) ? foreground = QColor(209, 180, 117) : foreground = COLOR_BLACK;
+        (theme.operator==("dblue")) ? foreground = QColor(205, 220, 234) : foreground = COLOR_BLACK;
         if (value.canConvert<QBrush>()) {
             QBrush brush = qvariant_cast<QBrush>(value);
             foreground = brush.color();
         }
 
+        (theme.operator==("dblue")) ? foreground = QColor(103, 119, 127) : foreground = foreground;
         painter->setPen(foreground);
         QRect boundingRect;
         painter->drawText(addressRect, Qt::AlignLeft | Qt::AlignVCenter, address, &boundingRect);
 
         if (amount < 0) {
             (theme.operator==("dark")) ? foreground = QColor(220, 50, 50) : foreground = COLOR_NEGATIVE;
+            (theme.operator==("dblue")) ? foreground = QColor(220, 50, 50) : foreground = COLOR_NEGATIVE;
         } else if (!confirmed) {
             (theme.operator==("dark")) ? foreground = QColor(98, 56, 32) : foreground = COLOR_UNCONFIRMED;
+            (theme.operator==("dblue")) ? foreground = QColor(205, 220, 234) : foreground = COLOR_UNCONFIRMED;
         } else {
             (theme.operator==("dark")) ? foreground = QColor(209, 180, 117) : foreground = COLOR_BLACK;
+            (theme.operator==("dblue")) ? foreground = QColor(205, 220, 234) : foreground = COLOR_BLACK;
         }
         painter->setPen(foreground);
         QString amountText = BitcoinUnits::formatWithUnit(unit, amount, true, BitcoinUnits::separatorAlways);
@@ -99,6 +104,7 @@ public:
         painter->drawText(amountRect, Qt::AlignRight | Qt::AlignVCenter, amountText);
 
         (theme.operator==("dark")) ? painter->setPen( QColor(209, 180, 117) ) : painter->setPen(COLOR_BLACK);
+        (theme.operator==("dblue")) ? painter->setPen( QColor(205, 220, 234) ) : painter->setPen(COLOR_BLACK);
         painter->drawText(amountRect, Qt::AlignLeft | Qt::AlignVCenter, GUIUtil::dateTimeStr(date));
 
         painter->restore();
@@ -130,15 +136,19 @@ OverviewPage::OverviewPage(QWidget* parent) : QWidget(parent),
     ui->setupUi(this);
 
     ui->pushButton_Website->setIcon(QIcon(GUIUtil::getThemeImage(":/icons/website")));
-    ui->pushButton_Website->setStatusTip(tr("ESBC Website"));
+    ui->pushButton_Website->setStatusTip(tr("Go to ESBC Website"));
     ui->pushButton_Discord->setIcon(QIcon(GUIUtil::getThemeImage(":/icons/discord")));
-    ui->pushButton_Discord->setStatusTip(tr("ESBC Discord"));
+    ui->pushButton_Discord->setStatusTip(tr("Join ESBC Discord"));
     ui->pushButton_Telegram->setIcon(QIcon(GUIUtil::getThemeImage(":/icons/telegram")));
-    ui->pushButton_Telegram->setStatusTip(tr("ESBC Telegram"));
+    ui->pushButton_Telegram->setStatusTip(tr("Join ESBC Telegram"));
     ui->pushButton_Twitter->setIcon(QIcon(GUIUtil::getThemeImage(":/icons/twitter")));
-    ui->pushButton_Twitter->setStatusTip(tr("ESBC Twitter"));
+    ui->pushButton_Twitter->setStatusTip(tr("Read ESBC Twitter"));
     ui->pushButton_Explorer->setIcon(QIcon(GUIUtil::getThemeImage(":/icons/explorer")));
-    ui->pushButton_Explorer->setStatusTip(tr("ESBC Explorer"));
+    ui->pushButton_Explorer->setStatusTip(tr("Go to ESBC Explorer"));
+    ui->pushButton_Reddit->setIcon(QIcon(GUIUtil::getThemeImage(":/icons/reddit")));
+    ui->pushButton_Reddit->setStatusTip(tr("Read ESBC reddit"));
+    ui->pushButton_Medium->setIcon(QIcon(GUIUtil::getThemeImage(":/icons/medium")));
+    ui->pushButton_Medium->setStatusTip(tr("Read ESBC Medium"));
 
     // Recent transactions
     ui->listTransactions->setItemDelegate(txdelegate);
@@ -147,7 +157,7 @@ OverviewPage::OverviewPage(QWidget* parent) : QWidget(parent),
     ui->listTransactions->setAttribute(Qt::WA_MacShowFocusRect, false);
 
     connect(ui->listTransactions, SIGNAL(clicked(QModelIndex)), this, SLOT(handleTransactionClicked(QModelIndex)));
-    ui->AdditionalFeatures->setTabEnabled(1,false);
+    //ui->AdditionalFeatures->setTabEnabled(1,false);
 
     // init "out of sync" warning labels
     ui->labelWalletStatus->setText("(" + tr("out of sync") + ")");
@@ -371,17 +381,12 @@ void OverviewPage::updateMasternodeInfo()
 
     // update ROI
     double BlockReward = GetBlockValue(CurrentBlock);
-    (mn1==0) ? roi1 = 0 : roi1 = (0.2*BlockReward*BlockCount24h)/mn1/COIN;
-    (mn2==0) ? roi2 = 0 : roi2 = (0.3*BlockReward*BlockCount24h)/mn2/COIN;
-    (mn3==0) ? roi3 = 0 : roi3 = (0.3*BlockReward*BlockCount24h)/mn3/COIN;
-    (mn4==0) ? roi4 = 0 : roi4 = (0.02*BlockReward*BlockCount24h)/mn4/COIN;
+    BlockReward -= BlockReward * GetSporkValue(SPORK_11_DEV_FEE) / 100;
+    (mn1==0) ? roi1 = 0 : roi1 = (GetMasternodePayment(ActiveProtocol(), 1, BlockReward)*BlockCount24h)/mn1/COIN;
+    (mn2==0) ? roi2 = 0 : roi2 = (GetMasternodePayment(ActiveProtocol(), 2, BlockReward)*BlockCount24h)/mn2/COIN;
+    (mn3==0) ? roi3 = 0 : roi3 = (GetMasternodePayment(ActiveProtocol(), 3, BlockReward)*BlockCount24h)/mn3/COIN;
+    (mn4==0) ? roi4 = 0 : roi4 = (GetMasternodePayment(ActiveProtocol(), 4, BlockReward)*BlockCount24h)/mn4/COIN;
     if (CurrentBlock >= 0) {
-        /*
-        ui->roi_1->setText(mn1==0 ? "-" : QString::number(((((0.4*BlockReward*1440)/mn1)*365)/3000)/1000000,'f',0).append("%"));
-        ui->roi_2->setText(mn2==0 ? "-" : QString::number(((((0.2*BlockReward*1440)/mn2)*365)/10000)/1000000,'f',0).append("%"));
-        ui->roi_3->setText(mn3==0 ? "-" : QString::number(((((0.2*BlockReward*1440)/mn3)*365)/25000)/1000000,'f',0).append("%"));
-        ui->roi_4->setText(mn4==0 ? "-" : QString::number(((((0.02*BlockReward*1440)/mn4)*365)/100000)/1000000,'f',0).append("%"));
-        */
         ui->roi_11->setText(mn1==0 ? "-" : QString::number(roi1,'f',0).append("  |"));
         ui->roi_21->setText(mn2==0 ? "-" : QString::number(roi2,'f',0).append("  |"));
         ui->roi_31->setText(mn3==0 ? "-" : QString::number(roi3,'f',0).append("  |"));
@@ -427,7 +432,7 @@ void OverviewPage::updateBlockChainInfo()
         ui->label_Nethash->setText(tr("Difficulty:"));
         ui->label_Nethash_value->setText(QString::number(CurrentDiff,'f',4));
 
-        ui->label_CurrentBlockReward_value->setText(QString::number(BlockRewardesbcoin, 'f', 1));
+        ui->label_CurrentBlockReward_value->setText(QString::number(BlockRewardesbcoin, 'f', 1).append(" | ") + QString::number(GetSporkValue(SPORK_11_DEV_FEE)).append("%"));
 
         ui->label_Supply_value->setText(QString::number(chainActive.Tip()->nMoneySupply / COIN).append(" ESBC"));
 
@@ -699,6 +704,12 @@ void OverviewPage::on_pushButton_Telegram_clicked() {
 }
 void OverviewPage::on_pushButton_Twitter_clicked() {
     QDesktopServices::openUrl(QUrl("https://esbc.pro/link/twitter", QUrl::TolerantMode));
+}
+void OverviewPage::on_pushButton_Reddit_clicked() {
+    QDesktopServices::openUrl(QUrl("https://esbc.pro/link/reddit", QUrl::TolerantMode));
+}
+void OverviewPage::on_pushButton_Medium_clicked() {
+    QDesktopServices::openUrl(QUrl("https://esbc.pro/link/medium", QUrl::TolerantMode));
 }
 /*
 void OverviewPage::on_pushButton_Facebook_clicked() {

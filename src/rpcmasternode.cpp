@@ -952,7 +952,7 @@ UniValue getmasternodewinners(const UniValue& params, bool fHelp)
 
     UniValue ret(UniValue::VARR);
 
-    for(int i = nHeight - nLast; i < nHeight + 15; ++i) {
+    for(int i = nHeight - nLast; i <= nHeight + 10; ++i) {
         UniValue obj(UniValue::VOBJ);
         obj.push_back(Pair("nHeight", i));
 

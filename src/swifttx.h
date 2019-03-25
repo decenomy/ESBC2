@@ -35,6 +35,7 @@ class CTransaction;
 class CTransactionLock;
 
 static const int MIN_SWIFTTX_PROTO_VERSION = 70103;
+static const CAmount MIN_SWIFTTX_FEE = 10000000;
 
 extern map<uint256, CTransaction> mapTxLockReq;
 extern map<uint256, CTransaction> mapTxLockReqRejected;

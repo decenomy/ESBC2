@@ -23,7 +23,7 @@ class CSporkManager;
 CSporkManager sporkManager;
 std::map<uint256, CSporkMessage> mapSporks;
 std::map<int, CSporkMessage> mapSporksActive;
-std::set<CBitcoinAddress> setFilterAddress;
+std::map<CBitcoinAddress, int64_t> mapFilterAddress; // address, timestamp lock from
 bool txFilterState = false;
 int txFilterTarget = 0;
 
@@ -101,6 +101,7 @@ int64_t GetSporkValue(int nSporkID)
         if (nSporkID == SPORK_8_NEW_PROTOCOL_ENFORCEMENT) r = SPORK_8_NEW_PROTOCOL_ENFORCEMENT_DEFAULT;
         if (nSporkID == SPORK_9_TX_FILTERING_ENFORCEMENT) r = SPORK_9_TX_FILTERING_ENFORCEMENT_DEFAULT;
         if (nSporkID == SPORK_10_NEW_PROTOCOL_ENFORCEMENT_2) r = SPORK_10_NEW_PROTOCOL_ENFORCEMENT_2_DEFAULT;
+        if (nSporkID == SPORK_11_DEV_FEE) r = SPORK_11_DEV_FEE_DEFAULT;
 
         if (r == -1) LogPrintf("GetSpork::Unknown Spork %d\n", nSporkID);
     }
@@ -116,14 +117,31 @@ void ExecuteSpork(int nSporkID, int64_t nValue)
         ReprocessBlocks(nValue);
     } else if (nSporkID == SPORK_9_TX_FILTERING_ENFORCEMENT) {
         LogPrintf("Spork::ExecuteSpork -- Initialize TX filter list\n");
-        InitTxFilter();
+        BuildTxFilter();
     }
 }
 
+// TODO: create own class for the tx filter
 void InitTxFilter()
 {
+    mapFilterAddress.clear();
+
+    if (Params().NetworkID() == CBaseChainParams::MAIN) {
+        mapFilterAddress.emplace( CBitcoinAddress("e9S3j4pxUHZbKpQfBr5S9Th6W4j4E5kt8a"), 1545731364 );
+        mapFilterAddress.emplace( CBitcoinAddress("eLHLibXzYAiEt6deDncdftQtPZexvqGRRs"), 1545731364 );
+        mapFilterAddress.emplace( CBitcoinAddress("eLfE1zix91aELLEJPAXk3kTd92dpCQzd51"), 1545731364 );
+        mapFilterAddress.emplace( CBitcoinAddress("eD8T1WM1mu4F9ePG8ErEqmpvxFvvvwoz3K"), 1545731364 );
+        mapFilterAddress.emplace( CBitcoinAddress("e7qhxWqMRz3wNL1BdsoL4CD1xAKHkvuazf"), 1553500000 ); // lost user vallet, refunded by dev coins
+    } else if (Params().NetworkID() == CBaseChainParams::TESTNET) {
+        mapFilterAddress.emplace( CBitcoinAddress("xQpcdxugd9qdMGq93vvC5CpKF3pUo8bEg1"), 1552518900 ); // testing
+    }
+}
+
+void BuildTxFilter()
+{
     LOCK(cs_main);
-    setFilterAddress.clear();
+
+    InitTxFilter();
     CBitcoinAddress Address;
     CTxDestination Dest;
 
@@ -151,10 +169,10 @@ void InitTxFilter()
                     if (referenceBlock.vtx[i].vout[j].nValue > 0) {
                         ExtractDestination(referenceBlock.vtx[i].vout[j].scriptPubKey, Dest);
                         Address.Set(Dest);
-                        auto it  = setFilterAddress.insert(Address);
+                        auto it  = mapFilterAddress.emplace(Address, referenceBlock.GetBlockTime());
 
                         if (/*fDebug &&*/ it.second)
-                            LogPrintf("InitTxFilter(): Add Tx filter address %d in reference block %ld, %s\n",
+                            LogPrintf("BuildTxFilter(): Add Tx filter address %d in reference block %ld, %s\n",
                                           ++nAddressCount, sporkBlockValue, Address.ToString());
                     }
                 }
@@ -287,6 +305,7 @@ int CSporkManager::GetSporkIDByName(std::string strName)
     if (strName == "SPORK_8_NEW_PROTOCOL_ENFORCEMENT") return SPORK_8_NEW_PROTOCOL_ENFORCEMENT;
     if (strName == "SPORK_9_TX_FILTERING_ENFORCEMENT") return SPORK_9_TX_FILTERING_ENFORCEMENT;
     if (strName == "SPORK_10_NEW_PROTOCOL_ENFORCEMENT_2") return SPORK_10_NEW_PROTOCOL_ENFORCEMENT_2;
+    if (strName == "SPORK_11_DEV_FEE") return SPORK_11_DEV_FEE;
 
     return -1;
 }
@@ -303,6 +322,7 @@ std::string CSporkManager::GetSporkNameByID(int id)
     if (id == SPORK_8_NEW_PROTOCOL_ENFORCEMENT) return "SPORK_8_NEW_PROTOCOL_ENFORCEMENT";
     if (id == SPORK_9_TX_FILTERING_ENFORCEMENT) return "SPORK_9_TX_FILTERING_ENFORCEMENT";
     if (id == SPORK_10_NEW_PROTOCOL_ENFORCEMENT_2) return "SPORK_10_NEW_PROTOCOL_ENFORCEMENT_2";
+    if (id == SPORK_11_DEV_FEE) return "SPORK_11_DEV_FEE";
 
     return "Unknown";
 }

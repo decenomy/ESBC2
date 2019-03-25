@@ -2305,7 +2305,8 @@ void ThreadCheckObfuScationPool()
 
             // check if we should activate or ping every few minutes,
             // start right after sync is considered to be done
-            if (c % MASTERNODE_PING_SECONDS == 1) activeMasternode.ManageStatus();
+            unsigned int mnPingSeconds = (ActiveProtocol() >= CONSENSUS_FORK_PROTO) ? MASTERNODE_PING_SECONDS2 : MASTERNODE_PING_SECONDS;
+            if (c % mnPingSeconds == 1) activeMasternode.ManageStatus();
 
             if (c % 60 == 0) {
                 mnodeman.CheckAndRemove();

@@ -814,7 +814,7 @@ bool isExternal(QString theme)
     if (theme.isEmpty())
         return false;
 
-    if (theme.operator==("default") || theme.operator==("dark"))
+    if (theme.operator==("default") || theme.operator==("dark") || theme.operator==("dblue"))
         return false;
 
 //    return (theme.operator!=("default"));
@@ -824,11 +824,15 @@ bool isExternal(QString theme)
 QString getThemeImage(QString image)
 {
     QSettings settings;
-    QString theme = settings.value("theme", "").toString();
+    QString theme = settings.value("theme", "dblue").toString();
 
-    if (theme.operator==("dark")) {
+    if (theme.operator==("dblue")) {
+        return image.insert(image.lastIndexOf(QString("/")), QString("_dblue"));
+    }
+    else if (theme.operator==("dark")) {
         return image.insert(image.lastIndexOf(QString("/")), QString("_dark"));
-    } else {
+    }
+    else {
         return image;
     }
 }
@@ -839,7 +843,7 @@ QString loadStyleSheet()
     QString styleSheet;
     QSettings settings;
     QString cssName;
-    QString theme = settings.value("theme", "").toString();
+    QString theme = settings.value("theme", "dblue").toString();
 
     if (isExternal(theme)) {
         // External CSS

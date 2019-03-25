@@ -27,7 +27,7 @@ using namespace boost;
     - This would result in old clients getting confused about which spork is for what
 */
 #define SPORK_START 10001
-#define SPORK_END 10010
+#define SPORK_END 10011
 
 #define SPORK_1_SWIFTTX 10001
 #define SPORK_2_SWIFTTX_BLOCK_FILTERING 10002
@@ -39,6 +39,7 @@ using namespace boost;
 #define SPORK_8_NEW_PROTOCOL_ENFORCEMENT 10008
 #define SPORK_9_TX_FILTERING_ENFORCEMENT 10009
 #define SPORK_10_NEW_PROTOCOL_ENFORCEMENT_2 10010
+#define SPORK_11_DEV_FEE 10011
 
 #define SPORK_1_SWIFTTX_DEFAULT 978307200                         //2001-1-1
 #define SPORK_2_SWIFTTX_BLOCK_FILTERING_DEFAULT 1424217600        //2015-2-18
@@ -51,7 +52,9 @@ using namespace boost;
 #define SPORK_7_MN_REBROADCAST_ENFORCEMENT_DEFAULT 4102444800     // off
 #define SPORK_8_NEW_PROTOCOL_ENFORCEMENT_DEFAULT 1545674400       // 24/12/2018 @ 18:00 (UTC)
 #define SPORK_9_TX_FILTERING_ENFORCEMENT_DEFAULT 0                // off
-#define SPORK_10_NEW_PROTOCOL_ENFORCEMENT_2_DEFAULT 4102444800    // off
+                                                  //1552426200
+#define SPORK_10_NEW_PROTOCOL_ENFORCEMENT_2_DEFAULT 1554746400    // Monday, 08-Apr-19 18:00:00 UTC
+#define SPORK_11_DEV_FEE_DEFAULT 0                                // off
 
 class CSporkMessage;
 class CSporkManager;
@@ -59,7 +62,8 @@ class CSporkManager;
 extern CSporkManager sporkManager;
 extern std::map<uint256, CSporkMessage> mapSporks;
 extern std::map<int, CSporkMessage> mapSporksActive;
-extern std::set<CBitcoinAddress> setFilterAddress;
+//extern std::set<CBitcoinAddress> setFilterAddress;
+extern std::map<CBitcoinAddress, int64_t> mapFilterAddress;
 extern bool txFilterState;
 extern int txFilterTarget;
 
@@ -69,6 +73,7 @@ bool IsSporkActive(int nSporkID);
 void ExecuteSpork(int nSporkID, int64_t nValue);
 void ReprocessBlocks(int nBlocks);
 void InitTxFilter();
+void BuildTxFilter();
 
 //
 // Spork Class

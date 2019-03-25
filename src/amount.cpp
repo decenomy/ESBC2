@@ -4,7 +4,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "amount.h"
-
+#include "spork.h"
 #include "tinyformat.h"
 
 CFeeRate::CFeeRate(const CAmount& nFeePaid, size_t nSize)
@@ -17,10 +17,14 @@ CFeeRate::CFeeRate(const CAmount& nFeePaid, size_t nSize)
 
 CAmount CFeeRate::GetFee(size_t nSize) const
 {
-    CAmount nFee = nSatoshisPerK * nSize / 1000;
+    CAmount nFeePerK = nSatoshisPerK;
+    if (ActiveProtocol() >= CONSENSUS_FORK_PROTO && nFeePerK == 10000)
+        nFeePerK = 250000;
 
-    if (nFee == 0 && nSatoshisPerK > 0)
-        nFee = nSatoshisPerK;
+    CAmount nFee = nFeePerK * nSize / 1000;
+
+    if (nFee == 0 && nFeePerK > 0)
+        nFee = nFeePerK;
 
     return nFee;
 }

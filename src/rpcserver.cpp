@@ -243,10 +243,10 @@ UniValue stop(const UniValue& params, bool fHelp)
     if (fHelp || params.size() > 1)
         throw runtime_error(
             "stop\n"
-            "\nStop esbcoin server.");
+            "\nStop ESBC server.");
     // Shutdown will take long enough that the response should get back
     StartShutdown();
-    return "esbcoin server stopping";
+    return "ESBC server stopping";
 }
 
 
@@ -323,25 +323,25 @@ static const CRPCCommand vRPCCommands[] =
         {"hidden", "reconsiderblock", &reconsiderblock, true, true, false},
         {"hidden", "setmocktime", &setmocktime, true, false, false},
 
-        /* esbcoin features */
-        {"esbcoin", "masternode", &masternode, true, true, false},
-        {"esbcoin", "listmasternodes", &listmasternodes, true, true, false},
-        {"esbcoin", "getmasternodecount", &getmasternodecount, true, true, false},
-        {"esbcoin", "masternodeconnect", &masternodeconnect, true, true, false},
-        {"esbcoin", "masternodecurrent", &masternodecurrent, true, true, false},
-        {"esbcoin", "masternodedebug", &masternodedebug, true, true, false},
-        {"esbcoin", "startmasternode", &startmasternode, true, true, false},
-        {"esbcoin", "createmasternodekey", &createmasternodekey, true, true, false},
-        {"esbcoin", "getmasternodeoutputs", &getmasternodeoutputs, true, true, false},
-        {"esbcoin", "listmasternodeconf", &listmasternodeconf, true, true, false},
-        {"esbcoin", "getmasternodestatus", &getmasternodestatus, true, true, false},
-        {"esbcoin", "getmasternodewinners", &getmasternodewinners, true, true, false},
-        {"esbcoin", "getmasternodescores", &getmasternodescores, true, true, false},
-        {"esbcoin", "mnsync", &mnsync, true, true, false},
-        {"esbcoin", "spork", &spork, true, true, false},
-        {"esbcoin", "getpoolinfo", &getpoolinfo, true, true, false},
+        /* esbc features */
+        {"esbc", "masternode", &masternode, true, true, false},
+        {"esbc", "listmasternodes", &listmasternodes, true, true, false},
+        {"esbc", "getmasternodecount", &getmasternodecount, true, true, false},
+        {"esbc", "masternodeconnect", &masternodeconnect, true, true, false},
+        {"esbc", "masternodecurrent", &masternodecurrent, true, true, false},
+        {"esbc", "masternodedebug", &masternodedebug, true, true, false},
+        {"esbc", "startmasternode", &startmasternode, true, true, false},
+        {"esbc", "createmasternodekey", &createmasternodekey, true, true, false},
+        {"esbc", "getmasternodeoutputs", &getmasternodeoutputs, true, true, false},
+        {"esbc", "listmasternodeconf", &listmasternodeconf, true, true, false},
+        {"esbc", "getmasternodestatus", &getmasternodestatus, true, true, false},
+        {"esbc", "getmasternodewinners", &getmasternodewinners, true, true, false},
+        {"esbc", "getmasternodescores", &getmasternodescores, true, true, false},
+        {"esbc", "mnsync", &mnsync, true, true, false},
+        {"esbc", "spork", &spork, true, true, false},
+        {"esbc", "getpoolinfo", &getpoolinfo, true, true, false},
 #ifdef ENABLE_WALLET
-        {"esbcoin", "obfuscation", &obfuscation, false, false, true}, /* not threadSafe because of SendMoney */
+        {"esbc", "obfuscation", &obfuscation, false, false, true}, /* not threadSafe because of SendMoney */
 
         /* Wallet */
         {"wallet", "addmultisigaddress", &addmultisigaddress, true, false, true},
@@ -609,13 +609,13 @@ void StartRPCThreads()
                                              _("To use esbcoind, or the -server option to esbcoin-qt, you must set an rpcpassword in the configuration file:\n"
                                                "%s\n"
                                                "It is recommended you use the following random password:\n"
-                                               "rpcuser=esbcoinrpc\n"
+                                               "rpcuser=esbcrpc\n"
                                                "rpcpassword=%s\n"
                                                "(you do not need to remember this password)\n"
                                                "The username and password MUST NOT be the same.\n"
                                                "If the file does not exist, create it with owner-readable-only file permissions.\n"
                                                "It is also recommended to set alertnotify so you are notified of problems;\n"
-                                               "for example: alertnotify=echo %%s | mail -s \"esbcoin Alert\" admin@foo.com\n"),
+                                               "for example: alertnotify=echo %%s | mail -s \"esbc Alert\" admin@foo.com\n"),
                                              GetConfigFile().string(),
                                              EncodeBase58(&rand_pwd[0], &rand_pwd[0] + 32)),
             "", CClientUIInterface::MSG_ERROR | CClientUIInterface::SECURE);

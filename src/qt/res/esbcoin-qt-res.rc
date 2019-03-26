@@ -1,5 +1,6 @@
-IDI_ICON1 ICON DISCARDABLE "icons/esbcoin.ico"
-IDI_ICON2 ICON DISCARDABLE "icons/esbcoin.ico"
+IDI_ICON1 ICON DISCARDABLE "dblue/icons/esbcoin.ico"
+IDI_ICON2 ICON DISCARDABLE "dark/icons/esbcoin.ico"
+IDI_ICON3 ICON DISCARDABLE "icons/esbcoin.ico"
 
 #include <windows.h>             // needed for VERSIONINFO
 #include "../../clientversion.h" // holds the needed client version information

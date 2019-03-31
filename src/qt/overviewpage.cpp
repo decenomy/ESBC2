@@ -376,11 +376,12 @@ void OverviewPage::updateMasternodeInfo()
     }
     totalmn=mn1+mn2+mn3+mn4;
     ui->labelMnTotal_Value->setText(QString::number(totalmn));
+    int maxMnValue = std::max( { mn1, mn2, mn3, mn4 }, [](const int& s1, const int& s2) { return s1 < s2; });
 
-    ui->graphMN1->setMaximum(totalmn);
-    ui->graphMN2->setMaximum(totalmn);
-    ui->graphMN3->setMaximum(totalmn);
-    ui->graphMN4->setMaximum(totalmn);
+    ui->graphMN1->setMaximum(maxMnValue);
+    ui->graphMN2->setMaximum(maxMnValue);
+    ui->graphMN3->setMaximum(maxMnValue);
+    ui->graphMN4->setMaximum(maxMnValue);
     ui->graphMN1->setValue(mn1);
     ui->graphMN2->setValue(mn2);
     ui->graphMN3->setValue(mn3);

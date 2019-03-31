@@ -900,7 +900,7 @@
 
     QWidget QProgressBar#graphMN1::chunk {
         background-color:#64a19d;
-        width: 20px;
+        width: 5px;
     }
 
     QWidget QProgressBar#graphMN2 {
@@ -916,7 +916,7 @@
 
     QWidget QProgressBar#graphMN2::chunk {
         background-color:#4D458C;
-        width: 20px;
+        width: 5px;
     }
 
     QWidget QProgressBar#graphMN3 {
@@ -932,7 +932,7 @@
 
     QWidget QProgressBar#graphMN3::chunk {
         background-color:#C26C47;
-        width: 20px;
+        width: 5px;
     }
 
     QWidget QProgressBar#graphMN4 {
@@ -948,7 +948,7 @@
 
     QWidget QProgressBar#graphMN4::chunk {
         background-color:#D1B475;
-        width: 20px;
+        width: 5px;
     }
 
 

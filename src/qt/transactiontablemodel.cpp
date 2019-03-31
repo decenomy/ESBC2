@@ -357,20 +357,23 @@ QString TransactionTableModel::formatTxType(const TransactionRecord* wtx) const
 
 QVariant TransactionTableModel::txAddressDecoration(const TransactionRecord* wtx) const
 {
+    if (wtx->status.status == TransactionStatus::MaturesWarning || wtx->status.status == TransactionStatus::NotAccepted)
+        return QIcon(GUIUtil::getThemeImage(":/icons/tx_orphan"));
+
     switch (wtx->type) {
-    case TransactionRecord::Generated:
-    case TransactionRecord::StakeMint:
-    case TransactionRecord::MNReward:
-        return QIcon(GUIUtil::getThemeImage(":/icons/tx_mined"));
-    case TransactionRecord::RecvWithObfuscation:
-    case TransactionRecord::RecvWithAddress:
-    case TransactionRecord::RecvFromOther:
-        return QIcon(GUIUtil::getThemeImage(":/icons/tx_input"));
-    case TransactionRecord::SendToAddress:
-    case TransactionRecord::SendToOther:
-        return QIcon(GUIUtil::getThemeImage(":/icons/tx_output"));
-    default:
-        return QIcon(GUIUtil::getThemeImage(":/icons/tx_inout"));
+        case TransactionRecord::Generated:
+        case TransactionRecord::StakeMint:
+        case TransactionRecord::MNReward:
+            return QIcon(GUIUtil::getThemeImage(":/icons/tx_mined"));
+        case TransactionRecord::RecvWithObfuscation:
+        case TransactionRecord::RecvWithAddress:
+        case TransactionRecord::RecvFromOther:
+            return QIcon(GUIUtil::getThemeImage(":/icons/tx_input"));
+        case TransactionRecord::SendToAddress:
+        case TransactionRecord::SendToOther:
+            return QIcon(GUIUtil::getThemeImage(":/icons/tx_output"));
+        default:
+            return QIcon(GUIUtil::getThemeImage(":/icons/tx_inout"));
     }
 }
 

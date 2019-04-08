@@ -10,7 +10,7 @@ Join to our group at [Discord](https://discord.gg/C6t23JH)
 
 ### Coin Specs
 
-[img]https://esbc.pro/static/images/specification2.png[/img]
+https://esbc.pro/static/images/specification2.png
 
 ***
 All binaries for different operating systems, you can download in the releases repository:

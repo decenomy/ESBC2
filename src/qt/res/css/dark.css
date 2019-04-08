@@ -847,10 +847,9 @@
     /********************* Masternodes *********************/
 
     QWidget#infoWidget {  /*bottom frame 1 - info */
-        background-color: #000000;
-        border-style: none;
-        border:1px solid;
-        border-color: #2D2D2D;
+        background-color: #0C0602;
+        alternate-background-color: #0C0602;
+        border: 1px solid #2D2D2D;
     }
 
     QWidget .QFrame#frameMnInfo {
@@ -997,10 +996,9 @@
     }
 
     QWidget#recentTxWidget {  /* bottom frame 2 */
-        background-color: rgb(0, 0, 0);
-        alternate-background-color: rgb(0, 0, 0);
-        border: 1px solid;
-        border-color: #2D2D2D;
+        background-color: #0C0602;
+        alternate-background-color: #0C0602;
+        border: 1px solid #2D2D2D;
     }
 
     QWidget .QFrame#frame_bottom_2 .QListView { /* Transaction List */

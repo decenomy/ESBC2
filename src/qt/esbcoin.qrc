@@ -37,6 +37,7 @@
         <file alias="tx_input">res/icons/tx_input.png</file>
         <file alias="tx_output">res/icons/tx_output.png</file>
         <file alias="tx_inout">res/icons/tx_inout.png</file>
+        <file alias="tx_orphan">res/icons/tx_mined.png</file>
         <file alias="lock_closed">res/icons/lock_closed.png</file>
         <file alias="lock_open">res/icons/lock_open.png</file>
         <file alias="key">res/icons/key.png</file>
@@ -96,6 +97,7 @@
         <file alias="tx_input">res/dark/icons/tx_input.png</file>
         <file alias="tx_output">res/dark/icons/tx_output.png</file>
         <file alias="tx_inout">res/dark/icons/tx_inout.png</file>
+        <file alias="tx_orphan">res/dark/icons/tx_mined.png</file>
         <file alias="lock_closed">res/dark/icons/lock_closed.png</file>
         <file alias="lock_open">res/dark/icons/lock_open.png</file>
         <file alias="key">res/dark/icons/key.png</file>
@@ -155,6 +157,7 @@
         <file alias="tx_input">res/dblue/icons/tx_input.png</file>
         <file alias="tx_output">res/dblue/icons/tx_output.png</file>
         <file alias="tx_inout">res/dblue/icons/tx_inout.png</file>
+        <file alias="tx_orphan">res/dblue/icons/tx_orphan.png</file>
         <file alias="lock_closed">res/dblue/icons/lock_closed.png</file>
         <file alias="lock_open">res/dblue/icons/lock_open.png</file>
         <file alias="key">res/dblue/icons/key.png</file>

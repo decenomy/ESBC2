@@ -72,29 +72,37 @@ public:
         QString address = index.data(Qt::DisplayRole).toString();
         qint64 amount = index.data(TransactionTableModel::AmountRole).toLongLong();
         bool confirmed = index.data(TransactionTableModel::ConfirmedRole).toBool();
-        QVariant value = index.data(Qt::ForegroundRole);
+        //QVariant value = index.data(Qt::ForegroundRole);
         QColor foreground = COLOR_BLACK;
-        (theme.operator==("dark")) ? foreground = QColor(209, 180, 117) : foreground = COLOR_BLACK;
-        (theme.operator==("dblue")) ? foreground = QColor(205, 220, 234) : foreground = COLOR_BLACK;
-        if (value.canConvert<QBrush>()) {
-            QBrush brush = qvariant_cast<QBrush>(value);
-            foreground = brush.color();
-        }
 
-        (theme.operator==("dblue")) ? foreground = QColor(103, 119, 127) : foreground = foreground;
+        // paint address
+        if (theme.operator==("dark")) foreground = QColor(140, 104, 76); //"#8C684C"
+        else if (theme.operator==("dblue")) foreground = QColor(205, 220, 234);
+        else foreground = COLOR_BLACK;
+        //if (value.canConvert<QBrush>()) {
+        //    QBrush brush = qvariant_cast<QBrush>(value);
+        //    foreground = brush.color();
+        //}
+        //if (theme.operator==("dark")) foreground = QColor(144, 144, 144);
+        //else if (theme.operator==("dblue")) foreground = QColor(103, 119, 127);
+        //else foreground = foreground;
         painter->setPen(foreground);
         QRect boundingRect;
         painter->drawText(addressRect, Qt::AlignLeft | Qt::AlignVCenter, address, &boundingRect);
 
+        // paint amount
         if (amount < 0) {
-            (theme.operator==("dark")) ? foreground = QColor(220, 50, 50) : foreground = COLOR_NEGATIVE;
-            (theme.operator==("dblue")) ? foreground = QColor(220, 50, 50) : foreground = COLOR_NEGATIVE;
+            if (theme.operator==("dark")) foreground = QColor(220, 50, 50); //"#DC3232"
+            else if (theme.operator==("dblue")) foreground = QColor(220, 50, 50);
+            else foreground = COLOR_NEGATIVE;
         } else if (!confirmed) {
-            (theme.operator==("dark")) ? foreground = QColor(98, 56, 32) : foreground = COLOR_UNCONFIRMED;
-            (theme.operator==("dblue")) ? foreground = QColor(205, 220, 234) : foreground = COLOR_UNCONFIRMED;
+            if (theme.operator==("dark")) foreground = QColor(151, 135, 117); //"#978775"
+            else if (theme.operator==("dblue")) foreground = QColor(205, 220, 234);
+            else foreground = COLOR_UNCONFIRMED;
         } else {
-            (theme.operator==("dark")) ? foreground = QColor(209, 180, 117) : foreground = COLOR_BLACK;
-            (theme.operator==("dblue")) ? foreground = QColor(205, 220, 234) : foreground = COLOR_BLACK;
+            if (theme.operator==("dark")) foreground = QColor(240, 216, 174); //"#F0D8AE"
+            else if (theme.operator==("dblue")) foreground = QColor(205, 220, 234);
+            else foreground = COLOR_BLACK;
         }
         painter->setPen(foreground);
         QString amountText = BitcoinUnits::formatWithUnit(unit, amount, true, BitcoinUnits::separatorAlways);
@@ -103,8 +111,10 @@ public:
         }
         painter->drawText(amountRect, Qt::AlignRight | Qt::AlignVCenter, amountText);
 
-        (theme.operator==("dark")) ? painter->setPen( QColor(209, 180, 117) ) : painter->setPen(COLOR_BLACK);
-        (theme.operator==("dblue")) ? painter->setPen( QColor(205, 220, 234) ) : painter->setPen(COLOR_BLACK);
+        // paint date
+        if (theme.operator==("dark")) foreground = QColor(240, 216, 174); //"#F0D8AE"
+        else if (theme.operator==("dblue")) foreground = QColor(205, 220, 234);
+        else foreground = COLOR_BLACK;
         painter->drawText(amountRect, Qt::AlignLeft | Qt::AlignVCenter, GUIUtil::dateTimeStr(date));
 
         painter->restore();
@@ -366,11 +376,12 @@ void OverviewPage::updateMasternodeInfo()
     }
     totalmn=mn1+mn2+mn3+mn4;
     ui->labelMnTotal_Value->setText(QString::number(totalmn));
+    int maxMnValue = std::max( { mn1, mn2, mn3, mn4 }, [](const int& s1, const int& s2) { return s1 < s2; });
 
-    ui->graphMN1->setMaximum(totalmn);
-    ui->graphMN2->setMaximum(totalmn);
-    ui->graphMN3->setMaximum(totalmn);
-    ui->graphMN4->setMaximum(totalmn);
+    ui->graphMN1->setMaximum(maxMnValue);
+    ui->graphMN2->setMaximum(maxMnValue);
+    ui->graphMN3->setMaximum(maxMnValue);
+    ui->graphMN4->setMaximum(maxMnValue);
     ui->graphMN1->setValue(mn1);
     ui->graphMN2->setValue(mn2);
     ui->graphMN3->setValue(mn3);

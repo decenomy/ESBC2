@@ -28,7 +28,7 @@ class NetworkStyle;
 class Notificator;
 class OptionsModel;
 class BlockExplorer;
-class RPCConsole;
+class ToolsPage;
 class SendCoinsRecipient;
 class UnitDisplayStatusBarControl;
 class WalletFrame;
@@ -136,7 +136,7 @@ private:
     QSystemTrayIcon* trayIcon;
     QMenu* trayIconMenu;
     Notificator* notificator;
-    RPCConsole* rpcConsole;
+    ToolsPage* rpcConsole;
     BlockExplorer* explorerWindow;
 
     /** Keep track of previous number of blocks, to detect progress */

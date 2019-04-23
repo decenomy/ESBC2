@@ -6,7 +6,6 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "toolspage.h"
-#include "rpcconsole.h"
 #include "ui_toolspage.h"
 
 #include "clientmodel.h"
@@ -54,6 +53,7 @@ const QString ZAPTXES1("-zapwallettxes=1");
 const QString ZAPTXES2("-zapwallettxes=2");
 const QString UPGRADEWALLET("-upgradewallet");
 const QString REINDEX("-reindex");
+const QString RESYNC("-resync");
 
 const struct {
     const char* url;
@@ -78,7 +78,7 @@ signals:
     void reply(int category, const QString& command);
 };
 
-//#include "toolspage.moc"
+#include "toolspage.moc"
 
 /**
  * Split shell command line into a list of arguments. Aims to emulate \c bash and friends.
@@ -178,7 +178,6 @@ bool parseCommandLine_PageTools(std::vector<std::string>& args, const std::strin
     }
 }
 
-/*
 void RPCExecutor::request(const QString& command)
 {
     std::vector<std::string> args;
@@ -219,7 +218,6 @@ void RPCExecutor::request(const QString& command)
         emit reply(ToolsPage::CMD_ERROR, QString("Error: ") + QString::fromStdString(e.what()));
     }
 }
-*/
 
 
 ToolsPage::ToolsPage(QWidget* parent) : QWidget(parent),
@@ -252,6 +250,7 @@ ToolsPage::ToolsPage(QWidget* parent) : QWidget(parent),
     connect(ui->btn_zapwallettxes2, SIGNAL(clicked()), this, SLOT(walletZaptxes2()));
     connect(ui->btn_upgradewallet, SIGNAL(clicked()), this, SLOT(walletUpgrade()));
     connect(ui->btn_reindex, SIGNAL(clicked()), this, SLOT(walletReindex()));
+    connect(ui->btn_resync, SIGNAL(clicked()), this, SLOT(walletResync()));
 
     // set library version labels
     ui->openSSLVersion->setText(SSLeay_version(SSLEAY_VERSION));
@@ -437,6 +436,27 @@ void ToolsPage::walletReindex()
     buildParameterlist(REINDEX);
 }
 
+/** Restart wallet with "-resync" */
+void ToolsPage::walletResync()
+{
+    QString resyncWarning = tr("This will delete your local blockchain folders and the wallet will synchronize the complete Blockchain from scratch.<br /><br />");
+        resyncWarning +=   tr("This needs quite some time and downloads a lot of data.<br /><br />");
+        resyncWarning +=   tr("Your transactions and funds will be visible again after the download has completed.<br /><br />");
+        resyncWarning +=   tr("Do you want to continue?.<br />");
+
+    QMessageBox::StandardButton retval = QMessageBox::question(this, tr("Confirm resync Blockchain"),
+        resyncWarning,
+        QMessageBox::Yes | QMessageBox::Cancel,
+        QMessageBox::Cancel);
+    if (retval != QMessageBox::Yes) {
+        // Resync canceled
+        return;
+    }
+
+    // Restart and resync
+    buildParameterlist(RESYNC);
+}
+
 /** Build command-line parameter list for restart */
 void ToolsPage::buildParameterlist(QString arg)
 {
@@ -451,6 +471,7 @@ void ToolsPage::buildParameterlist(QString arg)
     args.removeAll(ZAPTXES2);
     args.removeAll(UPGRADEWALLET);
     args.removeAll(REINDEX);
+    args.removeAll(RESYNC);
 
     // Append repair parameter to command line.
     args.append(arg);
@@ -490,8 +511,6 @@ void ToolsPage::clear()
                            tr("Type <b>help</b> for an overview of available commands.")),
         true);
 }
-
-
 
 void ToolsPage::reject()
 {

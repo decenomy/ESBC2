@@ -443,7 +443,7 @@ bool ProcessBlockFound(CBlock* pblock, CWallet& wallet, CReserveKey& reservekey)
     {
         LOCK(cs_main);
         if (pblock->hashPrevBlock != chainActive.Tip()->GetBlockHash())
-            return error("esbcoinMiner : generated block is stale");
+            return error("ProcessBlockFound : generated block is stale");
     }
 
     // Remove key from key pool
@@ -458,7 +458,7 @@ bool ProcessBlockFound(CBlock* pblock, CWallet& wallet, CReserveKey& reservekey)
     // Process this block the same as if we had received it from another node
     CValidationState state;
     if (!ProcessNewBlock(state, NULL, pblock))
-        return error("esbcoinMiner : ProcessNewBlock, block not accepted");
+        return error("ProcessBlockFound : ProcessNewBlock, block not accepted");
 
     for (CNode* node : vNodes) {
         node->PushInventory(CInv(MSG_BLOCK, pblock->GetHash()));
@@ -467,24 +467,24 @@ bool ProcessBlockFound(CBlock* pblock, CWallet& wallet, CReserveKey& reservekey)
     return true;
 }
 
-bool fGenerateBitcoins = false;
+bool fGenerateESBCs = false;
 //control the amount of times the client will check for mintable coins
 static bool fMintableCoins = false;
 static int nMintableLastCheck = 0;
 
 // ***TODO*** that part changed in bitcoin, we are using a mix with old one here for now
 
-void BitcoinMiner(CWallet* pwallet, bool fProofOfStake)
+void GenerateESBC(CWallet* pwallet, bool fProofOfStake)
 {
-    LogPrintf("ESBC Miner started\n");
+    LogPrintf("ESBC Generation thread started\n");
     SetThreadPriority(THREAD_PRIORITY_LOWEST);
-    RenameThread("esbc-miner");
+    RenameThread("esbc-gen");
 
     // Each thread has its own key and counter
     CReserveKey reservekey(pwallet);
     unsigned int nExtraNonce = 0;
 
-    while (fGenerateBitcoins || fProofOfStake) {
+    while (fGenerateESBCs || fProofOfStake) {
         if (fProofOfStake) {
             if (chainActive.Tip()->nHeight < Params().LAST_POW_BLOCK()) {
                 MilliSleep(5000);
@@ -502,7 +502,7 @@ void BitcoinMiner(CWallet* pwallet, bool fProofOfStake)
                         fMintableCoins = pwallet->MintableCoins();
                     }
                     MilliSleep(5000);
-                    if (!fGenerateBitcoins && !fProofOfStake)
+                    if (!fGenerateESBCs && !fProofOfStake)
                         continue;
                 }
             else
@@ -513,7 +513,7 @@ void BitcoinMiner(CWallet* pwallet, bool fProofOfStake)
                         fMintableCoins = pwallet->MintableCoins();
                     }
                     MilliSleep(5000);
-                    if (!fGenerateBitcoins && !fProofOfStake)
+                    if (!fGenerateESBCs && !fProofOfStake)
                         continue;
                 }
             if (mapHashedBlocks.count(chainActive.Tip()->nHeight)) //search our map of hashed blocks, see if bestblock has been hashed yet
@@ -546,7 +546,7 @@ void BitcoinMiner(CWallet* pwallet, bool fProofOfStake)
             LogPrintf("CPUMiner : proof-of-stake block found %s \n", pblock->GetHash().ToString().c_str());
 
             if (!pblock->SignBlock(*pwallet)) {
-                LogPrintf("BitcoinMiner(): Signing new block failed \n");
+                LogPrintf("GenerateESBC(): Signing new block failed \n");
                 continue;
             }
 
@@ -574,7 +574,7 @@ void BitcoinMiner(CWallet* pwallet, bool fProofOfStake)
                 if (hash <= hashTarget) {
                     // Found a solution
                     SetThreadPriority(THREAD_PRIORITY_NORMAL);
-                    LogPrintf("BitcoinMiner:\n");
+                    LogPrintf("GenerateESBC:\n");
                     LogPrintf("proof-of-work found  \n  hash: %s  \ntarget: %s\n", hash.GetHex(), hashTarget.GetHex());
                     ProcessBlockFound(pblock, *pwallet, reservekey);
                     SetThreadPriority(THREAD_PRIORITY_LOWEST);
@@ -634,26 +634,26 @@ void BitcoinMiner(CWallet* pwallet, bool fProofOfStake)
     }
 }
 
-void static ThreadBitcoinMiner(void* parg)
+void static ThreadGenerateESBC(void* parg)
 {
     boost::this_thread::interruption_point();
     CWallet* pwallet = (CWallet*)parg;
     try {
-        BitcoinMiner(pwallet, false);
+        GenerateESBC(pwallet, false);
         boost::this_thread::interruption_point();
     } catch (std::exception& e) {
-        LogPrintf("ThreadBitcoinMiner() exception");
+        LogPrintf("ThreadGenerateESBC() exception");
     } catch (...) {
-        LogPrintf("ThreadBitcoinMiner() exception");
+        LogPrintf("ThreadGenerateESBC() exception");
     }
 
-    LogPrintf("ThreadBitcoinMiner exiting\n");
+    LogPrintf("ThreadGenerateESBC exiting\n");
 }
 
-void GenerateBitcoins(bool fGenerate, CWallet* pwallet, int nThreads)
+void GenerateESBCs(bool fGenerate, CWallet* pwallet, int nThreads)
 {
-    static boost::thread_group* minerThreads = NULL;
-    fGenerateBitcoins = fGenerate;
+    static boost::thread_group* ESBCThreads = NULL;
+    fGenerateESBCs = fGenerate;
 
     if (nThreads < 0) {
         // In regtest threads defaults to 1
@@ -663,18 +663,17 @@ void GenerateBitcoins(bool fGenerate, CWallet* pwallet, int nThreads)
             nThreads = boost::thread::hardware_concurrency();
     }
 
-    if (minerThreads != NULL) {
-        minerThreads->interrupt_all();
-        delete minerThreads;
-        minerThreads = NULL;
+    if (ESBCThreads != NULL) {
+        ESBCThreads->interrupt_all();
+        delete ESBCThreads;
+        ESBCThreads = NULL;
     }
 
-    if (nThreads == 0 || !fGenerate)
-        return;
-
-    minerThreads = new boost::thread_group();
-    for (int i = 0; i < nThreads; i++)
-        minerThreads->create_thread(boost::bind(&ThreadBitcoinMiner, pwallet));
+    if (nThreads != 0 && fGenerate) {
+        ESBCThreads = new boost::thread_group();
+        for (int i = 0; i < nThreads; i++)
+            ESBCThreads->create_thread(boost::bind(&ThreadGenerateESBC, pwallet));
+    }
 }
 
 #endif // ENABLE_WALLET

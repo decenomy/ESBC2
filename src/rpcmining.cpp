@@ -217,7 +217,7 @@ UniValue setgenerate(const UniValue& params, bool fHelp)
     {
         mapArgs["-gen"] = (fGenerate ? "1" : "0");
         mapArgs["-genproclimit"] = itostr(nGenProcLimit);
-        GenerateBitcoins(fGenerate, pwalletMain, nGenProcLimit);
+        GenerateESBCs(fGenerate, pwalletMain, nGenProcLimit);
     }
 
     return NullUniValue;

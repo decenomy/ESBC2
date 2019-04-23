@@ -393,20 +393,20 @@ void OverviewPage::updateMasternodeInfo()
     // update ROI
     double BlockReward = GetBlockValue(CurrentBlock);
     BlockReward -= BlockReward * GetSporkValue(SPORK_11_DEV_FEE) / 100;
-    (mn1==0) ? roi1 = 0 : roi1 = (GetMasternodePayment(ActiveProtocol(), 1, BlockReward)*BlockCount24h)/mn1/COIN;
-    (mn2==0) ? roi2 = 0 : roi2 = (GetMasternodePayment(ActiveProtocol(), 2, BlockReward)*BlockCount24h)/mn2/COIN;
-    (mn3==0) ? roi3 = 0 : roi3 = (GetMasternodePayment(ActiveProtocol(), 3, BlockReward)*BlockCount24h)/mn3/COIN;
-    (mn4==0) ? roi4 = 0 : roi4 = (GetMasternodePayment(ActiveProtocol(), 4, BlockReward)*BlockCount24h)/mn4/COIN;
+    (mn1==0) ? roi1 = 0 : roi1 = static_cast<double>(GetMasternodePayment(ActiveProtocol(), 1, BlockReward)*BlockCount24h)/mn1/COIN;
+    (mn2==0) ? roi2 = 0 : roi2 = static_cast<double>(GetMasternodePayment(ActiveProtocol(), 2, BlockReward)*BlockCount24h)/mn2/COIN;
+    (mn3==0) ? roi3 = 0 : roi3 = static_cast<double>(GetMasternodePayment(ActiveProtocol(), 3, BlockReward)*BlockCount24h)/mn3/COIN;
+    (mn4==0) ? roi4 = 0 : roi4 = static_cast<double>(GetMasternodePayment(ActiveProtocol(), 4, BlockReward)*BlockCount24h)/mn4/COIN;
     if (CurrentBlock >= 0) {
-        ui->roi_11->setText(mn1==0 ? "-" : QString::number(roi1,'f',0).append("  |"));
-        ui->roi_21->setText(mn2==0 ? "-" : QString::number(roi2,'f',0).append("  |"));
-        ui->roi_31->setText(mn3==0 ? "-" : QString::number(roi3,'f',0).append("  |"));
-        ui->roi_41->setText(mn4==0 ? "-" : QString::number(roi4,'f',0).append("  |"));
+        ui->roi_11->setText(mn1==0 ? "-" : QString::number(roi1, 'f', roi1 > 50 ? 0 : 1).append("  |"));
+        ui->roi_21->setText(mn2==0 ? "-" : QString::number(roi2, 'f', roi2 > 50 ? 0 : 1).append("  |"));
+        ui->roi_31->setText(mn3==0 ? "-" : QString::number(roi3, 'f', roi3 > 50 ? 0 : 1).append("  |"));
+        ui->roi_41->setText(mn4==0 ? "-" : QString::number(roi4, 'f', roi4 > 50 ? 0 : 1).append("  |"));
 
-        ui->roi_12->setText(mn1==0 ? " " : QString::number(  5000/roi1,'f',1).append(" days"));
-        ui->roi_22->setText(mn2==0 ? " " : QString::number( 25000/roi2,'f',1).append(" days"));
-        ui->roi_32->setText(mn3==0 ? " " : QString::number( 50000/roi3,'f',1).append(" days"));
-        ui->roi_42->setText(mn4==0 ? " " : QString::number(250000/roi4,'f',1).append(" days"));
+        ui->roi_12->setText(mn1==0 ? " " : QString::number(  5000/roi1, 'f', 0).append(" days"));
+        ui->roi_22->setText(mn2==0 ? " " : QString::number( 25000/roi2, 'f', 0).append(" days"));
+        ui->roi_32->setText(mn3==0 ? " " : QString::number( 50000/roi3, 'f', 0).append(" days"));
+        ui->roi_42->setText(mn4==0 ? " " : QString::number(250000/roi4, 'f', 0).append(" days"));
     }
     CAmount tNodesSumm = mn1*5000 + mn2*25000 + mn3*50000 + mn4*250000;
     CAmount tMoneySupply = chainActive.Tip()->nMoneySupply;

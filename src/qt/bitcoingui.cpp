@@ -153,8 +153,6 @@ QString windowTitle = tr("ESBC") + " - ";
     setUnifiedTitleAndToolBarOnMac(true);
 #endif
 
-     rpcConsole = new ToolsPage(enableWallet ? this : 0);
-
 #ifdef ENABLE_WALLET
     if (enableWallet) {
         /** Create wallet frame*/
@@ -166,6 +164,7 @@ QString windowTitle = tr("ESBC") + " - ";
         /* When compiled without wallet or -disablewallet is provided,
          * the central widget is the rpc console.
          */
+        rpcConsole = new ToolsPage(enableWallet ? this : 0);
         setCentralWidget(rpcConsole);
     }
 
@@ -672,12 +671,14 @@ void BitcoinGUI::setClientModel(ClientModel* clientModel)
         // Show progress dialog
         connect(clientModel, SIGNAL(showProgress(QString, int)), this, SLOT(showProgress(QString, int)));
 
-        rpcConsole->setClientModel(clientModel);
 #ifdef ENABLE_WALLET
         if (walletFrame) {
             walletFrame->setClientModel(clientModel);
-        }
+        } else
 #endif // ENABLE_WALLET
+        {
+            rpcConsole->setClientModel(clientModel);
+        }
 
     } else {
         // Disable possibility to show main window via action

@@ -269,7 +269,7 @@ void MasternodeList::updateMyMasternodeInfo(QString strAlias, QString strAddr, C
     GUIUtil::DHMSTableWidgetItem* activeSecondsItem = new GUIUtil::DHMSTableWidgetItem(pmn ? activeSeconds : 0);
     QTableWidgetItem* lastSeenItem = new QTableWidgetItem(QString::fromStdString(DateTimeStrFormat("%Y-%m-%d %H:%M", pmn ? pmn->lastPing.sigTime + GetOffsetFromUtc() : 0)));
     QTableWidgetItem* pubkeyItem = new QTableWidgetItem(QString::fromStdString(pmn ? pubkey : ""));
-    QTableWidgetItem* mnReward = new QTableWidgetItem(QString::number(masternodeCoins/COIN,'f',1));
+    QTableWidgetItem* mnReward = new QTableWidgetItem(QString::number(static_cast<double>(masternodeCoins)/COIN,'f',2));
     //mnReward->setTextAlignment(Qt::AlignRight);
     QTableWidgetItem* mnLuck = new QTableWidgetItem(activeSeconds > 30*60*60 ? QString::number(tLuck,'f',1).append("%") : QString::fromStdString("-"));
     //mnLuck->setTextAlignment(Qt::AlignHCenter);
@@ -378,7 +378,7 @@ void MasternodeList::updateNodeList()
         QTableWidgetItem *activeSecondsItem = new QTableWidgetItem(QString::fromStdString(DurationToDHMS(activeSeconds)));
         QTableWidgetItem *lastSeenItem = new QTableWidgetItem(QString::fromStdString(DateTimeStrFormat("%Y-%m-%d %H:%M", mn.lastPing.sigTime + offsetFromUtc)));
         QTableWidgetItem *pubkeyItem = new QTableWidgetItem(QString::fromStdString(pubkey));
-        QTableWidgetItem *mnReward = new QTableWidgetItem(QString::number(masternodeCoins/COIN,'f',1));
+        QTableWidgetItem *mnReward = new QTableWidgetItem(QString::number(static_cast<double>(masternodeCoins)/COIN,'f',2));
         //mnReward->setTextAlignment(Qt::AlignRight);
         QTableWidgetItem *mnLuck = new QTableWidgetItem(activeSeconds > 30*60*60 ? QString::number(tLuck,'f',1).append("%") : QString::fromStdString("-"));
         //mnLuck->setTextAlignment(Qt::AlignHCenter);

@@ -253,7 +253,7 @@ bool GetKernelStakeModifier(uint256 hashBlockFrom, uint64_t& nStakeModifier, int
     nStakeModifierHeight = pindexFrom->nHeight;
     nStakeModifierTime = pindexFrom->GetBlockTime();
     int64_t nStakeModifierSelectionInterval = GetStakeModifierSelectionInterval();
-    if (ActiveProtocol() >= CONSENSUS_FORK_PROTO && nTime >= GetSporkValue(SPORK_10_NEW_PROTOCOL_ENFORCEMENT_2))
+    if (ActiveProtocol() >= CONSENSUS_FORK_PROTO && nTime >= CONSENSUS_FORK_PROTO_TIME)
         nStakeModifierSelectionInterval = nStakeMinAge * 3 / 4;
     const CBlockIndex* pindex = pindexFrom;
     CBlockIndex* pindexNext = chainActive[pindexFrom->nHeight + 1];
@@ -405,7 +405,7 @@ bool CheckProofOfStake(const CBlock block, uint256& hashProofOfStake)
 
     unsigned int nTime = block.nTime;
     if (ActiveProtocol() >= CONSENSUS_FORK_PROTO &&
-        nTime >= GetSporkValue(SPORK_10_NEW_PROTOCOL_ENFORCEMENT_2) &&
+        nTime >= CONSENSUS_FORK_PROTO_TIME &&
         txPrev.vout[txin.prevout.n].nValue < Params().StakeInputMin())
             return error("CheckProofOfStake(): stake input below minimal value");
 

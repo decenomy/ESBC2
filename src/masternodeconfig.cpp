@@ -76,6 +76,15 @@ bool CMasternodeConfig::read(std::string& strErr)
             return false;
         }
 
+        try {
+            outputIndex = std::to_string(std::stoi(outputIndex));
+        } catch (const std::exception e) {
+            strErr = _("Could not parse Tx index in masternode.conf") + "\n" +
+                     strprintf(_("Line: %d"), linenumber) + "\n\"" + line + "\"\n" +
+                     e.what();
+            streamConfig.close();
+            return false;
+        }
 
         add(alias, ip, privKey, txHash, outputIndex);
     }

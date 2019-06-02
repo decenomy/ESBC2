@@ -6,6 +6,8 @@ Visit our ANN thread at [BitcoinTalk](https://bitcointalk.org/index.php?topic=48
 
 Join to our group at [Discord](https://discord.gg/C6t23JH)
 
+Follow us at [Twitter](https://esbc.pro/link/twitter)
+
 ***
 
 ### Coin Specs

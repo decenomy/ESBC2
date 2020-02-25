@@ -251,6 +251,9 @@ private slots:
     void showGraph();
     void showPeers();
     void showRepair();
+    void showConfEditor();
+    void showMNConfEditor();
+    void showBackups();
 
     /** Show window if hidden, unminimize when minimized, rise when obscured or show if hidden and fToggleHidden is true */
     void showNormalIfMinimized(bool fToggleHidden = false);

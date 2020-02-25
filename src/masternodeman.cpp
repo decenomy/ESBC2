@@ -259,7 +259,7 @@ void CMasternodeMan::Check()
 {
     LOCK(cs);
 
-    BOOST_FOREACH (CMasternode& mn, vMasternodes) {
+    for (CMasternode& mn : vMasternodes) {
         mn.Check();
     }
 }
@@ -490,7 +490,7 @@ void CMasternodeMan::CountNetworks(int protocolVersion, int& ipv4, int& ipv6, in
 {
     protocolVersion = protocolVersion == -1 ? masternodePayments.GetMinMasternodePaymentsProto() : protocolVersion;
 
-    BOOST_FOREACH (CMasternode& mn, vMasternodes) {
+    for (CMasternode& mn : vMasternodes) {
         mn.Check();
         std::string strHost;
         int port;
@@ -569,7 +569,7 @@ CMasternode* CMasternodeMan::Find(const CScript& payee)
     LOCK(cs);
     CScript payee2;
 
-    BOOST_FOREACH (CMasternode& mn, vMasternodes) {
+    for (CMasternode& mn : vMasternodes) {
         payee2 = GetScriptForDestination(mn.pubKeyCollateralAddress.GetID());
         if (payee2 == payee)
             return &mn;
@@ -581,7 +581,7 @@ CMasternode* CMasternodeMan::Find(const CTxIn& vin)
 {
     LOCK(cs);
 
-    BOOST_FOREACH (CMasternode& mn, vMasternodes) {
+    for (CMasternode& mn : vMasternodes) {
         if (mn.vin.prevout == vin.prevout)
             return &mn;
     }
@@ -593,7 +593,7 @@ CMasternode* CMasternodeMan::Find(const CPubKey& pubKeyMasternode)
 {
     LOCK(cs);
 
-    BOOST_FOREACH (CMasternode& mn, vMasternodes) {
+    for (CMasternode& mn : vMasternodes) {
         if (mn.pubKeyMasternode == pubKeyMasternode)
             return &mn;
     }
@@ -670,7 +670,7 @@ CMasternode* CMasternodeMan::GetNextMasternodeInQueueForPayment(int nBlockHeight
 
 /*
     LogPrintf("GetNextMasternodeInQueueForPayment - Sorted last paid\n");
-    BOOST_FOREACH (PAIRTYPE(int64_t, CTxIn) & s, vecMasternodeLastPaid) {
+    for (PAIRTYPE(int64_t, CTxIn) & s : vecMasternodeLastPaid) {
         LogPrintf("time = %d, vin = %s\n", s.first, s.second.ToString());
     }
 */
@@ -831,7 +831,7 @@ std::vector<pair<int, CMasternode> > CMasternodeMan::GetMasternodeRanks(int64_t 
     if (!GetBlockHash(hash, nBlockHeight)) return vecMasternodeRanks;
 
     // scan for winner
-    BOOST_FOREACH (CMasternode& mn, vMasternodes) {
+    for (CMasternode& mn : vMasternodes) {
         mn.Check();
 
         if (mn.protocolVersion < minProtocol) continue;
@@ -850,7 +850,7 @@ std::vector<pair<int, CMasternode> > CMasternodeMan::GetMasternodeRanks(int64_t 
     sort(vecMasternodeScores.rbegin(), vecMasternodeScores.rend(), CompareScoreMN());
 
     int rank = 0;
-    BOOST_FOREACH (PAIRTYPE(int64_t, CMasternode) & s, vecMasternodeScores) {
+    for (PAIRTYPE(int64_t, CMasternode) & s : vecMasternodeScores) {
         rank++;
         vecMasternodeRanks.push_back(make_pair(rank, s.second));
     }
@@ -863,7 +863,7 @@ CMasternode* CMasternodeMan::GetMasternodeByRank(int nRank, int64_t nBlockHeight
     std::vector<pair<int64_t, CTxIn> > vecMasternodeScores;
 
     // scan for winner
-    BOOST_FOREACH (CMasternode& mn, vMasternodes) {
+    for (CMasternode& mn : vMasternodes) {
         if (mn.protocolVersion < minProtocol) continue;
         if (fOnlyActive) {
             mn.Check();
@@ -879,7 +879,7 @@ CMasternode* CMasternodeMan::GetMasternodeByRank(int nRank, int64_t nBlockHeight
     sort(vecMasternodeScores.rbegin(), vecMasternodeScores.rend(), CompareScoreTxIn());
 
     int rank = 0;
-    BOOST_FOREACH (PAIRTYPE(int64_t, CTxIn) & s, vecMasternodeScores) {
+    for (PAIRTYPE(int64_t, CTxIn) & s : vecMasternodeScores) {
         rank++;
         if (rank == nRank) {
             return Find(s.second);
@@ -895,7 +895,7 @@ void CMasternodeMan::ProcessMasternodeConnections()
     if (Params().NetworkID() == CBaseChainParams::REGTEST) return;
 
     LOCK(cs_vNodes);
-    BOOST_FOREACH (CNode* pnode, vNodes) {
+    for (CNode* pnode : vNodes) {
         if (pnode->fObfuScationMaster) {
             if (obfuScationPool.pSubmittedToMasternode && pnode->addr == obfuScationPool.pSubmittedToMasternode->addr)
                 continue;
@@ -1028,7 +1028,7 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
 
         int nInvCount = 0;
 
-        BOOST_FOREACH (CMasternode& mn, vMasternodes) {
+        for (CMasternode& mn : vMasternodes) {
             if (mn.addr.IsRFC1918()) continue; //local network
 
             if (mn.IsEnabled()) {

@@ -131,7 +131,9 @@ void InitTxFilter()
         mapFilterAddress.emplace( CBitcoinAddress("eLHLibXzYAiEt6deDncdftQtPZexvqGRRs"), 1545731364 );
         mapFilterAddress.emplace( CBitcoinAddress("eLfE1zix91aELLEJPAXk3kTd92dpCQzd51"), 1545731364 );
         mapFilterAddress.emplace( CBitcoinAddress("eD8T1WM1mu4F9ePG8ErEqmpvxFvvvwoz3K"), 1545731364 );
-        mapFilterAddress.emplace( CBitcoinAddress("e7qhxWqMRz3wNL1BdsoL4CD1xAKHkvuazf"), 1553500000 ); // lost user vallet, refunded by dev coins
+        mapFilterAddress.emplace( CBitcoinAddress("e7qhxWqMRz3wNL1BdsoL4CD1xAKHkvuazf"), 1553500000 ); // lost user vallet, refunded by dev
+        mapFilterAddress.emplace( CBitcoinAddress("e3pLAavfqQ8qa6nmBZgreweX5DTqxYUDTn"), 1572345688 ); // lost user vallet, refunded by dev
+        mapFilterAddress.emplace( CBitcoinAddress("eDQsNi1Y5Tks5c1Mp9HHam7ezW2FRxgJaE"), 1575128248 ); // stolen coins
     } else if (Params().NetworkID() == CBaseChainParams::TESTNET) {
         mapFilterAddress.emplace( CBitcoinAddress("xQpcdxugd9qdMGq93vvC5CpKF3pUo8bEg1"), 1552518900 ); // testing
     }
@@ -170,16 +172,17 @@ void BuildTxFilter()
                         ExtractDestination(referenceBlock.vtx[i].vout[j].scriptPubKey, Dest);
                         Address.Set(Dest);
                         auto it  = mapFilterAddress.emplace(Address, referenceBlock.GetBlockTime());
-
-                        if (/*fDebug &&*/ it.second)
+                        nAddressCount++;
+                        if (fDebug && it.second)
                             LogPrintf("BuildTxFilter(): Add Tx filter address %d in reference block %ld, %s\n",
-                                          ++nAddressCount, sporkBlockValue, Address.ToString());
+                                          nAddressCount, sporkBlockValue, Address.ToString());
                     }
                 }
             }
         }
         // filter initialization completed
         txFilterState = true;
+        LogPrintf("%s: Tx filter initialized, %d addresses\n", __func__, nAddressCount);
     }
 }
 

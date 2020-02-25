@@ -175,7 +175,7 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, CWallet* pwallet, 
             double dPriority = 0;
             CAmount nTotalIn = 0;
             bool fMissingInputs = false;
-            BOOST_FOREACH (const CTxIn& txin, tx.vin) {
+            for (const CTxIn& txin : tx.vin) {
                 // Read prev transaction
                 if (!view.HaveCoins(txin.prevout.hash)) {
                     // This should never happen; all transactions in the memory
@@ -304,7 +304,7 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, CWallet* pwallet, 
 
             // Add transactions that depend on this one to the priority queue
             if (mapDependers.count(hash)) {
-                BOOST_FOREACH (COrphan* porphan, mapDependers[hash]) {
+                for (COrphan* porphan : mapDependers[hash]) {
                     if (!porphan->setDependsOn.empty()) {
                         porphan->setDependsOn.erase(hash);
                         if (porphan->setDependsOn.empty()) {
@@ -424,14 +424,24 @@ void IncrementExtraNonce(CBlock* pblock, CBlockIndex* pindexPrev, unsigned int& 
 double dHashesPerSec = 0.0;
 int64_t nHPSTimerStart = 0;
 
-CBlockTemplate* CreateNewBlockWithKey(CReserveKey& reservekey, CWallet* pwallet, bool fProofOfStake)
+CBlockTemplate* CreateNewBlockWithKey(CReserveKey& reservekey, CWallet* pwallet)
 {
     CPubKey pubkey;
     if (!reservekey.GetReservedKey(pubkey))
-        return NULL;
+        return nullptr;
+
+    const int nHeightNext = chainActive.Tip()->nHeight + 1;
+    static int nLastPOWBlock = Params().LAST_POW_BLOCK();
+
+    if ((nHeightNext > nLastPOWBlock)) {
+        LogPrintf("%s: Aborting PoW block creation during PoS phase\n", __func__);
+        // sleep 1/2 a block time so we don't go into a tight loop.
+        MilliSleep((Params().PoSTargetSpacing() * 1000) >> 1);
+        return nullptr;
+    }
 
     CScript scriptPubKey = CScript() << ToByteVector(pubkey) << OP_CHECKSIG;
-    return CreateNewBlock(scriptPubKey, pwallet, fProofOfStake);
+    return CreateNewBlock(scriptPubKey, pwallet, false);
 }
 
 bool ProcessBlockFound(CBlock* pblock, CWallet& wallet, CReserveKey& reservekey)
@@ -534,7 +544,10 @@ void GenerateESBC(CWallet* pwallet, bool fProofOfStake)
         if (!pindexPrev)
             continue;
 
-        unique_ptr<CBlockTemplate> pblocktemplate(CreateNewBlockWithKey(reservekey, pwallet, fProofOfStake));
+        std::unique_ptr<CBlockTemplate> pblocktemplate(
+            fProofOfStake ? CreateNewBlock(CScript(), pwallet, fProofOfStake) : CreateNewBlockWithKey(reservekey, pwallet)
+        );
+
         if (!pblocktemplate.get())
             continue;
 

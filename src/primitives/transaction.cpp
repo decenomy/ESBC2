@@ -14,7 +14,7 @@
 #include "tinyformat.h"
 #include "utilstrencodings.h"
 
-#include <boost/foreach.hpp>
+
 
 extern bool GetTransaction(const uint256 &hash, CTransaction &txOut, uint256 &hashBlock, bool fAllowSlow);
 

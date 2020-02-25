@@ -276,7 +276,7 @@ void CMasternodePayments::ProcessMessageMasternodePayments(CNode* pfrom, std::st
 
             if (!winner.SignatureValid()) {
                 LogPrintf("mnwp - invalid signature\n");
-                if (masternodeSync.IsSynced()) Misbehaving(pfrom->GetId(), 20);
+                if (masternodeSync.IsSynced()) Misbehaving(pfrom->GetId(), 5);
                 // it could just be a non-synced masternode
                 mnodeman.AskForMN(pfrom, winner.vinMasternode);
                 continue;
@@ -764,7 +764,7 @@ bool CMasternodePaymentWinner::SignatureValid()
     std::string errorMessage;
 
     if (!obfuScationSigner.VerifyMessage(pmn->pubKeyMasternode, vchSig, strMessage, errorMessage)) {
-        return error("CMasternodePaymentWinner::SignatureValid() - Got bad Masternode address signature %s\n", vinMasternode.prevout.hash.ToString());
+        return error("CMasternodePaymentWinner::SignatureValid() - Got bad Masternode address signature %s", vinMasternode.prevout.hash.ToString());
     }
 
     return true;

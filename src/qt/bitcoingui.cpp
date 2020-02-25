@@ -907,6 +907,21 @@ void BitcoinGUI::showRepair()
     walletFrame->gotoToolsPageTab(ToolsPage::TAB_REPAIR);
 }
 
+void BitcoinGUI::showConfEditor()
+{
+    rpcConsole->showConfEditor();
+}
+
+void BitcoinGUI::showMNConfEditor()
+{
+    rpcConsole->showMNConfEditor();
+}
+
+void BitcoinGUI::showBackups()
+{
+    rpcConsole->showBackups();
+}
+
 void BitcoinGUI::gotoReceiveCoinsPage()
 {
     receiveCoinsAction->setChecked(true);

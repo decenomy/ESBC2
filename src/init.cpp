@@ -1277,6 +1277,8 @@ bool AppInit2(boost::thread_group& threadGroup)
     size_t nCoinDBCache = nTotalCache / 2; // use half of the remaining cache for coindb cache
     nTotalCache -= nCoinDBCache;
     nCoinCacheSize = nTotalCache / 300; // coins in memory require around 300 bytes
+    LogPrintf("Db Cache Size = %u\n", nDefaultDbCache);
+    LogPrintf("Coin Cache Size = %u\n", nCoinCacheSize);
 
     bool fLoaded = false;
     while (!fLoaded && !ShutdownRequested()) {
@@ -1343,7 +1345,7 @@ bool AppInit2(boost::thread_group& threadGroup)
                         }
                     }
 
-                    if (!CVerifyDB().VerifyDB(pcoinsdbview, GetArg("-checklevel", 4), GetArg("-checkblocks", 100))) {
+                    if (!CVerifyDB().VerifyDB(pcoinsdbview, GetArg("-checklevel", 4), GetArg("-checkblocks", 500))) {
                         strLoadError = _("Corrupted block database detected");
                         break;
                     }

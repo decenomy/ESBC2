@@ -1664,6 +1664,18 @@ double ConvertBitsToDouble(unsigned int nBits)
     return dDiff;
 }
 
+CAmount GetDevFeeValue(int nHeight)
+{
+    int64_t nAmount = 0;
+    int nDevFeeCycle = 5040;
+    int devFee = 10; // 10%
+
+    if (!(nHeight % nDevFeeCycle) && (chainActive.Height() > CONSENSUS_FORK_REWARD_UPDATE_BLOCK))
+        nAmount = (GetBlockValue(nHeight) * devFee / 100) * nDevFeeCycle;
+
+    return nAmount;
+}
+
 CAmount GetBlockValue(int nHeight)
 {
     // anti instamine
@@ -1708,19 +1720,25 @@ CAmount GetBlockValue(int nHeight)
             nSubsidy = 25 * COIN;
         } else if (nHeight >= 522808 && nHeight < 652809) {
             nSubsidy = 12.5 * COIN;
-        } else if (nHeight >= 652809) {
+        } else if (nHeight >= 652809 && nHeight < CONSENSUS_FORK_REWARD_UPDATE_BLOCK) {
             nSubsidy = 6.25 * COIN;
+        } else if (nHeight >= CONSENSUS_FORK_REWARD_UPDATE_BLOCK && nHeight < CONSENSUS_FORK_REWARD_UPDATE_BLOCK + 1000) {
+            nSubsidy = 0 * COIN;
+        } else if (nHeight >= CONSENSUS_FORK_REWARD_UPDATE_BLOCK + 1000) {
+            nSubsidy = 25 * COIN;
         }
     }
 
-    // Check if we reached the coin max supply.
-    int64_t nMoneySupply = chainActive.Tip()->nMoneySupply;
-
+    if (chainActive.Height() > CONSENSUS_FORK_REWARD_UPDATE_BLOCK)
+      return nSubsidy;
+    else {
+      // Check if we reached the coin max supply.
+      int64_t nMoneySupply = chainActive.Tip()->nMoneySupply;
       if (nMoneySupply + nSubsidy >= Params().MaxMoneyOut())
         nSubsidy = Params().MaxMoneyOut() - nMoneySupply;
-
-    if (nMoneySupply >= Params().MaxMoneyOut())
-      nSubsidy = 0;
+      if (nMoneySupply >= Params().MaxMoneyOut())
+        nSubsidy = 0;
+    }
 
     return nSubsidy;
 }
@@ -1730,7 +1748,14 @@ int64_t GetMasternodePayment(int nProtocol, unsigned mnlevel, int64_t blockValue
 //    if (nHeight <= Params().StartMNPaymentsBlock())
 //        return 0;
 
-    if (nProtocol >= CONSENSUS_FORK_PROTO) {
+    if (nProtocol >= CONSENSUS_FORK_REWARD_UPDATE_PROTOCOL) {
+        switch(mnlevel) {
+            case 1: return blockValue * 0.09;
+            case 2: return blockValue * 0.18;
+            case 3: return blockValue * 0.27;
+            case 4: return blockValue * 0.36;
+        }
+    } else if (nProtocol >= CONSENSUS_FORK_PROTO) {
         switch(mnlevel) {
             case 1: return blockValue * 0.15;
             case 2: return blockValue * 0.20;
@@ -2276,7 +2301,7 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
     LogPrint("bench", "      - Connect %u transactions: %.2fms (%.3fms/tx, %.3fms/txin) [%.2fs]\n", (unsigned)block.vtx.size(), 0.001 * (nTime1 - nTimeStart), 0.001 * (nTime1 - nTimeStart) / block.vtx.size(), nInputs <= 1 ? 0 : 0.001 * (nTime1 - nTimeStart) / (nInputs - 1), nTimeConnect * 0.000001);
 
     //PoW phase redistributed fees to miner. PoS stage destroys fees.
-    CAmount nExpectedMint = GetBlockValue(pindex->pprev->nHeight);
+    CAmount nExpectedMint = GetBlockValue(pindex->pprev->nHeight) + GetDevFeeValue(pindex->pprev->nHeight);
     if (block.IsProofOfWork())
         nExpectedMint += nFees;
 
@@ -3891,7 +3916,7 @@ bool static LoadBlockIndexDB(string& strError)
     bool fLastShutdownWasPrepared = true;
     pblocktree->ReadFlag("shutdown", fLastShutdownWasPrepared);
     LogPrintf("%s: Last shutdown was prepared: %s\n", __func__, fLastShutdownWasPrepared);
-
+/*
     //Check for inconsistency with block file info and internal state
     if (!fLastShutdownWasPrepared && !GetBoolArg("-forcestart", false) && !GetBoolArg("-reindex", false)
         && pcoinsTip->GetBestBlock() != vSortedByHeight[vinfoBlockFile[nLastBlockFile].nHeightLast + 1].second->GetBlockHash()) {
@@ -3945,11 +3970,11 @@ bool static LoadBlockIndexDB(string& strError)
         LogPrintf("%s: Last block properly recorded: #%d %s\n", __func__, pindexLastMeta->nHeight, pindexLastMeta->GetBlockHash().ToString().c_str());
         LogPrintf("%s : pcoinstip=%d %s\n", __func__, mapBlockIndex[pcoinsTip->GetBestBlock()]->nHeight, pcoinsTip->GetBestBlock().GetHex());
     }
-
+*/
     // Check whether we need to continue reindexing
     bool fReindexing = false;
     pblocktree->ReadReindexing(fReindexing);
-    fReindex |= fReindexing;
+    if (fReindexing) fReindex = true;
 
     // Check whether we have a transaction index
     pblocktree->ReadFlag("txindex", fTxIndex);
@@ -5491,6 +5516,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
 int ActiveProtocol()
 {
     //if (IsSporkActive(SPORK_10_NEW_PROTOCOL_ENFORCEMENT_2)) return MIN_PEER_PROTO_VERSION_AFTER_ENFORCEMENT;
+    if (chainActive.Height() > CONSENSUS_FORK_REWARD_UPDATE_BLOCK) return CONSENSUS_FORK_REWARD_UPDATE_PROTOCOL;
 
     return MIN_PEER_PROTO_VERSION_BEFORE_ENFORCEMENT;
 }

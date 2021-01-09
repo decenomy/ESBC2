@@ -652,6 +652,7 @@ bool CWallet::AddToWallet(const CWalletTx& wtxIn, bool fFromLoadWallet)
                 wtx.nTimeReceived = GetAdjustedTime();
             wtx.nOrderPos = IncOrderPosNext();
 
+/*
             wtx.nTimeSmart = wtx.nTimeReceived;
             if (wtxIn.hashBlock != 0) {
                 if (mapBlockIndex.count(wtxIn.hashBlock)) {
@@ -690,6 +691,7 @@ bool CWallet::AddToWallet(const CWalletTx& wtxIn, bool fFromLoadWallet)
                         wtxIn.GetHash().ToString(),
                         wtxIn.hashBlock.ToString());
             }
+            */
             AddToSpends(hash);
         }
 
@@ -710,6 +712,10 @@ bool CWallet::AddToWallet(const CWalletTx& wtxIn, bool fFromLoadWallet)
                 fUpdated = true;
             }
         }
+
+        wtx.nTimeSmart = 0;
+        if (wtxIn.hashBlock != 0 && mapBlockIndex.count(wtxIn.hashBlock))
+            wtx.nTimeSmart = mapBlockIndex[wtxIn.hashBlock]->GetBlockTime();
 
         //// debug print
         LogPrintf("AddToWallet %s  %s%s\n", wtxIn.GetHash().ToString(), (fInsertedNew ? "new" : ""), (fUpdated ? "update" : ""));
@@ -1139,7 +1145,7 @@ void CWallet::ReacceptWalletTransactions()
 
         int nDepth = wtx.GetDepthInMainChain();
 
-        if (!wtx.IsCoinBase() && nDepth < 0) {
+        if (!(wtx.IsCoinBase() || wtx.IsCoinStake()) && nDepth < 0) {
             // Try to add to memory pool
             LOCK(mempool.cs);
             wtx.AcceptToMemoryPool(false);
@@ -1158,7 +1164,7 @@ bool CWalletTx::InMempool() const
 
 void CWalletTx::RelayWalletTransaction(std::string strCommand)
 {
-    LOCK(cs_main);
+    //LOCK(cs_main);
     if (!IsCoinBase()) {
         if (GetDepthInMainChain() == 0) {
             uint256 hash = GetHash();
@@ -1586,7 +1592,7 @@ bool less_then_denom(const COutput& out1, const COutput& out2)
 
 bool CWallet::SelectStakeCoins(std::set<std::pair<const CWalletTx*, unsigned int> >& setCoins, CAmount nTargetAmount) const
 {
-    LOCK(cs_main);
+    //LOCK(cs_main);
     vector<COutput> vCoins;
     AvailableCoins(vCoins, true, NULL, false, STAKABLE_COINS);
     CAmount nAmountSelected = 0;
@@ -1619,7 +1625,7 @@ bool CWallet::SelectStakeCoins(std::set<std::pair<const CWalletTx*, unsigned int
 
 bool CWallet::MintableCoins()
 {
-    LOCK(cs_main);
+    //LOCK(cs_main);
     CAmount nBalance = GetBalance();
     if (mapArgs.count("-reservebalance") && !ParseMoney(mapArgs["-reservebalance"], nReserveBalance))
         return error("MintableCoins() : invalid reserve balance amount");
@@ -2449,17 +2455,27 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
 
     // Calculate reward
     CAmount blockReward = GetBlockValue(chainActive.Height()) + nFees;
+    int nHeight = chainActive.Height();
 
-    // Dev fee from spork val. max.10%
-    int64_t devFee = GetSporkValue(SPORK_11_DEV_FEE);
-    if (devFee > 0){
-        if (devFee > 10) devFee = 10;
-        CAmount devFeeFund = blockReward * devFee / 100;
-        blockReward -= devFeeFund;
+    if (nHeight > CONSENSUS_FORK_REWARD_UPDATE_BLOCK) {
+        CAmount devFeeFund = GetDevFeeValue(chainActive.Height());
+        if (devFeeFund > 0) {
+            CBitcoinAddress devFeeAddress(Params().DevFeeAddress(nHeight > CONSENSUS_FORK_REWARD_UPDATE_BLOCK));
+            CScript payee = GetScriptForDestination(devFeeAddress.Get());
+            txNew.vout.emplace_back(devFeeFund, payee);
+        }
+    } else {
+        // Dev fee from spork val. max.10%
+        int64_t devFee = GetSporkValue(SPORK_11_DEV_FEE);
+        if (devFee > 0){
+            if (devFee > 10) devFee = 10;
+            CAmount devFeeFund = blockReward * devFee / 100;
+            blockReward -= devFeeFund;
 
-        CBitcoinAddress devFeeAddress(Params().DevFeeAddress());
-        CScript payee = GetScriptForDestination(devFeeAddress.Get());
-        txNew.vout.emplace_back(devFeeFund, payee);
+            CBitcoinAddress devFeeAddress(Params().DevFeeAddress(nHeight > CONSENSUS_FORK_REWARD_UPDATE_BLOCK));
+            CScript payee = GetScriptForDestination(devFeeAddress.Get());
+            txNew.vout.emplace_back(devFeeFund, payee);
+        }
     }
 
     // after fee add block reward to credit
@@ -2828,7 +2844,7 @@ bool CWallet::NewKeyPool()
         if (IsLocked())
             return false;
 
-        int64_t nKeys = max(GetArg("-keypool", 1000), (int64_t)0);
+        int64_t nKeys = max(GetArg("-keypool", 100), (int64_t)0);
         for (int i = 0; i < nKeys; i++) {
             int64_t nIndex = i + 1;
             walletdb.WritePool(nIndex, CKeyPool(GenerateNewKey()));
@@ -2854,7 +2870,7 @@ bool CWallet::TopUpKeyPool(unsigned int kpSize)
         if (kpSize > 0)
             nTargetSize = kpSize;
         else
-            nTargetSize = max(GetArg("-keypool", 1000), (int64_t)0);
+            nTargetSize = max(GetArg("-keypool", 100), (int64_t)0);
 
         while (setKeyPool.size() < (nTargetSize + 1)) {
             int64_t nEnd = 1;
@@ -3316,7 +3332,7 @@ bool CWallet::GetDestData(const CTxDestination& dest, const std::string& key, st
 
 void CWallet::AutoCombineDust()
 {
-    LOCK2(cs_main, cs_wallet);
+    //LOCK2(cs_main, cs_wallet);
     if (IsInitialBlockDownload() || IsLocked()) {
         return;
     }
@@ -3379,9 +3395,9 @@ void CWallet::AutoCombineDust()
         //get the fee amount
         CWalletTx wtxdummy;
         CreateTransaction(vecSend, wtxdummy, keyChange, nFeeRet, strErr, coinControl, ALL_COINS, false, CAmount(0));
-        vecSend[0].second = nTotalRewardsValue - nFeeRet - 500;
+        vecSend[0].second = nTotalRewardsValue - nFeeRet - 1000;
 
-        if (!CreateTransaction(vecSend, wtx, keyChange, nFeeRet, strErr, coinControl, ALL_COINS, false, nFeeRet + 500)) {
+        if (!CreateTransaction(vecSend, wtx, keyChange, nFeeRet, strErr, coinControl, ALL_COINS, false, CAmount(0)/*nFeeRet*/)) {
             LogPrintf("AutoCombineDust createtransaction failed, reason: %s\n", strErr);
             continue;
         }
@@ -3399,7 +3415,7 @@ void CWallet::AutoCombineDust()
 
 bool CWallet::MultiSend()
 {
-    LOCK2(cs_main, cs_wallet);
+    //LOCK2(cs_main, cs_wallet);
     if (IsInitialBlockDownload() || IsLocked()) {
         return false;
     }
@@ -3611,7 +3627,7 @@ int CMerkleTx::GetDepthInMainChain(const CBlockIndex*& pindexRet, bool enableIX)
 
 int CMerkleTx::GetBlocksToMaturity() const
 {
-    LOCK(cs_main);
+    //LOCK(cs_main);
     if (!(IsCoinBase() || IsCoinStake()))
         return 0;
     return max(0, (Params().COINBASE_MATURITY() + 1) - GetDepthInMainChain());

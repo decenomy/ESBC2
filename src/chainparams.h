@@ -111,7 +111,7 @@ public:
     int LAST_POW_BLOCK() const { return nLastPOWBlock; }
     int StartMNPaymentsBlock() const {return nStartMasternodePaymentsBlock; }
 
-    std::string DevFeeAddress() const { return strDevFeeAddress; }
+    std::string DevFeeAddress(const bool fNew = false) const { return fNew ? strDevFeeAddress : strDevFeeAddressOld; }
     CAmount StakeInputMin() const { return nStakeInputMin; }
 
 protected:
@@ -163,6 +163,7 @@ protected:
     std::string strObfuscationPoolDummyAddress;
     int64_t nStartMasternodePayments;
     std::string strDevFeeAddress;
+    std::string strDevFeeAddressOld;
     CAmount nStakeInputMin;
 };
 

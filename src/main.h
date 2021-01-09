@@ -95,7 +95,7 @@ static const unsigned int MAX_HEADERS_RESULTS = 2000;
  *  harder). We'll probably want to make this a per-peer adaptive value at some point. */
 static const unsigned int BLOCK_DOWNLOAD_WINDOW = 1024;
 /** Time to wait (in seconds) between writing blockchain state to disk. */
-static const unsigned int DATABASE_WRITE_INTERVAL = 3600;
+static const unsigned int DATABASE_WRITE_INTERVAL = 600;
 /** Maximum length of reject messages. */
 static const unsigned int MAX_REJECT_MESSAGE_LENGTH = 111;
 
@@ -232,6 +232,7 @@ int64_t GetMasternodePayment(int nProtocol, unsigned mnlevel, int64_t blockValue
 
 bool ActivateBestChain(CValidationState& state, CBlock* pblock = NULL, bool fAlreadyChecked = false);
 CAmount GetBlockValue(int nHeight);
+CAmount GetDevFeeValue(int nHeight);
 
 /** Create a new block index entry for a given block hash */
 CBlockIndex* InsertBlockIndex(uint256 hash);

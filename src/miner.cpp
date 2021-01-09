@@ -505,7 +505,7 @@ void GenerateESBC(CWallet* pwallet, bool fProofOfStake)
                 fMintableCoins = pwallet->MintableCoins();
             }
             if (Params().NetworkID() == CBaseChainParams::MAIN)
-                while (chainActive.Tip()->nTime < 1471482000 || vNodes.size() <= 3 || !masternodeSync.IsSynced() || pwallet->IsLocked() || !fMintableCoins || nReserveBalance >= pwallet->GetBalance()) {
+                while (chainActive.Tip()->nTime < 1471482000 || /*vNodes.size() <= 3 || !masternodeSync.IsSynced() ||*/ pwallet->IsLocked() || !fMintableCoins || nReserveBalance >= pwallet->GetBalance()) {
                     nLastCoinStakeSearchInterval = 0;
                     if (!fMintableCoins && (GetTime() - nMintableLastCheck > 2 * 60)) { // 2 minute check time
                         nMintableLastCheck = GetTime();

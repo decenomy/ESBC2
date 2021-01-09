@@ -225,7 +225,7 @@ std::string BlockToString(CBlockIndex* pBlock)
     if (pBlock->nHeight == 0)
         Generated = OutVolume;
     else
-        Generated = GetBlockValue(pBlock->nHeight - 1);
+        Generated = GetBlockValue(pBlock->nHeight - 1) + GetDevFeeValue(pBlock->nHeight - 1);
 
     std::string BlockContentCells[] =
         {
@@ -401,7 +401,7 @@ std::string AddressToString(const CBitcoinAddress& Address)
     {
         std::vector<CDiskTxPos> Txs;
         paddressmap->GetTxs(Txs, AddressScript.GetID());
-        BOOST_FOREACH (const CDiskTxPos& pos, Txs)
+        for (const CDiskTxPos& pos : Txs)
         {
             CTransaction tx;
             CBlock block;

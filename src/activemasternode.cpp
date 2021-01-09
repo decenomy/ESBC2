@@ -314,7 +314,7 @@ bool CActiveMasternode::GetMasterNodeVin(CTxIn& vin, CPubKey& pubkey, CKey& secr
             return false;
         }
 
-        BOOST_FOREACH (COutput& out, possibleCoins) {
+        for (COutput& out : possibleCoins) {
 
             if(out.tx->GetHash() != txHash || out.i != outputIndex)
                 continue;
@@ -392,7 +392,7 @@ vector<COutput> CActiveMasternode::SelectCoinsMasternode()
     // Temporary unlock MN coins from masternode.conf
     if (GetBoolArg("-mnconflock", true)) {
         uint256 mnTxHash;
-        BOOST_FOREACH (CMasternodeConfig::CMasternodeEntry mne, masternodeConfig.getEntries()) {
+        for (CMasternodeConfig::CMasternodeEntry mne : masternodeConfig.getEntries()) {
             mnTxHash.SetHex(mne.getTxHash());
 
             int nIndex;
@@ -410,12 +410,12 @@ vector<COutput> CActiveMasternode::SelectCoinsMasternode()
 
     // Lock MN coins from masternode.conf back if they where temporary unlocked
     if (!confLockedCoins.empty()) {
-        BOOST_FOREACH (COutPoint outpoint, confLockedCoins)
+        for (COutPoint outpoint : confLockedCoins)
             pwalletMain->LockCoin(outpoint);
     }
 
     // Filter
-    BOOST_FOREACH (const COutput& out, vCoins) {
+    for (const COutput& out : vCoins) {
 
         if(CMasternode::IsDepositCoins(out.tx->vout[out.i].nValue))
             filteredCoins.push_back(out);

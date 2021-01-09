@@ -28,7 +28,7 @@ class NetworkStyle;
 class Notificator;
 class OptionsModel;
 class BlockExplorer;
-class RPCConsole;
+class ToolsPage;
 class SendCoinsRecipient;
 class UnitDisplayStatusBarControl;
 class WalletFrame;
@@ -136,7 +136,7 @@ private:
     QSystemTrayIcon* trayIcon;
     QMenu* trayIconMenu;
     Notificator* notificator;
-    RPCConsole* rpcConsole;
+    ToolsPage* rpcConsole;
     BlockExplorer* explorerWindow;
 
     /** Keep track of previous number of blocks, to detect progress */
@@ -251,6 +251,9 @@ private slots:
     void showGraph();
     void showPeers();
     void showRepair();
+    void showConfEditor();
+    void showMNConfEditor();
+    void showBackups();
 
     /** Show window if hidden, unminimize when minimized, rise when obscured or show if hidden and fToggleHidden is true */
     void showNormalIfMinimized(bool fToggleHidden = false);

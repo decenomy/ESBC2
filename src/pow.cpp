@@ -38,12 +38,12 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast)
     if (pindexLast->nHeight >= Params().LAST_POW_BLOCK()) {
         uint256 bnTargetLimit = (~uint256(0) >> 24);
         int64_t nTargetSpacing = Params().PoSTargetSpacing(); // 60 sec
-        if (ActiveProtocol() >= CONSENSUS_FORK_PROTO && pindexLast->GetBlockTime() >= GetSporkValue(SPORK_10_NEW_PROTOCOL_ENFORCEMENT_2))
+        if (ActiveProtocol() >= CONSENSUS_FORK_PROTO && pindexLast->GetBlockTime() >= CONSENSUS_FORK_PROTO_TIME)
         {
-            if (pindexLast->GetBlockTime() >= GetSporkValue(SPORK_10_NEW_PROTOCOL_ENFORCEMENT_2) + 6 * 7 * 24 * 60 * 60)
+            if (pindexLast->GetBlockTime() >= CONSENSUS_FORK_PROTO_TIME + 6 * 7 * 24 * 60 * 60)
                 nTargetSpacing = 120; // 120 sec. block time after trasition period
             else {
-                int64_t nTimeTarget = pindexLast->GetBlockTime() - GetSporkValue(SPORK_10_NEW_PROTOCOL_ENFORCEMENT_2);
+                int64_t nTimeTarget = pindexLast->GetBlockTime() - CONSENSUS_FORK_PROTO_TIME;
                 nTimeTarget = (nTimeTarget / (7 * 24 * 60 * 60)) + 1;
                 nTargetSpacing += nTimeTarget * 10; // slow down 10 sec. each week
             }

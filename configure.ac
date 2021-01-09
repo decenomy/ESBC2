@@ -1,12 +1,12 @@
 dnl require autoconf 2.60 (AS_ECHO/AS_ECHO_N)
 AC_PREREQ([2.60])
 define(_CLIENT_VERSION_MAJOR, 2)
-define(_CLIENT_VERSION_MINOR, 1)
+define(_CLIENT_VERSION_MINOR, 3)
 define(_CLIENT_VERSION_REVISION, 0)
-define(_CLIENT_VERSION_BUILD, 2)
+define(_CLIENT_VERSION_BUILD, 0)
 define(_CLIENT_VERSION_IS_RELEASE, true)
-define(_COPYRIGHT_YEAR, 2019)
-AC_INIT([ESBC Core],[_CLIENT_VERSION_MAJOR._CLIENT_VERSION_MINOR._CLIENT_VERSION_REVISION],[http://esbproject.online/],[esbcoin])
+define(_COPYRIGHT_YEAR, 2021)
+AC_INIT([ESBC Core],[_CLIENT_VERSION_MAJOR._CLIENT_VERSION_MINOR._CLIENT_VERSION_REVISION],[http://esbc.pro/],[esbcoin])
 AC_CONFIG_SRCDIR([src/main.cpp])
 AC_CONFIG_HEADERS([src/config/esbcoin-config.h])
 AC_CONFIG_AUX_DIR([build-aux])
@@ -203,6 +203,33 @@ fi
 if test "x$CXXFLAGS_overridden" = "xno"; then
   CXXFLAGS="$CXXFLAGS -Wall -Wextra -Wformat -Wformat-security -Wno-unused-parameter"
 fi
+
+# Check for optional instruction set support. Enabling these does _not_ imply that all code will
+# be compiled with them, rather that specific objects/libs may use them after checking for runtime
+# compatibility.
+AX_CHECK_COMPILE_FLAG([-msse4.2],[[SSE42_CXXFLAGS="-msse4.2"]],,[[$CXXFLAG_WERROR]])
+TEMP_CXXFLAGS="$CXXFLAGS"
+CXXFLAGS="$CXXFLAGS $SSE42_CXXFLAGS"
+AC_MSG_CHECKING(for assembler crc32 support)
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+    #include <stdint.h>
+    #if defined(_MSC_VER)
+    #include <intrin.h>
+    #elif defined(__GNUC__) && defined(__SSE4_2__)
+    #include <nmmintrin.h>
+    #endif
+  ]],[[
+    uint64_t l = 0;
+    l = _mm_crc32_u8(l, 0);
+    l = _mm_crc32_u32(l, 0);
+    l = _mm_crc32_u64(l, 0);
+    return l;
+  ]])],
+ [ AC_MSG_RESULT(yes); enable_hwcrc32=yes],
+ [ AC_MSG_RESULT(no)]
+)
+CXXFLAGS="$TEMP_CXXFLAGS"
+
 CPPFLAGS="$CPPFLAGS -DBOOST_SPIRIT_THREADSAFE -DHAVE_BUILD_INFO -D__STDC_FORMAT_MACROS"
 
 AC_ARG_WITH([utils],
@@ -268,7 +295,7 @@ case $host in
      fi
 
      CPPFLAGS="$CPPFLAGS -D_MT -DWIN32 -D_WINDOWS -DBOOST_THREAD_USE_LIB"
-     LEVELDB_TARGET_FLAGS="TARGET_OS=OS_WINDOWS_CROSSCOMPILE"
+     LEVELDB_TARGET_FLAGS="-DOS_WINDOWS"
      if test "x$CXXFLAGS_overridden" = "xno"; then
        CXXFLAGS="$CXXFLAGS -w"
      fi
@@ -290,7 +317,7 @@ case $host in
      ;;
   *darwin*)
      TARGET_OS=darwin
-     LEVELDB_TARGET_FLAGS="TARGET_OS=Darwin"
+     LEVELDB_TARGET_FLAGS="-DOS_MACOSX"
      if  test x$cross_compiling != xyes; then
        BUILD_OS=darwin
        AC_CHECK_PROG([PORT],port, port)
@@ -357,8 +384,18 @@ case $host in
      ;;
    *linux*)
      TARGET_OS=linux
+     LEVELDB_TARGET_FLAGS="-DOS_LINUX"
+     ;;
+   *freebsd*)
+     LEVELDB_TARGET_FLAGS="-DOS_FREEBSD"
+     ;;
+   *openbsd*)
+     LEVELDB_TARGET_FLAGS="-DOS_OPENBSD"
      ;;
    *)
+     OTHER_OS=`echo ${host_os} | awk '{print toupper($0)}'`
+     AC_MSG_WARN([Guessing LevelDB OS as OS_${OTHER_OS}, please check whether this is correct, if not add an entry to configure.ac.])
+     LEVELDB_TARGET_FLAGS="-DOS_${OTHER_OS}"
      ;;
 esac
 
@@ -1008,6 +1045,7 @@ AM_CONDITIONAL([USE_COMPARISON_TOOL],[test x$use_comparison_tool != xno])
 AM_CONDITIONAL([USE_COMPARISON_TOOL_REORG_TESTS],[test x$use_comparison_tool_reorg_test != xno])
 AM_CONDITIONAL([GLIBC_BACK_COMPAT],[test x$use_glibc_compat = xyes])
 AM_CONDITIONAL([USE_LIBSECP256K1],[test x$use_libsecp256k1 = xyes])
+AM_CONDITIONAL([ENABLE_HWCRC32],[test x$enable_hwcrc32 = xyes])
 
 AC_DEFINE(CLIENT_VERSION_MAJOR, _CLIENT_VERSION_MAJOR, [Major version])
 AC_DEFINE(CLIENT_VERSION_MINOR, _CLIENT_VERSION_MINOR, [Minor version])
@@ -1027,6 +1065,7 @@ AC_SUBST(BITCOIN_CLI_NAME)
 AC_SUBST(BITCOIN_TX_NAME)
 
 AC_SUBST(RELDFLAGS)
+AC_SUBST(SSE42_CXXFLAGS)
 AC_SUBST(LIBTOOL_APP_LDFLAGS)
 AC_SUBST(USE_UPNP)
 AC_SUBST(USE_QRCODE)

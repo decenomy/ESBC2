@@ -276,7 +276,7 @@ void CMasternodePayments::ProcessMessageMasternodePayments(CNode* pfrom, std::st
 
             if (!winner.SignatureValid()) {
                 LogPrintf("mnwp - invalid signature\n");
-                if (masternodeSync.IsSynced()) Misbehaving(pfrom->GetId(), 20);
+                if (masternodeSync.IsSynced()) Misbehaving(pfrom->GetId(), 5);
                 // it could just be a non-synced masternode
                 mnodeman.AskForMN(pfrom, winner.vinMasternode);
                 continue;
@@ -460,26 +460,40 @@ bool CMasternodeBlockPayees::IsTransactionValid(const CTransaction& txNew)
         return true;
 
     CAmount nReward = GetBlockValue(nBlockHeight - 1);
-    // substract dev fee if enable
-    int64_t devFee = GetSporkValue(SPORK_11_DEV_FEE);
-    if (devFee > 0){
-        bool foundDevFee = false;
-        if (devFee > 10) devFee = 10;
-        CAmount devFeeFund = nReward * devFee / 100;
-        nReward -= devFeeFund;
+    int nHeight = chainActive.Height();
 
-        CTxDestination Dest;
-        for (const CTxOut& out : txNew.vout) {
-            ExtractDestination(out.scriptPubKey, Dest);
-            if (Params().DevFeeAddress() == CBitcoinAddress(Dest).ToString()) {
-                foundDevFee = out.nValue >= devFeeFund;
-                if (!foundDevFee)
-                    LogPrintf("Dev fee payment is out of range. Paid=%s Min=%s\n", FormatMoney(out.nValue).c_str(), FormatMoney(devFeeFund).c_str());
-                break;
+    if (nHeight > CONSENSUS_FORK_REWARD_UPDATE_BLOCK) {
+        CAmount devFeeFund = GetDevFeeValue(nBlockHeight - 1);
+        if (devFeeFund > 0) {
+            CTxDestination Dest;
+            ExtractDestination(txNew.vout[2].scriptPubKey, Dest);
+            if (((Params().DevFeeAddress(nHeight > CONSENSUS_FORK_REWARD_UPDATE_BLOCK)) != CBitcoinAddress(Dest).ToString()) && (txNew.vout[2].nValue != devFeeFund)) {
+                LogPrintf("Dev fee payment is out of range. Paid=%s Req=%s\n", FormatMoney(txNew.vout[2].nValue).c_str(), FormatMoney(devFeeFund).c_str());
+                return error("Bad dev fee payment\n");
             }
         }
-        if (!foundDevFee)
-            return error("Dev fee payment not found\n");
+    } else {
+        // substract dev fee if enable
+        int64_t devFee = GetSporkValue(SPORK_11_DEV_FEE);
+        if (devFee > 0){
+            bool foundDevFee = false;
+            if (devFee > 10) devFee = 10;
+            CAmount devFeeFund = nReward * devFee / 100;
+            nReward -= devFeeFund;
+
+            CTxDestination Dest;
+            for (const CTxOut& out : txNew.vout) {
+                ExtractDestination(out.scriptPubKey, Dest);
+                if ((Params().DevFeeAddress(nHeight > CONSENSUS_FORK_REWARD_UPDATE_BLOCK)) == CBitcoinAddress(Dest).ToString()) {
+                    foundDevFee = out.nValue >= devFeeFund;
+                    if (!foundDevFee)
+                        LogPrintf("Dev fee payment is out of range. Paid=%s Min=%s\n", FormatMoney(out.nValue).c_str(), FormatMoney(devFeeFund).c_str());
+                    break;
+                }
+            }
+            if (!foundDevFee)
+                return error("Dev fee payment not found\n");
+        }
     }
 
     std::string strPayeesPossible;
@@ -764,7 +778,7 @@ bool CMasternodePaymentWinner::SignatureValid()
     std::string errorMessage;
 
     if (!obfuScationSigner.VerifyMessage(pmn->pubKeyMasternode, vchSig, strMessage, errorMessage)) {
-        return error("CMasternodePaymentWinner::SignatureValid() - Got bad Masternode address signature %s\n", vinMasternode.prevout.hash.ToString());
+        return error("CMasternodePaymentWinner::SignatureValid() - Got bad Masternode address signature %s", vinMasternode.prevout.hash.ToString());
     }
 
     return true;

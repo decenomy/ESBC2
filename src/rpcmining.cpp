@@ -191,15 +191,22 @@ UniValue setgenerate(const UniValue& params, bool fHelp)
         }
         unsigned int nExtraNonce = 0;
         UniValue blockHashes(UniValue::VARR);
+        bool fPoS = nHeight >= Params().LAST_POW_BLOCK();
         while (nHeight < nHeightEnd) {
-            unique_ptr<CBlockTemplate> pblocktemplate(CreateNewBlockWithKey(reservekey, pwalletMain, false));
+            std::unique_ptr<CBlockTemplate> pblocktemplate(
+                fPoS ? CreateNewBlock(CScript(), pwalletMain, fPoS) : CreateNewBlockWithKey(reservekey, pwalletMain)
+            );
             if (!pblocktemplate.get())
                 throw JSONRPCError(RPC_INTERNAL_ERROR, "Wallet keypool empty");
             CBlock* pblock = &pblocktemplate->block;
-            {
-                LOCK(cs_main);
-                IncrementExtraNonce(pblock, chainActive.Tip(), nExtraNonce);
+
+            if(!fPoS) {
+                {
+                    LOCK(cs_main);
+                    IncrementExtraNonce(pblock, chainActive.Tip(), nExtraNonce);
+                }
             }
+
             while (!CheckProofOfWork(pblock->GetHash(), pblock->nBits)) {
                 // Yes, there is a chance every nonce could fail to satisfy the -regtest
                 // target -- 1 in 2^(2^32). That ain't gonna happen.
@@ -210,6 +217,7 @@ UniValue setgenerate(const UniValue& params, bool fHelp)
             if (!ProcessNewBlock(state, NULL, pblock))
                 throw JSONRPCError(RPC_INTERNAL_ERROR, "ProcessNewBlock, block not accepted");
             ++nHeight;
+            fPoS = nHeight >= Params().LAST_POW_BLOCK();
             blockHashes.push_back(pblock->GetHash().GetHex());
         }
         return blockHashes;
@@ -217,7 +225,7 @@ UniValue setgenerate(const UniValue& params, bool fHelp)
     {
         mapArgs["-gen"] = (fGenerate ? "1" : "0");
         mapArgs["-genproclimit"] = itostr(nGenProcLimit);
-        GenerateBitcoins(fGenerate, pwalletMain, nGenProcLimit);
+        GenerateESBCs(fGenerate, pwalletMain, nGenProcLimit);
     }
 
     return NullUniValue;
@@ -535,7 +543,7 @@ UniValue getblocktemplate(const UniValue& params, bool fHelp)
     UniValue transactions(UniValue::VARR);
     map<uint256, int64_t> setTxIndex;
     int i = 0;
-    BOOST_FOREACH (CTransaction& tx, pblock->vtx) {
+    for (CTransaction& tx : pblock->vtx) {
         uint256 txHash = tx.GetHash();
         setTxIndex[txHash] = i++;
 
@@ -549,7 +557,7 @@ UniValue getblocktemplate(const UniValue& params, bool fHelp)
         entry.push_back(Pair("hash", txHash.GetHex()));
 
         UniValue deps(UniValue::VARR);
-        BOOST_FOREACH (const CTxIn& in, tx.vin) {
+        for (const CTxIn& in : tx.vin) {
             if (setTxIndex.count(in.prevout.hash))
                 deps.push_back(setTxIndex[in.prevout.hash]);
         }

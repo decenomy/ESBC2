@@ -144,7 +144,7 @@ void MasternodeList::StartAlias(std::string strAlias)
 {
     std::string strStatusHtml;
     strStatusHtml += "<center>Alias: " + strAlias;
-    BOOST_FOREACH (CMasternodeConfig::CMasternodeEntry mne, masternodeConfig.getEntries()) {
+    for (CMasternodeConfig::CMasternodeEntry mne : masternodeConfig.getEntries()) {
         if (mne.getAlias() == strAlias) {
             std::string strError;
             std::string strOverall;
@@ -174,7 +174,7 @@ void MasternodeList::StartAll(std::string strCommand)
     int nCountFailed = 0;
     std::string strFailedHtml;
 
-    BOOST_FOREACH (CMasternodeConfig::CMasternodeEntry mne, masternodeConfig.getEntries()) {
+    for (CMasternodeConfig::CMasternodeEntry mne : masternodeConfig.getEntries()) {
         std::string strError;
         std::string strAlias = mne.getAlias();
         std::string strOverall;
@@ -269,7 +269,7 @@ void MasternodeList::updateMyMasternodeInfo(QString strAlias, QString strAddr, C
     GUIUtil::DHMSTableWidgetItem* activeSecondsItem = new GUIUtil::DHMSTableWidgetItem(pmn ? activeSeconds : 0);
     QTableWidgetItem* lastSeenItem = new QTableWidgetItem(QString::fromStdString(DateTimeStrFormat("%Y-%m-%d %H:%M", pmn ? pmn->lastPing.sigTime + GetOffsetFromUtc() : 0)));
     QTableWidgetItem* pubkeyItem = new QTableWidgetItem(QString::fromStdString(pmn ? pubkey : ""));
-    QTableWidgetItem* mnReward = new QTableWidgetItem(QString::number(masternodeCoins/COIN,'f',1));
+    QTableWidgetItem* mnReward = new QTableWidgetItem(QString::number(static_cast<double>(masternodeCoins)/COIN,'f',2));
     //mnReward->setTextAlignment(Qt::AlignRight);
     QTableWidgetItem* mnLuck = new QTableWidgetItem(activeSeconds > 30*60*60 ? QString::number(tLuck,'f',1).append("%") : QString::fromStdString("-"));
     //mnLuck->setTextAlignment(Qt::AlignHCenter);
@@ -300,7 +300,7 @@ void MasternodeList::updateMyNodeList(bool fForce)
     nTimeMyListUpdated = GetTime();
 
     ui->tableWidgetMyMasternodes->setSortingEnabled(false);
-    BOOST_FOREACH (CMasternodeConfig::CMasternodeEntry mne, masternodeConfig.getEntries()) {
+    for (CMasternodeConfig::CMasternodeEntry mne : masternodeConfig.getEntries()) {
         int nIndex;
         if(!mne.castOutputIndex(nIndex))
             continue;
@@ -378,7 +378,7 @@ void MasternodeList::updateNodeList()
         QTableWidgetItem *activeSecondsItem = new QTableWidgetItem(QString::fromStdString(DurationToDHMS(activeSeconds)));
         QTableWidgetItem *lastSeenItem = new QTableWidgetItem(QString::fromStdString(DateTimeStrFormat("%Y-%m-%d %H:%M", mn.lastPing.sigTime + offsetFromUtc)));
         QTableWidgetItem *pubkeyItem = new QTableWidgetItem(QString::fromStdString(pubkey));
-        QTableWidgetItem *mnReward = new QTableWidgetItem(QString::number(masternodeCoins/COIN,'f',1));
+        QTableWidgetItem *mnReward = new QTableWidgetItem(QString::number(static_cast<double>(masternodeCoins)/COIN,'f',2));
         //mnReward->setTextAlignment(Qt::AlignRight);
         QTableWidgetItem *mnLuck = new QTableWidgetItem(activeSeconds > 30*60*60 ? QString::number(tLuck,'f',1).append("%") : QString::fromStdString("-"));
         //mnLuck->setTextAlignment(Qt::AlignHCenter);

@@ -50,7 +50,7 @@ using namespace boost;
                                                                   // misconfigured new nodes in the list.
                                                                   // Set this to zero to emulate classic behaviour
 #define SPORK_7_MN_REBROADCAST_ENFORCEMENT_DEFAULT 4102444800     // off
-#define SPORK_8_NEW_PROTOCOL_ENFORCEMENT_DEFAULT 1545674400       // 24/12/2018 @ 18:00 (UTC)
+#define SPORK_8_NEW_PROTOCOL_ENFORCEMENT_DEFAULT 4102444800       // off
 #define SPORK_9_TX_FILTERING_ENFORCEMENT_DEFAULT 0                // off
                                                   //1552426200
 #define SPORK_10_NEW_PROTOCOL_ENFORCEMENT_2_DEFAULT 1554746400    // Monday, 08-Apr-19 18:00:00 UTC

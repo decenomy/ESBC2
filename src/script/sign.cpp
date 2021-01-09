@@ -12,7 +12,7 @@
 #include "uint256.h"
 #include "util.h"
 
-#include <boost/foreach.hpp>
+
 
 using namespace std;
 
@@ -155,7 +155,7 @@ bool SignSignature(const CKeyStore &keystore, const CTransaction& txFrom, CMutab
 static CScript PushAll(const vector<valtype>& values)
 {
     CScript result;
-    BOOST_FOREACH(const valtype& v, values)
+    for(const valtype& v : values)
         result << v;
     return result;
 }
@@ -166,12 +166,12 @@ static CScript CombineMultisig(const CScript& scriptPubKey, const CTransaction& 
 {
     // Combine all the signatures we've got:
     set<valtype> allsigs;
-    BOOST_FOREACH(const valtype& v, sigs1)
+    for(const valtype& v : sigs1)
     {
         if (!v.empty())
             allsigs.insert(v);
     }
-    BOOST_FOREACH(const valtype& v, sigs2)
+    for(const valtype& v : sigs2)
     {
         if (!v.empty())
             allsigs.insert(v);
@@ -182,7 +182,7 @@ static CScript CombineMultisig(const CScript& scriptPubKey, const CTransaction& 
     unsigned int nSigsRequired = vSolutions.front()[0];
     unsigned int nPubKeys = vSolutions.size()-2;
     map<valtype, valtype> sigs;
-    BOOST_FOREACH(const valtype& sig, allsigs)
+    for(const valtype& sig : allsigs)
     {
         for (unsigned int i = 0; i < nPubKeys; i++)
         {

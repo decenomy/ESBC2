@@ -31,10 +31,11 @@
 static const int64_t nClientStartupTime = GetTime();
 
 struct statElement {
-  uint32_t blockTime; // block time
-  CAmount txInValue; // pos input value
-  std::vector<std::pair<std::string, CAmount>> mnPayee; // masternode payees
+    uint32_t blockTime; // block time
+    CAmount txInValue; // pos input value
+    std::vector<std::pair<std::string, CAmount>> mnPayee; // masternode payees
 };
+
 static int blockOldest = 0;
 static int blockLast = 0;
 static std::vector<std::pair<int, statElement>> statSourceData;
@@ -82,16 +83,14 @@ bool sortStat(const pair<int,statElement> &a, const pair<int,statElement> &b)
 
 void ClientModel::update24hStatsTimer()
 {
-  // Get required lock upfront. This avoids the GUI from getting stuck on
-  // periodical polls if the core is holding the locks for a longer time -
-  // for example, during a wallet rescan.
-  TRY_LOCK(cs_main, lockMain);
-  if (!lockMain) return;
+    if (IsInitialBlockDownload() || !masternodeSync.IsBlockchainSynced() || !masternodeSync.IsSynced()) return;
 
-  TRY_LOCK(cs_stat, lockStat);
-  if (!lockStat) return;
+    TRY_LOCK(cs_main, lockMain);
+    if (!lockMain) return;
 
-  if (masternodeSync.IsBlockchainSynced() && !IsInitialBlockDownload()) {
+    TRY_LOCK(cs_stat, lockStat);
+    if (!lockStat) return;
+
     qDebug() << __FUNCTION__ << ": Process stats...";
     const int64_t syncStartTime = GetTime();
 
@@ -177,40 +176,32 @@ void ClientModel::update24hStatsTimer()
 
     // recalc stats data if new block found
     if (currentBlock > blockLast && statSourceData.size() > 0) {
-      // sorting vector and get stats values
-      sort(statSourceData.begin(), statSourceData.end(), sortStat);
+        // sorting vector and get stats values
+        sort(statSourceData.begin(), statSourceData.end(), sortStat);
 
-      if (statSourceData.size() > 100) {
-        CAmount posAverage = 0;
-        for (auto it = statSourceData.begin(); it != statSourceData.begin() + 100; ++it)
-              posAverage += it->second.txInValue;
-        posMin = posAverage / 100;
-        for (auto it = statSourceData.rbegin(); it != statSourceData.rbegin() + 100; ++it)
-              posAverage += it->second.txInValue;
-        posMax = posAverage / 100;
-      } else {
-        posMin = statSourceData.front().second.txInValue;
-        posMax = statSourceData.back().second.txInValue;
-      }
+        if (statSourceData.size() > 100) {
+            CAmount posAverage = 0;
+            for (auto it = statSourceData.begin(); it != statSourceData.begin() + 100; ++it) posAverage += it->second.txInValue;
+            posMin = posAverage / 100;
+            for (auto it = statSourceData.rbegin(); it != statSourceData.rbegin() + 100; ++it) posAverage += it->second.txInValue;
+            posMax = posAverage / 100;
+        } else {
+            posMin = statSourceData.front().second.txInValue;
+            posMax = statSourceData.back().second.txInValue;
+        }
 
-      if (statSourceData.size() % 2) {
-        posMedian = (statSourceData[int(statSourceData.size()/2)].second.txInValue + statSourceData[int(statSourceData.size()/2)-1].second.txInValue) / 2;
-      } else {
-        posMedian = statSourceData[int(statSourceData.size()/2)-1].second.txInValue;
-      }
-      block24hCount = statSourceData.size();
+        if (statSourceData.size() % 2) {
+            posMedian = (statSourceData[int(statSourceData.size()/2)].second.txInValue + statSourceData[int(statSourceData.size()/2)-1].second.txInValue) / 2;
+        } else {
+            posMedian = statSourceData[int(statSourceData.size()/2)-1].second.txInValue;
+        }
+        block24hCount = statSourceData.size();
     }
 
     blockLast = currentBlock;
-
-    if (poll24hStatsTimer->interval() < 30000)
-        poll24hStatsTimer->setInterval(30000);
+    if (poll24hStatsTimer->interval() < 30000) poll24hStatsTimer->setInterval(30000);
 
     qDebug() << __FUNCTION__ << ": Stats ready...";
-  }
-
-  // sending signal
-  //emit stats24hUpdated();
 }
 
 int ClientModel::getNumConnections(unsigned int flags) const
@@ -221,7 +212,7 @@ int ClientModel::getNumConnections(unsigned int flags) const
         return vNodes.size();
 
     int nNum = 0;
-    BOOST_FOREACH (CNode* pnode, vNodes)
+    for (CNode* pnode : vNodes)
         if (flags & (pnode->fInbound ? CONNECTIONS_IN : CONNECTIONS_OUT))
             nNum++;
 

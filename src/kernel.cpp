@@ -88,7 +88,7 @@ static bool SelectBlockFromCandidates(
     bool fSelected = false;
     uint256 hashBest = 0;
     *pindexSelected = (const CBlockIndex*)0;
-    BOOST_FOREACH (const PAIRTYPE(int64_t, uint256) & item, vSortedByTimestamp) {
+    for (const PAIRTYPE(int64_t, uint256) & item : vSortedByTimestamp) {
         if (!mapBlockIndex.count(item.second))
             return error("SelectBlockFromCandidates: failed to find block index for candidate block %s", item.second.ToString().c_str());
 
@@ -226,7 +226,7 @@ bool ComputeNextStakeModifier(const CBlockIndex* pindexPrev, uint64_t& nStakeMod
                 strSelectionMap.replace(pindex->nHeight - nHeightFirstCandidate, 1, "=");
             pindex = pindex->pprev;
         }
-        BOOST_FOREACH (const PAIRTYPE(uint256, const CBlockIndex*) & item, mapSelectedBlocks) {
+        for (const std::pair<const uint256, const CBlockIndex*> &item : mapSelectedBlocks) {
             // 'S' indicates selected proof-of-stake blocks
             // 'W' indicates selected proof-of-work blocks
             strSelectionMap.replace(item.second->nHeight - nHeightFirstCandidate, 1, item.second->IsProofOfStake() ? "S" : "W");
@@ -253,7 +253,7 @@ bool GetKernelStakeModifier(uint256 hashBlockFrom, uint64_t& nStakeModifier, int
     nStakeModifierHeight = pindexFrom->nHeight;
     nStakeModifierTime = pindexFrom->GetBlockTime();
     int64_t nStakeModifierSelectionInterval = GetStakeModifierSelectionInterval();
-    if (ActiveProtocol() >= CONSENSUS_FORK_PROTO && nTime >= GetSporkValue(SPORK_10_NEW_PROTOCOL_ENFORCEMENT_2))
+    if (ActiveProtocol() >= CONSENSUS_FORK_PROTO && nTime >= CONSENSUS_FORK_PROTO_TIME)
         nStakeModifierSelectionInterval = nStakeMinAge * 3 / 4;
     const CBlockIndex* pindex = pindexFrom;
     CBlockIndex* pindexNext = chainActive[pindexFrom->nHeight + 1];
@@ -405,7 +405,7 @@ bool CheckProofOfStake(const CBlock block, uint256& hashProofOfStake)
 
     unsigned int nTime = block.nTime;
     if (ActiveProtocol() >= CONSENSUS_FORK_PROTO &&
-        nTime >= GetSporkValue(SPORK_10_NEW_PROTOCOL_ENFORCEMENT_2) &&
+        nTime >= CONSENSUS_FORK_PROTO_TIME &&
         txPrev.vout[txin.prevout.n].nValue < Params().StakeInputMin())
             return error("CheckProofOfStake(): stake input below minimal value");
 

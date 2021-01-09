@@ -17,7 +17,6 @@
 #include "openuridialog.h"
 #include "optionsdialog.h"
 #include "optionsmodel.h"
-#include "rpcconsole.h"
 #include "utilitydialog.h"
 #include "toolspage.h"
 
@@ -154,8 +153,6 @@ QString windowTitle = tr("ESBC") + " - ";
     setUnifiedTitleAndToolBarOnMac(true);
 #endif
 
-     rpcConsole = new RPCConsole(enableWallet ? this : 0);
-
 #ifdef ENABLE_WALLET
     if (enableWallet) {
         /** Create wallet frame*/
@@ -167,6 +164,7 @@ QString windowTitle = tr("ESBC") + " - ";
         /* When compiled without wallet or -disablewallet is provided,
          * the central widget is the rpc console.
          */
+        rpcConsole = new ToolsPage(enableWallet ? this : 0);
         setCentralWidget(rpcConsole);
     }
 
@@ -271,24 +269,13 @@ QString windowTitle = tr("ESBC") + " - ";
     connect(openNetworkAction, SIGNAL(triggered()), this, SLOT(showGraph()));
     connect(openPeersAction, SIGNAL(triggered()), this, SLOT(showPeers()));
     connect(openRepairAction, SIGNAL(triggered()), this, SLOT(showRepair()));
-/*
-    connect(openInfoAction, SIGNAL(triggered()), rpcConsole, SLOT(showInfo()));
-    connect(openRPCConsoleAction, SIGNAL(triggered()), rpcConsole, SLOT(showConsole()));
-    connect(openNetworkAction, SIGNAL(triggered()), rpcConsole, SLOT(showNetwork()));
-    connect(openPeersAction, SIGNAL(triggered()), rpcConsole, SLOT(showPeers()));
-    connect(openRepairAction, SIGNAL(triggered()), rpcConsole, SLOT(showRepair()));
-*/
-    connect(openConfEditorAction, SIGNAL(triggered()), rpcConsole, SLOT(showConfEditor()));
-    connect(openMNConfEditorAction, SIGNAL(triggered()), rpcConsole, SLOT(showMNConfEditor()));
-    connect(showBackupsAction, SIGNAL(triggered()), rpcConsole, SLOT(showBackups()));
+    connect(openConfEditorAction, SIGNAL(triggered()), this, SLOT(showConfEditor()));
+    connect(openMNConfEditorAction, SIGNAL(triggered()), this, SLOT(showMNConfEditor()));
+    connect(showBackupsAction, SIGNAL(triggered()), this, SLOT(showBackups()));
     connect(labelConnectionsIcon, SIGNAL(clicked()), this, SLOT(showPeers()));
-
 
     // Get restart command-line parameters and handle restart
     connect(rpcConsole, SIGNAL(handleRestart(QStringList)), this, SLOT(handleRestart(QStringList)));
-
-    // prevents an open debug window from becoming stuck/unusable on client shutdown
-    connect(quitAction, SIGNAL(triggered()), rpcConsole, SLOT(hide()));
 
     connect(openBlockExplorerAction, SIGNAL(triggered()), explorerWindow, SLOT(show()));
     // prevents an open debug window from becoming stuck/unusable on client shutdown
@@ -473,9 +460,6 @@ void BitcoinGUI::createActions(const NetworkStyle* networkStyle)
     multiSendAction = new QAction(QIcon(GUIUtil::getThemeImage(":/icons/edit")), tr("&MultiSend"), this);
     multiSendAction->setToolTip(tr("MultiSend Settings"));
     multiSendAction->setCheckable(true);
-
-    openRPCConsoleAction = new QAction(QIcon(GUIUtil::getThemeImage(":/icons/debugwindow")), tr("&Debug console"), this);
-    openRPCConsoleAction->setStatusTip(tr("Open debugging console"));
 
     openBlockExplorerAction = new QAction(QIcon(GUIUtil::getThemeImage(":/icons/blockexplorer")), tr("Blockchain explorer"), this);
     openBlockExplorerAction->setStatusTip(tr("Open inWallet Blockchain explorer"));
@@ -687,12 +671,14 @@ void BitcoinGUI::setClientModel(ClientModel* clientModel)
         // Show progress dialog
         connect(clientModel, SIGNAL(showProgress(QString, int)), this, SLOT(showProgress(QString, int)));
 
-        rpcConsole->setClientModel(clientModel);
 #ifdef ENABLE_WALLET
         if (walletFrame) {
             walletFrame->setClientModel(clientModel);
-        }
+        } else
 #endif // ENABLE_WALLET
+        {
+            rpcConsole->setClientModel(clientModel);
+        }
 
     } else {
         // Disable possibility to show main window via action
@@ -919,6 +905,21 @@ void BitcoinGUI::showRepair()
 {
     toolsAction->setChecked(true);
     walletFrame->gotoToolsPageTab(ToolsPage::TAB_REPAIR);
+}
+
+void BitcoinGUI::showConfEditor()
+{
+    rpcConsole->showConfEditor();
+}
+
+void BitcoinGUI::showMNConfEditor()
+{
+    rpcConsole->showMNConfEditor();
+}
+
+void BitcoinGUI::showBackups()
+{
+    rpcConsole->showBackups();
 }
 
 void BitcoinGUI::gotoReceiveCoinsPage()
@@ -1365,8 +1366,6 @@ void BitcoinGUI::toggleHidden()
 void BitcoinGUI::detectShutdown()
 {
     if (ShutdownRequested()) {
-        if (rpcConsole)
-            rpcConsole->hide();
         qApp->quit();
     }
 }

@@ -47,6 +47,7 @@
 #include <signal.h>
 #endif
 
+#include <boost/foreach.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/filesystem.hpp>
@@ -173,13 +174,13 @@ void PrepareShutdown()
     /// for example if the data directory was found to be locked.
     /// Be sure that anything that writes files or flushes caches only does this if the respective
     /// module was initialized.
-    RenameThread("esbcoin-shutoff");
+    RenameThread("esbc-shutoff");
     mempool.AddTransactionsUpdated(1);
     StopRPCThreads();
 #ifdef ENABLE_WALLET
     if (pwalletMain)
         bitdb.Flush(false);
-    GenerateBitcoins(false, NULL, 0);
+    GenerateESBCs(false, NULL, 0);
 #endif
     StopNode();
     DumpMasternodes();
@@ -321,6 +322,7 @@ std::string HelpMessage(HelpMessageMode mode)
     strUsage += HelpMessageOpt("-pid=<file>", strprintf(_("Specify pid file (default: %s)"), "esbcoind.pid"));
 #endif
     strUsage += HelpMessageOpt("-reindex", _("Rebuild block chain index from current blk000??.dat files") + " " + _("on startup"));
+    strUsage += HelpMessageOpt("-resync", _("Delete blockchain folders and resync from scratch") + " " + _("on startup"));
 #if !defined(WIN32)
     strUsage += HelpMessageOpt("-sysperms", _("Create new files with system default permissions, instead of umask 077 (only effective with disabled wallet functionality)"));
 #endif
@@ -586,7 +588,7 @@ void ThreadImport(std::vector<boost::filesystem::path> vImportFiles)
     }
 
     // -loadblock=
-    BOOST_FOREACH (boost::filesystem::path& path, vImportFiles) {
+    for (boost::filesystem::path& path : vImportFiles) {
         FILE* file = fopen(path.string().c_str(), "rb");
         if (file) {
             CImportingNow imp;
@@ -1081,7 +1083,7 @@ bool AppInit2(boost::thread_group& threadGroup)
 
     if (mapArgs.count("-onlynet")) {
         std::set<enum Network> nets;
-        BOOST_FOREACH (std::string snet, mapMultiArgs["-onlynet"]) {
+        for (std::string snet : mapMultiArgs["-onlynet"]) {
             enum Network net = ParseNetwork(snet);
             if (net == NET_UNROUTABLE)
                 return InitError(strprintf(_("Unknown network specified in -onlynet: '%s'"), snet));
@@ -1095,7 +1097,7 @@ bool AppInit2(boost::thread_group& threadGroup)
     }
 
     if (mapArgs.count("-whitelist")) {
-        BOOST_FOREACH (const std::string& net, mapMultiArgs["-whitelist"]) {
+        for (const std::string& net : mapMultiArgs["-whitelist"]) {
             CSubNet subnet(net);
             if (!subnet.IsValid())
                 return InitError(strprintf(_("Invalid netmask specified in -whitelist: '%s'"), net));
@@ -1155,13 +1157,13 @@ bool AppInit2(boost::thread_group& threadGroup)
     bool fBound = false;
     if (fListen) {
         if (mapArgs.count("-bind") || mapArgs.count("-whitebind")) {
-            BOOST_FOREACH (std::string strBind, mapMultiArgs["-bind"]) {
+            for (std::string strBind : mapMultiArgs["-bind"]) {
                 CService addrBind;
                 if (!Lookup(strBind.c_str(), addrBind, GetListenPort(), false))
                     return InitError(strprintf(_("Cannot resolve -bind address: '%s'"), strBind));
                 fBound |= Bind(addrBind, (BF_EXPLICIT | BF_REPORT_ERROR));
             }
-            BOOST_FOREACH (std::string strBind, mapMultiArgs["-whitebind"]) {
+            for (std::string strBind : mapMultiArgs["-whitebind"]) {
                 CService addrBind;
                 if (!Lookup(strBind.c_str(), addrBind, 0, false))
                     return InitError(strprintf(_("Cannot resolve -whitebind address: '%s'"), strBind));
@@ -1180,7 +1182,7 @@ bool AppInit2(boost::thread_group& threadGroup)
     }
 
     if (mapArgs.count("-externalip")) {
-        BOOST_FOREACH (string strAddr, mapMultiArgs["-externalip"]) {
+        for (string strAddr : mapMultiArgs["-externalip"]) {
             CService addrLocal(strAddr, GetListenPort(), fNameLookup);
             if (!addrLocal.IsValid())
                 return InitError(strprintf(_("Cannot resolve -externalip address: '%s'"), strAddr));
@@ -1188,7 +1190,7 @@ bool AppInit2(boost::thread_group& threadGroup)
         }
     }
 
-    BOOST_FOREACH (string strDest, mapMultiArgs["-seednode"])
+    for (string strDest : mapMultiArgs["-seednode"])
         AddOneShot(strDest);
 
 #if ENABLE_ZMQ
@@ -1200,6 +1202,40 @@ bool AppInit2(boost::thread_group& threadGroup)
 #endif
 
     // ********************************************************* Step 7: load block chain
+    if (GetBoolArg("-resync", false)) {
+        uiInterface.InitMessage(_("Preparing for resync..."));
+        // Delete the local blockchain folders to force a resync from scratch to get a consitent blockchain-state
+        filesystem::path blocksDir = GetDataDir() / "blocks";
+        filesystem::path chainstateDir = GetDataDir() / "chainstate";
+        filesystem::path peersFile = GetDataDir() / "peers.dat";
+        filesystem::path mncacheFile = GetDataDir() / "mncache.dat";
+
+        LogPrintf("Deleting blockchain folders\n");
+        // We delete in 4 individual steps in case one of the folder is missing already
+        try {
+            if (filesystem::exists(blocksDir)){
+                boost::filesystem::remove_all(blocksDir);
+                LogPrintf("-resync: folder deleted: %s\n", blocksDir.string().c_str());
+            }
+
+            if (filesystem::exists(chainstateDir)){
+                boost::filesystem::remove_all(chainstateDir);
+                LogPrintf("-resync: folder deleted: %s\n", chainstateDir.string().c_str());
+            }
+
+            if (filesystem::exists(peersFile)){
+                boost::filesystem::remove(peersFile);
+                LogPrintf("-resync: file deleted: %s\n", peersFile.string().c_str());
+            }
+
+            if (filesystem::exists(mncacheFile)){
+                boost::filesystem::remove(mncacheFile);
+                LogPrintf("-resync: file deleted: %s\n", mncacheFile.string().c_str());
+            }
+        } catch (boost::filesystem::filesystem_error& error) {
+            LogPrintf("Failed to delete blockchain folders %s\n", error.what());
+        }
+    }
 
     fReindex = GetBoolArg("-reindex", false);
 
@@ -1241,9 +1277,11 @@ bool AppInit2(boost::thread_group& threadGroup)
     size_t nCoinDBCache = nTotalCache / 2; // use half of the remaining cache for coindb cache
     nTotalCache -= nCoinDBCache;
     nCoinCacheSize = nTotalCache / 300; // coins in memory require around 300 bytes
+    LogPrintf("Db Cache Size = %u\n", nDefaultDbCache);
+    LogPrintf("Coin Cache Size = %u\n", nCoinCacheSize);
 
     bool fLoaded = false;
-    while (!fLoaded) {
+    while (!fLoaded && !ShutdownRequested()) {
         bool fReset = fReindex;
         std::string strLoadError;
 
@@ -1265,6 +1303,9 @@ bool AppInit2(boost::thread_group& threadGroup)
 
                 if (fReindex)
                     pblocktree->WriteReindexing(true);
+
+                // End loop if shutdown was requested
+                if (ShutdownRequested()) break;
 
                 uiInterface.InitMessage(_("Loading block index..."));
                 string strBlockIndexError = "";
@@ -1291,11 +1332,23 @@ bool AppInit2(boost::thread_group& threadGroup)
                     break;
                 }
 
-                uiInterface.InitMessage(_("Verifying blocks..."));
-                if (!CVerifyDB().VerifyDB(pcoinsdbview, GetArg("-checklevel", 4),
-                        GetArg("-checkblocks", 500))) {
-                    strLoadError = _("Corrupted block database detected");
-                    break;
+                if (!fReindex) {
+                    uiInterface.InitMessage(_("Verifying blocks..."));
+                    {
+                        LOCK(cs_main);
+                        CBlockIndex *tip = chainActive[chainActive.Height()];
+                        if (tip && tip->nTime > GetAdjustedTime() + 2 * 60 * 60) {
+                            strLoadError = _("The block database contains a block which appears to be from the future. "
+                                             "This may be due to your computer's date and time being set incorrectly. "
+                                             "Only rebuild the block database if you are sure that your computer's date and time are correct");
+                            break;
+                        }
+                    }
+
+                    if (!CVerifyDB().VerifyDB(pcoinsdbview, GetArg("-checklevel", 4), GetArg("-checkblocks", 500))) {
+                        strLoadError = _("Corrupted block database detected");
+                        break;
+                    }
                 }
             } catch (std::exception& e) {
                 if (fDebug) LogPrintf("%s\n", e.what());
@@ -1306,7 +1359,7 @@ bool AppInit2(boost::thread_group& threadGroup)
             fLoaded = true;
         } while (false);
 
-        if (!fLoaded) {
+        if (!fLoaded && !ShutdownRequested()) {
             // first suggest a reindex
             if (!fReset) {
                 bool fRet = uiInterface.ThreadSafeMessageBox(
@@ -1442,7 +1495,7 @@ bool AppInit2(boost::thread_group& threadGroup)
 
             // Restore wallet transaction metadata after -zapwallettxes=1
             if (GetBoolArg("-zapwallettxes", false) && GetArg("-zapwallettxes", "1") != "2") {
-                BOOST_FOREACH (const CWalletTx& wtxOld, vWtx) {
+                for (const CWalletTx& wtxOld : vWtx) {
                     uint256 hash = wtxOld.GetHash();
                     std::map<uint256, CWalletTx>::iterator mi = pwalletMain->mapWallet.find(hash);
                     if (mi != pwalletMain->mapWallet.end()) {
@@ -1476,7 +1529,7 @@ bool AppInit2(boost::thread_group& threadGroup)
 
     std::vector<boost::filesystem::path> vImportFiles;
     if (mapArgs.count("-loadblock")) {
-        BOOST_FOREACH (string strFile, mapMultiArgs["-loadblock"])
+        for (string strFile : mapMultiArgs["-loadblock"])
             vImportFiles.push_back(strFile);
     }
     threadGroup.create_thread(boost::bind(&ThreadImport, vImportFiles));
@@ -1544,7 +1597,7 @@ bool AppInit2(boost::thread_group& threadGroup)
         LOCK(pwalletMain->cs_wallet);
         LogPrintf("Locking Masternodes:\n");
         uint256 mnTxHash;
-        BOOST_FOREACH (CMasternodeConfig::CMasternodeEntry mne, masternodeConfig.getEntries()) {
+        for (CMasternodeConfig::CMasternodeEntry mne : masternodeConfig.getEntries()) {
             LogPrintf("  %s %s\n", mne.getTxHash(), mne.getOutputIndex());
             mnTxHash.SetHex(mne.getTxHash());
             COutPoint outpoint = COutPoint(mnTxHash, boost::lexical_cast<unsigned int>(mne.getOutputIndex()));
@@ -1633,7 +1686,7 @@ bool AppInit2(boost::thread_group& threadGroup)
 #ifdef ENABLE_WALLET
     // Generate coins in the background
     if (pwalletMain)
-        GenerateBitcoins(GetBoolArg("-gen", false), pwalletMain, GetArg("-genproclimit", 1));
+        GenerateESBCs(GetBoolArg("-gen", false), pwalletMain, GetArg("-genproclimit", 1));
 #endif
 
     // ********************************************************* Step 12: finished

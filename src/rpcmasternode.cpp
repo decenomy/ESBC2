@@ -323,7 +323,7 @@ UniValue listmasternodes(const UniValue& params, bool fHelp)
         nHeight = pindex->nHeight;
     }
     std::vector<pair<int, CMasternode> > vMasternodeRanks = mnodeman.GetMasternodeRanks(nHeight);
-    BOOST_FOREACH (PAIRTYPE(int, CMasternode) & s, vMasternodeRanks) {
+    for (PAIRTYPE(int, CMasternode) & s : vMasternodeRanks) {
         UniValue obj(UniValue::VOBJ);
         std::string strVin = s.second.vin.prevout.ToStringShort();
         std::string strTxHash = s.second.vin.prevout.hash.ToString();
@@ -646,7 +646,7 @@ UniValue startmasternode (const UniValue& params, bool fHelp)
 
         UniValue resultsObj(UniValue::VARR);
 
-        BOOST_FOREACH (CMasternodeConfig::CMasternodeEntry mne, masternodeConfig.getEntries()) {
+        for (CMasternodeConfig::CMasternodeEntry mne : masternodeConfig.getEntries()) {
             std::string errorMessage;
             int nIndex;
             if(!mne.castOutputIndex(nIndex))
@@ -781,7 +781,7 @@ UniValue getmasternodeoutputs (const UniValue& params, bool fHelp)
     vector<COutput> possibleCoins = activeMasternode.SelectCoinsMasternode();
 
     UniValue ret(UniValue::VARR);
-    BOOST_FOREACH (COutput& out, possibleCoins) {
+    for (COutput& out : possibleCoins) {
         UniValue obj(UniValue::VOBJ);
         obj.push_back(Pair("txhash", out.tx->GetHash().ToString()));
         obj.push_back(Pair("outputidx", out.i));
@@ -826,7 +826,7 @@ UniValue listmasternodeconf (const UniValue& params, bool fHelp)
 
     UniValue ret(UniValue::VARR);
 
-    BOOST_FOREACH (CMasternodeConfig::CMasternodeEntry mne, masternodeConfig.getEntries()) {
+    for (CMasternodeConfig::CMasternodeEntry mne : masternodeConfig.getEntries()) {
         int nIndex;
         if(!mne.castOutputIndex(nIndex))
             continue;
@@ -863,7 +863,8 @@ UniValue getmasternodestatus (const UniValue& params, bool fHelp)
             "\nResult:\n"
             "{\n"
             "  \"txhash\": \"xxxx\",      (string) Collateral transaction hash\n"
-            "  \"outputidx\": n,        (numeric) Collateral transaction output index number\n"
+            "  \"outputidx\": n,          (numeric) Collateral transaction output index number\n"
+            "  \"level\": n,              (numeric) Masternode tier level\n"
             "  \"netaddr\": \"xxxx\",     (string) Masternode network address\n"
             "  \"addr\": \"xxxx\",        (string) esbcoin address for masternode payments\n"
             "  \"status\": \"xxxx\",      (string) Masternode status\n"
@@ -881,6 +882,7 @@ UniValue getmasternodestatus (const UniValue& params, bool fHelp)
         UniValue mnObj(UniValue::VOBJ);
         mnObj.push_back(Pair("txhash", activeMasternode.vin.prevout.hash.ToString()));
         mnObj.push_back(Pair("outputidx", (uint64_t)activeMasternode.vin.prevout.n));
+        mnObj.push_back(Pair("level", (unsigned)pmn->Level(activeMasternode.vin, chainActive.Height())));
         mnObj.push_back(Pair("netaddr", activeMasternode.service.ToString()));
         mnObj.push_back(Pair("addr", CBitcoinAddress(pmn->pubKeyCollateralAddress.GetID()).ToString()));
         mnObj.push_back(Pair("status", activeMasternode.status));
@@ -1035,7 +1037,7 @@ UniValue getmasternodescores (const UniValue& params, bool fHelp)
     for (int nHeight = chainActive.Tip()->nHeight - nLast; nHeight < chainActive.Tip()->nHeight + 20; nHeight++) {
         uint256 nHigh = 0;
         CMasternode* pBestMasternode = NULL;
-        BOOST_FOREACH (CMasternode& mn, vMasternodes) {
+        for (CMasternode& mn : vMasternodes) {
             uint256 n = mn.CalculateScore(1, nHeight - 100);
             if (n > nHigh) {
                 nHigh = n;

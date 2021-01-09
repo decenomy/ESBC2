@@ -260,7 +260,6 @@ CDB::CDB(const std::string& strFilename, const char* pszMode) : pdb(NULL), activ
                 delete pdb;
                 pdb = NULL;
                 --bitdb.mapFileUseCount[strFile];
-                strFile = "";
                 throw runtime_error(strprintf("CDB : Error %d, can't open database %s", ret, strFile));
             }
 

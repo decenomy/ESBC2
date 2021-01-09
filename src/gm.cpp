@@ -20,7 +20,7 @@
 
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/replace.hpp>
-#include <boost/foreach.hpp>
+
 #include <boost/thread.hpp>
 
 using namespace std;
@@ -48,7 +48,7 @@ void ProcessGM(CNode* pfrom, std::string& strCommand, CDataStream& vRecv)
                 pfrom->setKnown.insert(messageHash);
                 {
                     LOCK(cs_vNodes);
-                    BOOST_FOREACH (CNode* pnode, vNodes)
+                    for (CNode* pnode : vNodes)
                         message.RelayTo(pnode);
                 }
             } else {
@@ -250,7 +250,7 @@ bool CGM::ProcessMessage(bool fThread)
                 else
                     LogPrint("gm", "expiring message %d\n", message.nID);
                 mapGMs.erase(mi++);
-                BOOST_FOREACH (CNode* pnode, vNodes)
+                for (CNode* pnode : vNodes)
                     pnode->setKnown.erase(message.GetHash());
             } else
                 mi++;

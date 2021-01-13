@@ -12,7 +12,7 @@ Follow us at [Twitter](https://esbc.pro/link/twitter)
 
 ### Coin Specs
 
-https://esbc.pro/static/images/specification2.png
+![Coin specifications](https://esbc.pro/static/images/specification2.png)
 
 ***
 All binaries for different operating systems, you can download in the releases repository:

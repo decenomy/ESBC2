@@ -139,12 +139,8 @@ QString windowTitle = tr("ESBC") + " - ";
     QString userWindowTitle = QString::fromStdString(GetArg("-windowtitle", ""));
     if (!userWindowTitle.isEmpty()) windowTitle += " - " + userWindowTitle;
     windowTitle += " " + networkStyle->getTitleAddText();
-#ifndef Q_OS_MAC
     QApplication::setWindowIcon(networkStyle->getAppIcon());
     setWindowIcon(networkStyle->getAppIcon());
-#else
-    MacDockIconHandler::instance()->setIcon(networkStyle->getAppIcon());
-#endif
     setWindowTitle(windowTitle);
 
 #if defined(Q_OS_MAC) && QT_VERSION < 0x050000
@@ -768,8 +764,10 @@ void BitcoinGUI::createTrayIconMenu()
 #else
     // Note: On Mac, the dock icon is used to provide the tray's functionality.
     MacDockIconHandler* dockIconHandler = MacDockIconHandler::instance();
-    dockIconHandler->setMainWindow((QMainWindow*)this);
-    trayIconMenu = dockIconHandler->dockMenu();
+    connect(dockIconHandler, &MacDockIconHandler::dockIconClicked, this, &BitcoinGUI::macosDockIconActivated);
+
+    trayIconMenu = new QMenu(this);
+    trayIconMenu->setAsDockMenu();
 #endif
 
     // Configuration of the tray icon (or dock icon) icon menu
@@ -810,6 +808,12 @@ void BitcoinGUI::trayIconActivated(QSystemTrayIcon::ActivationReason reason)
         // Click on system tray icon triggers show/hide of the main window
         toggleHidden();
     }
+}
+#else
+void BitcoinGUI::macosDockIconActivated()
+{
+    show();
+    activateWindow();
 }
 #endif
 
@@ -1344,18 +1348,11 @@ void BitcoinGUI::showNormalIfMinimized(bool fToggleHidden)
     if (!clientModel)
         return;
 
-    // activateWindow() (sometimes) helps with keyboard focus on Windows
-    if (isHidden()) {
-        show();
-        activateWindow();
-    } else if (isMinimized()) {
-        showNormal();
-        activateWindow();
-    } else if (GUIUtil::isObscured(this)) {
-        raise();
-        activateWindow();
-    } else if (fToggleHidden)
+    if (!isHidden() && !isMinimized() && !GUIUtil::isObscured(this) && fToggleHidden) {
         hide();
+    } else {
+        GUIUtil::bringToFront(this);
+    }
 }
 
 void BitcoinGUI::toggleHidden()
@@ -1408,13 +1405,13 @@ static bool ThreadSafeMessageBox(BitcoinGUI* gui, const std::string& message, co
 void BitcoinGUI::subscribeToCoreSignals()
 {
     // Connect signals to client
-    uiInterface.ThreadSafeMessageBox.connect(boost::bind(ThreadSafeMessageBox, this, _1, _2, _3));
+    uiInterface.ThreadSafeMessageBox.connect(boost::bind(ThreadSafeMessageBox, this, boost::placeholders::_1, boost::placeholders::_2, boost::placeholders::_3));
 }
 
 void BitcoinGUI::unsubscribeFromCoreSignals()
 {
     // Disconnect signals from client
-    uiInterface.ThreadSafeMessageBox.disconnect(boost::bind(ThreadSafeMessageBox, this, _1, _2, _3));
+    uiInterface.ThreadSafeMessageBox.disconnect(boost::bind(ThreadSafeMessageBox, this, boost::placeholders::_1, boost::placeholders::_2, boost::placeholders::_3));
 }
 
 /** Get restart command-line parameters and request restart */

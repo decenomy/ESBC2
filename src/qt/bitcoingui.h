@@ -244,6 +244,9 @@ private slots:
 #ifndef Q_OS_MAC
     /** Handle tray icon clicked */
     void trayIconActivated(QSystemTrayIcon::ActivationReason reason);
+#else
+    /** Handle macOS Dock icon clicked */
+    void macosDockIconActivated();
 #endif
 
     void showInfo();

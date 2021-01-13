@@ -76,6 +76,7 @@ AC_PATH_TOOL(GCOV, gcov)
 AC_PATH_PROG(LCOV, lcov)
 AC_PATH_PROG(JAVA, java)
 AC_PATH_PROGS([PYTHON], [python3 python2.7 python2 python])
+AC_PATH_PROGS([PYTHON2], [python2.7 python2 python])
 AC_PATH_PROG(GENHTML, genhtml)
 AC_PATH_PROG([GIT], [git])
 AC_PATH_PROG(CCACHE,ccache)
@@ -204,13 +205,26 @@ if test "x$CXXFLAGS_overridden" = "xno"; then
   CXXFLAGS="$CXXFLAGS -Wall -Wextra -Wformat -Wformat-security -Wno-unused-parameter"
 fi
 
-# Check for optional instruction set support. Enabling these does _not_ imply that all code will
-# be compiled with them, rather that specific objects/libs may use them after checking for runtime
-# compatibility.
+enable_sse42=no
+enable_sse41=no
+enable_avx2=no
+enable_shani=no
+
+if test "x$use_asm" = "xyes"; then
+
+dnl Check for optional instruction set support. Enabling these does _not_ imply that all code will
+dnl be compiled with them, rather that specific objects/libs may use them after checking for runtime
+dnl compatibility.
+
+dnl x86
 AX_CHECK_COMPILE_FLAG([-msse4.2],[[SSE42_CXXFLAGS="-msse4.2"]],,[[$CXXFLAG_WERROR]])
+AX_CHECK_COMPILE_FLAG([-msse4.1],[[SSE41_CXXFLAGS="-msse4.1"]],,[[$CXXFLAG_WERROR]])
+AX_CHECK_COMPILE_FLAG([-mavx -mavx2],[[AVX2_CXXFLAGS="-mavx -mavx2"]],,[[$CXXFLAG_WERROR]])
+AX_CHECK_COMPILE_FLAG([-msse4 -msha],[[SHANI_CXXFLAGS="-msse4 -msha"]],,[[$CXXFLAG_WERROR]])
+
 TEMP_CXXFLAGS="$CXXFLAGS"
 CXXFLAGS="$CXXFLAGS $SSE42_CXXFLAGS"
-AC_MSG_CHECKING(for assembler crc32 support)
+AC_MSG_CHECKING(for SSE4.2 intrinsics)
 AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
     #include <stdint.h>
     #if defined(_MSC_VER)
@@ -225,10 +239,77 @@ AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
     l = _mm_crc32_u64(l, 0);
     return l;
   ]])],
- [ AC_MSG_RESULT(yes); enable_hwcrc32=yes],
+ [ AC_MSG_RESULT(yes); enable_sse42=yes],
  [ AC_MSG_RESULT(no)]
 )
 CXXFLAGS="$TEMP_CXXFLAGS"
+
+TEMP_CXXFLAGS="$CXXFLAGS"
+CXXFLAGS="$CXXFLAGS $SSE41_CXXFLAGS"
+AC_MSG_CHECKING(for SSE4.1 intrinsics)
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+    #include <stdint.h>
+    #include <immintrin.h>
+  ]],[[
+    __m128i l = _mm_set1_epi32(0);
+    return _mm_extract_epi32(l, 3);
+  ]])],
+ [ AC_MSG_RESULT(yes); enable_sse41=yes; AC_DEFINE(ENABLE_SSE41, 1, [Define this symbol to build code that uses SSE4.1 intrinsics]) ],
+ [ AC_MSG_RESULT(no)]
+)
+CXXFLAGS="$TEMP_CXXFLAGS"
+
+TEMP_CXXFLAGS="$CXXFLAGS"
+CXXFLAGS="$CXXFLAGS $AVX2_CXXFLAGS"
+AC_MSG_CHECKING(for AVX2 intrinsics)
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+    #include <stdint.h>
+    #include <immintrin.h>
+  ]],[[
+    __m256i l = _mm256_set1_epi32(0);
+    return _mm256_extract_epi32(l, 7);
+  ]])],
+ [ AC_MSG_RESULT(yes); enable_avx2=yes; AC_DEFINE(ENABLE_AVX2, 1, [Define this symbol to build code that uses AVX2 intrinsics]) ],
+ [ AC_MSG_RESULT(no)]
+)
+CXXFLAGS="$TEMP_CXXFLAGS"
+
+TEMP_CXXFLAGS="$CXXFLAGS"
+CXXFLAGS="$CXXFLAGS $SHANI_CXXFLAGS"
+AC_MSG_CHECKING(for SHA-NI intrinsics)
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+    #include <stdint.h>
+    #include <immintrin.h>
+  ]],[[
+    __m128i i = _mm_set1_epi32(0);
+    __m128i j = _mm_set1_epi32(1);
+    __m128i k = _mm_set1_epi32(2);
+    return _mm_extract_epi32(_mm_sha256rnds2_epu32(i, i, k), 0);
+  ]])],
+ [ AC_MSG_RESULT(yes); enable_shani=yes; AC_DEFINE(ENABLE_SHANI, 1, [Define this symbol to build code that uses SHA-NI intrinsics]) ],
+ [ AC_MSG_RESULT(no)]
+)
+CXXFLAGS="$TEMP_CXXFLAGS"
+
+# ARM
+AX_CHECK_COMPILE_FLAG([-march=armv8-a+crc+crypto],[[ARM_CRC_CXXFLAGS="-march=armv8-a+crc+crypto"]],,[[$CXXFLAG_WERROR]])
+
+TEMP_CXXFLAGS="$CXXFLAGS"
+CXXFLAGS="$CXXFLAGS $ARM_CRC_CXXFLAGS"
+AC_MSG_CHECKING(for ARM CRC32 intrinsics)
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+    #include <arm_acle.h>
+    #include <arm_neon.h>
+  ]],[[
+    __crc32cb(0, 0); __crc32ch(0, 0); __crc32cw(0, 0); __crc32cd(0, 0);
+    vmull_p64(0, 0);
+  ]])],
+ [ AC_MSG_RESULT(yes); enable_arm_crc=yes; ],
+ [ AC_MSG_RESULT(no)]
+)
+CXXFLAGS="$TEMP_CXXFLAGS"
+
+fi
 
 CPPFLAGS="$CPPFLAGS -DBOOST_SPIRIT_THREADSAFE -DHAVE_BUILD_INFO -D__STDC_FORMAT_MACROS"
 
@@ -318,6 +399,12 @@ case $host in
   *darwin*)
      TARGET_OS=darwin
      LEVELDB_TARGET_FLAGS="-DOS_MACOSX"
+     AC_PATH_TOOL([INSTALLNAMETOOL], [install_name_tool], install_name_tool)
+     AC_PATH_TOOL([OTOOL], [otool], otool)
+     AC_PATH_PROGS([GENISOIMAGE], [genisoimage mkisofs],genisoimage)
+     AC_PATH_PROGS([RSVG_CONVERT], [rsvg-convert rsvg],rsvg-convert)
+     AC_PATH_PROGS([IMAGEMAGICK_CONVERT], [convert],convert)
+     AC_PATH_PROGS([TIFFCP], [tiffcp],tiffcp)
      if  test x$cross_compiling != xyes; then
        BUILD_OS=darwin
        AC_CHECK_PROG([PORT],port, port)
@@ -362,12 +449,6 @@ case $host in
            BUILD_OS=darwin
            ;;
          *)
-           AC_PATH_TOOL([INSTALLNAMETOOL], [install_name_tool], install_name_tool)
-           AC_PATH_TOOL([OTOOL], [otool], otool)
-           AC_PATH_PROGS([GENISOIMAGE], [genisoimage mkisofs],genisoimage)
-           AC_PATH_PROGS([RSVG_CONVERT], [rsvg-convert rsvg],rsvg-convert)
-           AC_PATH_PROGS([IMAGEMAGICK_CONVERT], [convert],convert)
-           AC_PATH_PROGS([TIFFCP], [tiffcp],tiffcp)
 
            dnl libtool will try to strip the static lib, which is a problem for
            dnl cross-builds because strip attempts to call a hard-coded ld,
@@ -844,8 +925,7 @@ fi
 AC_CHECK_LIB([crypto],[RAND_egd],[],[
   AC_ARG_WITH([libressl],
     [AS_HELP_STRING([--with-libressl],[Build with system LibreSSL (default is no; DANGEROUS; NOT SUPPORTED)])],
-    [AC_MSG_WARN([Detected LibreSSL: This is NOT supported, and may break consensus compatibility!])],
-    [AC_MSG_ERROR([Detected LibreSSL: This is NOT supported, and may break consensus compatibility!])]
+    [AC_MSG_WARN([Detected LibreSSL: This is NOT supported, and may break consensus compatibility!])]
   )
 ])
 

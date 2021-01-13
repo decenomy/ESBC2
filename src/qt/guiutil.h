@@ -9,6 +9,7 @@
 #define BITCOIN_QT_GUIUTIL_H
 
 #include "amount.h"
+#include "fs.h"
 
 #include <QEvent>
 #include <QHeaderView>
@@ -23,7 +24,7 @@
 #include <QRect>
 #include <QStyle>
 
-#include <boost/filesystem.hpp>
+//#include <boost/filesystem.hpp>
 
 class QValidatedLineEdit;
 class SendCoinsRecipient;
@@ -104,20 +105,23 @@ QString getOpenFileName(QWidget* parent, const QString& caption, const QString& 
     */
 Qt::ConnectionType blockingGUIThreadConnection();
 
+// Activate, show and raise the widget
+void bringToFront(QWidget* w);
+
 // Determine whether a widget is hidden behind other windows
 bool isObscured(QWidget* w);
 
 // Open debug.log
-void openDebugLogfile();
+bool openDebugLogfile();
 
 // Open esbcoin.conf
-void openConfigfile();
+bool openConfigfile();
 
 // Open masternode.conf
-void openMNConfigfile();
+bool openMNConfigfile();
 
 // Browse backup folder
-void showBackups();
+bool showBackups();
 
 // Replace invalid default fonts with known good ones
 void SubstituteFonts(const QString& language);
@@ -211,10 +215,10 @@ bool isExternal(QString theme);
 QString getThemeImage(QString image);
 
 /* Convert QString to OS specific boost path through UTF-8 */
-boost::filesystem::path qstringToBoostPath(const QString& path);
+fs::path qstringToBoostPath(const QString& path);
 
 /* Convert OS specific boost path to QString through UTF-8 */
-QString boostPathToQString(const boost::filesystem::path& path);
+QString boostPathToQString(const fs::path& path);
 
 /* Convert seconds into a QString with days, hours, mins, secs */
 QString formatDurationStr(int secs);

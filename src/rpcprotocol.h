@@ -105,10 +105,18 @@ public:
         if (fUseSSL) return boost::asio::write(stream, boost::asio::buffer(s, n));
         return boost::asio::write(stream.next_layer(), boost::asio::buffer(s, n));
     }
+
+    // Ensure the correct io_service() is called based on boost version
+    #if BOOST_VERSION >= 107000
+    #define GET_IO_SERVICE(s) ((boost::asio::io_context&)(s).get_executor().context())
+    #else
+    #define GET_IO_SERVICE(s) ((s).get_io_service())
+    #endif
+
     bool connect(const std::string& server, const std::string& port)
     {
         using namespace boost::asio::ip;
-        tcp::resolver resolver(stream.get_io_service());
+        tcp::resolver resolver(GET_IO_SERVICE(stream));
         tcp::resolver::iterator endpoint_iterator;
 #if BOOST_VERSION >= 104300
         try {

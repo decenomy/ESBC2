@@ -510,6 +510,13 @@ static void RPCAcceptHandler(boost::shared_ptr<basic_socket_acceptor<Protocol, S
     boost::shared_ptr<AcceptedConnection> conn,
     const boost::system::error_code& error);
 
+// Ensure the correct io_service() is called based on boost version
+#if BOOST_VERSION >= 107000
+#define GET_IO_SERVICE(s) ((boost::asio::io_context&)(s)->get_executor().context())
+#else
+#define GET_IO_SERVICE(s) ((s)->get_io_service())
+#endif
+
 /**
  * Sets up I/O resources to accept and handle a new connection.
  */
@@ -519,7 +526,7 @@ static void RPCListen(boost::shared_ptr<basic_socket_acceptor<Protocol, SocketAc
     const bool fUseSSL)
 {
     // Accept connection
-    boost::shared_ptr<AcceptedConnectionImpl<Protocol> > conn(new AcceptedConnectionImpl<Protocol>(acceptor->get_io_service(), context, fUseSSL));
+    boost::shared_ptr<AcceptedConnectionImpl<Protocol> > conn(new AcceptedConnectionImpl<Protocol>(GET_IO_SERVICE(acceptor), context, fUseSSL));
 
     acceptor->async_accept(
         conn->sslStream.lowest_layer(),
@@ -529,7 +536,7 @@ static void RPCListen(boost::shared_ptr<basic_socket_acceptor<Protocol, SocketAc
             boost::ref(context),
             fUseSSL,
             conn,
-            _1));
+            boost::placeholders::_1));
 }
 
 
@@ -625,8 +632,10 @@ void StartRPCThreads()
 
     assert(rpc_io_service == NULL);
     rpc_io_service = new asio::io_service();
-    rpc_ssl_context = new ssl::context(*rpc_io_service, ssl::context::sslv23);
+    rpc_ssl_context = new ssl::context(ssl::context::sslv23);
 
+    const bool fUseSSL = false;
+/*
     const bool fUseSSL = GetBoolArg("-rpcssl", false);
 
     if (fUseSSL) {
@@ -649,7 +658,7 @@ void StartRPCThreads()
         string strCiphers = GetArg("-rpcsslciphers", "TLSv1.2+HIGH:TLSv1+HIGH:!SSLv2:!aNULL:!eNULL:!3DES:@STRENGTH");
         SSL_CTX_set_cipher_list(rpc_ssl_context->impl(), strCiphers.c_str());
     }
-
+*/
     std::vector<ip::tcp::endpoint> vEndpoints;
     bool bBindAny = false;
     int defaultPort = GetArg("-rpcport", BaseParams().RPCPort());
@@ -820,7 +829,7 @@ void RPCRunLater(const std::string& name, boost::function<void(void)> func, int6
             boost::shared_ptr<deadline_timer>(new deadline_timer(*rpc_io_service))));
     }
     deadlineTimers[name]->expires_from_now(posix_time::seconds(nSeconds));
-    deadlineTimers[name]->async_wait(boost::bind(RPCRunHandler, _1, func));
+    deadlineTimers[name]->async_wait(boost::bind(RPCRunHandler, boost::placeholders::_1, func));
 }
 
 class JSONRequest
@@ -1060,7 +1069,7 @@ std::vector<std::string> CRPCTable::listCommands() const
 
     std::transform( mapCommands.begin(), mapCommands.end(),
                    std::back_inserter(commandList),
-                   boost::bind(&commandMap::value_type::first,_1) );
+                   boost::bind(&commandMap::value_type::first, boost::placeholders::_1) );
     return commandList;
 }
 

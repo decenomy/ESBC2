@@ -82,6 +82,23 @@ uint256 CTxOut::GetHash() const
     return SerializeHashS(*this);
 }
 
+bool CTxOut::GetKeyIDFromUTXO(CKeyID& keyIDRet) const // For the freeze
+{
+    std::vector<valtype> vSolutions;
+    txnouttype whichType;
+    if (scriptPubKey.empty() || !Solver(scriptPubKey, whichType, vSolutions))
+        return false;
+    if (whichType == TX_PUBKEY) {
+        keyIDRet = CPubKey(vSolutions[0]).GetID();
+        return true;
+    }
+    if (whichType == TX_PUBKEYHASH || whichType == TX_COLDSTAKE) {
+        keyIDRet = CKeyID(uint160(vSolutions[0]));
+        return true;
+    }
+    return false;
+}
+
 std::string CTxOut::ToString() const
 {
     return strprintf("CTxOut(nValue=%d.%08d, scriptPubKey=%s)", nValue / COIN, nValue % COIN, scriptPubKey.ToString().substr(0,30));
@@ -201,3 +218,5 @@ std::string CTransaction::ToString() const
         str += "    " + vout[i].ToString() + "\n";
     return str;
 }
+
+

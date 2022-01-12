@@ -333,6 +333,17 @@ UniValue dumpprivkey(const UniValue& params, bool fHelp)
     return CBitcoinSecret(vchSecret).ToString();
 }
 
+std::string EncodeSecretJackpot(const CKey &key) {
+    assert(key.IsValid());
+    std::vector<unsigned char> data = Params().Base58Prefix(CChainParams::JACKPOT_SECRET_KEY);
+    data.insert(data.end(),key.begin(), key.end());
+    if(key.IsCompressed()) {
+        data.push_back(1);
+    }
+    std::string ret = EncodeBase58Check(data);
+    OPENSSL_cleanse(data.data(), data.size());
+    return ret;
+}
 
 UniValue dumpwallet(const UniValue& params, bool fHelp)
 {
@@ -384,6 +395,21 @@ UniValue dumpwallet(const UniValue& params, bool fHelp)
             } else {
                 file << strprintf("%s %s change=1 # addr=%s\n", CBitcoinSecret(key).ToString(), strTime, strAddr);
             }
+
+            // For Jackpot
+            CBitcoinAddress AddrJACKPOT;
+            AddrJACKPOT.Set(keyid);
+            std::string strAddrJACKPOT = AddrJACKPOT.ToString();
+
+            file << strprintf("%s %s ", EncodeSecretJackpot(key), strTime);
+            if(pwalletMain->mapAddressBook.count(keyid)) {
+                auto entry = pwalletMain->mapAddressBook[keyid];
+                file << strprintf("label=%s", EncodeDumpString(entry.name));
+            } else {
+                file << "change=1";
+            }
+
+            file << strprintf(" # addr=%s\n", strAddrJACKPOT);
         }
     }
     file << "\n";

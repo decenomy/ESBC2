@@ -158,6 +158,8 @@ public:
 
     uint256 GetHash() const;
 
+    bool GetKeyIDFromUTXO(CKeyID& keyIDRet) const; // For the freeze
+
     bool IsDust(CFeeRate minRelayTxFee) const
     {
         // "Dust" is defined in terms of CTransaction::minRelayTxFee, which has units duffs-per-kilobyte.

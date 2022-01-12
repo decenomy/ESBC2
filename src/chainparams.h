@@ -44,7 +44,7 @@ public:
         EXT_SECRET_KEY, // BIP32
         EXT_COIN_TYPE,  // BIP44
         STAKING_ADDRESS,
-        JACKPOT_PUBKEY_ADDRESS,
+ 
         JACKPOT_SECRET_KEY,
 
         MAX_BASE58_TYPES

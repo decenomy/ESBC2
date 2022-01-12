@@ -131,7 +131,6 @@ void InitTxFilter()
         "eHN6ZUwnyCbBKNn8bnSQzuMPnfRAgTbdge",
         "eDLQJ8XE6ppwQk2VrfKnMhyaZhExkHfn8P",
         "e9aZ67ZXqa14dszJRZ1rjgmKV1mP1JWNPZ",
-        "eLcmJ85wJJVsnXW8KaC7g74FsCTV7qohtK",
         "eLXfgmbRWgDPb5mAupCKPmRdR69JZp73ZF",
         "e9omJH9xJRfTMhWTUjiD7ZjpKZaBTwxmoR",
         "eBpEkYE8BZu5N3p1owYJJMCTx9pjE7skgr",

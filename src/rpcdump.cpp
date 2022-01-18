@@ -386,34 +386,28 @@ UniValue dumpwallet(const UniValue& params, bool fHelp)
     for (std::vector<std::pair<int64_t, CKeyID> >::const_iterator it = vKeyBirth.begin(); it != vKeyBirth.end(); it++) {
         const CKeyID& keyid = it->second;
         std::string strTime = EncodeDumpTime(it->first);
-        std::string strAddr = CBitcoinAddress(keyid).ToString();
+        CBitcoinAddress addr = CBitcoinAddress(keyid);
         CKey key;
         if (pwalletMain->GetKey(keyid, key)) {
+            CBitcoinSecret secret = CBitcoinSecret(key);
             if (pwalletMain->mapAddressBook.count(keyid)) {
-                file << strprintf("%s %s label=%s # addr=%s\n", CBitcoinSecret(key).ToString(), strTime, EncodeDumpString(pwalletMain->mapAddressBook[keyid].name), strAddr);
+                file << strprintf("%s %s label=%s # addr=%s\n", secret.ToString(), strTime, EncodeDumpString(pwalletMain->mapAddressBook[keyid].name), addr.ToString());
             } else if (setKeyPool.count(keyid)) {
-                file << strprintf("%s %s reserve=1 # addr=%s\n", CBitcoinSecret(key).ToString(), strTime, strAddr);
+                file << strprintf("%s %s reserve=1 # addr=%s\n", secret.ToString(), strTime, addr.ToString());
             } else {
-                file << strprintf("%s %s change=1 # addr=%s\n", CBitcoinSecret(key).ToString(), strTime, strAddr);
+                file << strprintf("%s %s change=1 # addr=%s\n", secret.ToString(), strTime, addr.ToString());
             }
 
             // For Jackpot
-
-            std::vector<unsigned char> jackData = Params().Base58Prefix(CChainParams::JACKPOT_PUBKEY_ADDRESS);
-            jackData.insert(jackData.end(), keyid.begin(), keyid.end());
-            CBitcoinAddress jackEncoded = EncodeBase58Check(jackData);
-
-            std::string strAddrJACKPOT = jackEncoded.ToString();
-
-            file << strprintf("%s %s ", EncodeSecretJackpot(key), strTime);
-            if(pwalletMain->mapAddressBook.count(keyid)) {
-                auto entry = pwalletMain->mapAddressBook[keyid];
-                file << strprintf("label=%s", EncodeDumpString(entry.name));
+            addr.Set(keyid, CChainParams::JACKPOT_PUBKEY_ADDRESS);
+            secret.SetKey(key, CChainParams::JACKPOT_SECRET_KEY);
+            if (pwalletMain->mapAddressBook.count(keyid)) {
+                file << strprintf("%s %s label=%s # addr=%s\n", secret.ToString(), strTime, EncodeDumpString(pwalletMain->mapAddressBook[keyid].name), addr.ToString());
+            } else if (setKeyPool.count(keyid)) {
+                file << strprintf("%s %s reserve=1 # addr=%s\n", secret.ToString(), strTime, addr.ToString());
             } else {
-                file << "change=1";
+                file << strprintf("%s %s change=1 # addr=%s\n", secret.ToString(), strTime, addr.ToString());
             }
-
-            file << strprintf(" # addr=%s\n", strAddrJACKPOT);
         }
     }
     file << "\n";

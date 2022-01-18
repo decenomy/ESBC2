@@ -234,10 +234,15 @@ public:
 
 } // anon namespace
 
+bool CBitcoinAddress::Set(const CKeyID& id, CChainParams::Base58Type type)
+{
+    SetData(Params().Base58Prefix(type), &id, 20);
+    return true;
+}
+
 bool CBitcoinAddress::Set(const CKeyID& id)
 {
-    SetData(Params().Base58Prefix(CChainParams::PUBKEY_ADDRESS), &id, 20);
-    return true;
+    return Set(id, CChainParams::PUBKEY_ADDRESS);
 }
 
 bool CBitcoinAddress::Set(const CScriptID& id)
@@ -293,12 +298,17 @@ bool CBitcoinAddress::IsScript() const
     return IsValid() && vchVersion == Params().Base58Prefix(CChainParams::SCRIPT_ADDRESS);
 }
 
-void CBitcoinSecret::SetKey(const CKey& vchSecret)
+void CBitcoinSecret::SetKey(const CKey& vchSecret, CChainParams::Base58Type type)
 {
     assert(vchSecret.IsValid());
-    SetData(Params().Base58Prefix(CChainParams::SECRET_KEY), vchSecret.begin(), vchSecret.size());
+    SetData(Params().Base58Prefix(type), vchSecret.begin(), vchSecret.size());
     if (vchSecret.IsCompressed())
         vchData.push_back(1);
+}
+
+void CBitcoinSecret::SetKey(const CKey& vchSecret)
+{
+    SetKey(vchSecret, CChainParams::SECRET_KEY);
 }
 
 CKey CBitcoinSecret::GetKey()

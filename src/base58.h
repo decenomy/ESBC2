@@ -110,6 +110,7 @@ class CBitcoinAddress : public CBase58Data
 {
 public:
     bool Set(const CKeyID& id);
+    bool Set(const CKeyID& id, CChainParams::Base58Type type);
     bool Set(const CScriptID& id);
     bool Set(const CTxDestination& dest);
     bool IsValid() const;
@@ -132,6 +133,7 @@ class CBitcoinSecret : public CBase58Data
 {
 public:
     void SetKey(const CKey& vchSecret);
+    void SetKey(const CKey& vchSecretm, CChainParams::Base58Type type);
     CKey GetKey();
     bool IsValid() const;
     bool SetString(const char* pszSecret);

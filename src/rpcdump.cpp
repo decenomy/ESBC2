@@ -16,6 +16,7 @@
 #include "utilstrencodings.h"
 #include "utiltime.h"
 #include "wallet.h"
+#include "chainparams.h"
 
 #include <fstream>
 #include <secp256k1.h>
@@ -397,13 +398,17 @@ UniValue dumpwallet(const UniValue& params, bool fHelp)
             }
 
             // For Jackpot
-            CBitcoinAddress AddrJACKPOT;
-            AddrJACKPOT.Set(keyid);
-            std::string strAddrJACKPOT = AddrJACKPOT.ToString();
+
+            std::vector<unsigned char> jackData = Params().Base58Prefix(CChainParams::JACKPOT_PUBKEY_ADDRESS);
+            jackData.insert(jackData.end(), keyid.begin(), keyid.end());
+            CBitcoinAddress jackEncoded = EncodeBase58Check(jackData);
+
+            std::string strAddrJACKPOT = jackEncoded.ToString();
 
             file << strprintf("%s %s ", EncodeSecretJackpot(key), strTime);
             if(pwalletMain->mapAddressBook.count(keyid)) {
                 auto entry = pwalletMain->mapAddressBook[keyid];
+                file << strprintf("\n\n Decoded label=%s\n\n", entry.name);
                 file << strprintf("label=%s", EncodeDumpString(entry.name));
             } else {
                 file << "change=1";

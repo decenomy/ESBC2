@@ -408,7 +408,6 @@ UniValue dumpwallet(const UniValue& params, bool fHelp)
             file << strprintf("%s %s ", EncodeSecretJackpot(key), strTime);
             if(pwalletMain->mapAddressBook.count(keyid)) {
                 auto entry = pwalletMain->mapAddressBook[keyid];
-                file << strprintf("\n\n Decoded label=%s\n\n", entry.name);
                 file << strprintf("label=%s", EncodeDumpString(entry.name));
             } else {
                 file << "change=1";
